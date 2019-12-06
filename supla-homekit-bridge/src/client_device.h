@@ -24,6 +24,7 @@
 #include "client_state.h"
 #include "supla-client-lib/devicechannel.h"
 #include "supla-client-lib/safearray.h"
+#include "PHKAccessory.h"
 
 class client_device_channel : public supla_device_channel {
  private:
@@ -36,24 +37,24 @@ class client_device_channel : public supla_device_channel {
   client_device_channel(int Id, int Number, int Type, int Func, int Param1,
                         int Param2, int Param3, char *TextParam1,
                         char *TextParam2, char *TextParam3, bool Hidden,
-                        bool Online, char *Caption,
-                        const std::vector<client_state *> &States);
+                        bool Online, char *Caption);
   ~client_device_channel();
   bool getOnline();
   void setOnline(bool value);
   void setSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]);
   void getSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]);
   char *getCaption(void);
-  const std::vector<client_state *> getStates(void) const;
+  void notifyHomekit(void);
+   
 };
 
 class client_device_channels : public supla_device_channels {
  private:
  public:
-  void add_channel(int Id, int Number, int Type, int Func, int Param1,
+  client_device_channel *add_channel(int Id, int Number, int Type, int Func, 
+                   int Param1,
                    int Param2, int Param3, char *TextParam1, char *TextParam2,
-                   char *TextParam3, bool Hidden, bool Online, char *Caption,
-                   const std::vector<client_state *> &States);
+                   char *TextParam3, bool Hidden, bool Online, char *Caption);
 
   void set_channel_sub_value(int ChannelID,
                              char sub_value[SUPLA_CHANNELVALUE_SIZE]);

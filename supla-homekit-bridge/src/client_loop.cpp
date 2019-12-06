@@ -45,10 +45,16 @@ void client_loop_channel_update(void *_suplaclient, void *sthread,
   
   supla_log(LOG_DEBUG, "Channel Update %d %d", channel->Id, channel->online);
 
-  channels->add_channel(channel->Id, 0, channel->Type, channel->Func, 0, 0, 0,
+  client_device_channel *channel = 
+    channels->add_channel(channel->Id, 0, channel->Type, channel->Func, 0, 0, 0,
                         NULL, NULL, NULL, false, channel->online == 1,
                         channel->Caption, states);
-  channels->set_channel_value(channel->Id, channel->value.value, &converted);
+						
+  if (channel != NULL) {
+    channel->setValue(channel_value->value.value);
+    channel->setSubValue(channel_value->value.sub_value);
+	channel->notifyHomekit();
+  }; 
 }
 
 void client_loop_channelgroup_update(void *_suplaclient, void *sthread,
@@ -77,16 +83,25 @@ void client_loop_on_event(void *_suplaclient, void *user_data,
 void client_loop_channel_value_update(void *_suplaclient, void *sthread,
                                       TSC_SuplaChannelValue *channel_value) {
   client_device_channel *channel = channels->find_channel(channel_value->Id);
-  channel->setValue(channel_value->value.value);
-  channel->setSubValue(channel_value->value.sub_value);
-  channel->setOnline(channel_value->online);
+  
+  if (channel != NULL) {
+    channel->setValue(channel_value->value.value);
+    channel->setSubValue(channel_value->value.sub_value);
+    channel->setOnline(channel_value->online);
+    channel->notifyHomekit();
+  }
 }
 
 void client_loop_channel_extendedalue_update(
     void *_suplaclient, void *sthread,
     TSC_SuplaChannelExtendedValue *channel_extendedvalue) {
-  channels->set_channel_extendedvalue(channel_extendedvalue->Id,
-                                      &channel_extendedvalue->value);
+									  
+  client_device_channel *channel = channels->find_channel(channel_extendedvalue->Id); 
+  
+  if (channel != NULL) {
+	channel->setExtendedValue(channel_extendedvalue->value);
+	channel->notifyHomekit();
+  };
 }
 
 void client_on_registration_enabled(void *_suplaclient, void *user_data,
@@ -166,7 +181,7 @@ void client_loop(void *user_data, void *sthread) {
   }
 
   channels = new client_device_channels();
-
+    
   if (user_data) *(void **)user_data = sclient;
 
   while (sthread_isterminated(sthread) == 0) {
