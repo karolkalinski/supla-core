@@ -94,13 +94,6 @@ serverconnection::serverconnection(void *ssd, void *supla_socket,
 }
 
 serverconnection::~serverconnection() {
-  if (cdptr != NULL) {
-    if (registered == REG_DEVICE)
-      delete device;
-    else
-      delete client;
-  }
-
   srpc_free(_srpc);
   eh_free(eh);
   ssocket_supla_socket_free(supla_socket);
@@ -256,6 +249,7 @@ void serverconnection::on_remote_call_received(void *_srpc, unsigned int rr_id,
 
         if (cdptr == NULL && rd.data.ds_register_device_c != NULL) {
           device = new supla_device(this);
+          device->retainPtr();
 
           if (device != NULL) {
             rd.data.ds_register_device_c
@@ -331,6 +325,7 @@ void serverconnection::on_remote_call_received(void *_srpc, unsigned int rr_id,
 
         if (cdptr == NULL && rd.data.ds_register_device_e != NULL) {
           device = new supla_device(this);
+          device->retainPtr();
 
           if (device != NULL) {
             rd.data.ds_register_device_e->Email[SUPLA_EMAIL_MAXSIZE - 1] = 0;
@@ -385,6 +380,7 @@ void serverconnection::on_remote_call_received(void *_srpc, unsigned int rr_id,
 
         if (cdptr == NULL) {
           client = new supla_client(this);
+          client->retainPtr();
 
           if (client != NULL) {
             rd.data.cs_register_client_b
@@ -411,6 +407,7 @@ void serverconnection::on_remote_call_received(void *_srpc, unsigned int rr_id,
 
         if (cdptr == NULL) {
           client = new supla_client(this);
+          client->retainPtr();
 
           if (client != NULL) {
             rd.data.cs_register_client_c->Email[SUPLA_EMAIL_MAXSIZE - 1] = 0;
@@ -461,6 +458,22 @@ void serverconnection::on_remote_call_received(void *_srpc, unsigned int rr_id,
     } else if (call_type == SUPLA_DCS_CALL_PING_SERVER &&
                (registered == REG_DEVICE || registered == REG_CLIENT)) {
       srpc_sdc_async_ping_server_result(_srpc);
+
+    } else if (call_type == SUPLA_DCS_CALL_GET_USER_LOCALTIME &&
+               (registered == REG_DEVICE || registered == REG_CLIENT)) {
+      TSDC_UserLocalTimeResult result;
+      memset(&result, 0, sizeof(TSDC_UserLocalTimeResult));
+
+      database *db = new database();
+
+      if (!db->connect() ||
+          !db->get_user_localtime(cdptr->getUserID(), &result)) {
+        memset(&result, 0, sizeof(TSDC_UserLocalTimeResult));
+      }
+
+      delete db;
+
+      srpc_sdc_async_get_user_localtime_result(_srpc, &result);
 
     } else if (call_type == SUPLA_DCS_CALL_GET_REGISTRATION_ENABLED &&
                (registered == REG_DEVICE || registered == REG_CLIENT)) {
@@ -588,7 +601,35 @@ void serverconnection::on_remote_call_received(void *_srpc, unsigned int rr_id,
 
         case SUPLA_CS_CALL_DEVICE_CALCFG_REQUEST:
           if (rd.data.cs_device_calcfg_request != NULL) {
-            client->device_calcfg_request(rd.data.cs_device_calcfg_request);
+            TCS_DeviceCalCfgRequest_B *cs_device_calcfg_request_b =
+                (TCS_DeviceCalCfgRequest_B *)malloc(
+                    sizeof(TCS_DeviceCalCfgRequest_B));
+
+            memset(cs_device_calcfg_request_b, 0,
+                   sizeof(TCS_DeviceCalCfgRequest_B));
+
+            cs_device_calcfg_request_b->Id =
+                rd.data.cs_device_calcfg_request->ChannelID;
+            cs_device_calcfg_request_b->Target = SUPLA_TARGET_CHANNEL;
+            cs_device_calcfg_request_b->Command =
+                rd.data.cs_device_calcfg_request->Command;
+            cs_device_calcfg_request_b->DataType =
+                rd.data.cs_device_calcfg_request->DataType;
+            cs_device_calcfg_request_b->DataSize =
+                rd.data.cs_device_calcfg_request->DataSize;
+            memcpy(cs_device_calcfg_request_b->Data,
+                   rd.data.cs_device_calcfg_request->Data,
+                   SUPLA_CALCFG_DATA_MAXSIZE);
+
+            free(rd.data.cs_device_calcfg_request);
+            rd.data.cs_device_calcfg_request = NULL;
+            rd.data.cs_device_calcfg_request_b = cs_device_calcfg_request_b;
+          }
+          /* no break between SUPLA_CS_CALL_DEVICE_CALCFG_REQUEST and
+           * SUPLA_CS_CALL_DEVICE_CALCFG_REQUEST_B!!! */
+        case SUPLA_CS_CALL_DEVICE_CALCFG_REQUEST_B:
+          if (rd.data.cs_device_calcfg_request_b != NULL) {
+            client->device_calcfg_request(rd.data.cs_device_calcfg_request_b);
           }
           break;
 
@@ -641,6 +682,46 @@ void serverconnection::execute(void *sthread) {
         supla_log(LOG_DEBUG, "Activity timeout %i, %i, %i", sthread,
                   cdptr->getActivityDelay(), registered);
         break;
+      }
+    }
+  }
+
+  if (cdptr != NULL) {
+    supla_user *user = cdptr->getUser();
+
+    if (user) {
+      if (registered == REG_DEVICE) {
+        user->moveDeviceToTrash(device);
+      } else {
+        user->moveClientToTrash(client);
+      }
+    }
+
+    {
+      unsigned long deadlock_counter = 0;
+
+      while (cdptr->ptrCounter() > 1) {
+        usleep(100);
+        deadlock_counter++;
+        if (deadlock_counter > 100000) {
+          supla_log(
+              LOG_WARNING,
+              "Too long waiting time to release the object pointer! %i/%i",
+              sthread, cdptr);
+          break;
+        }
+      }
+    }
+
+    cdptr->releasePtr();
+
+    if (user) {
+      user->emptyTrash();
+    } else {
+      if (registered == REG_DEVICE) {
+        delete device;
+      } else {
+        delete client;
       }
     }
   }
