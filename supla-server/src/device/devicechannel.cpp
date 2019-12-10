@@ -20,12 +20,18 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef __NO_DATABASE
 #include "database.h"
+#endif
+
 #include "devicechannel.h"
 #include "log.h"
 #include "safearray.h"
 #include "srpc.h"
+
+#ifndef __NO_USER
 #include "user/user.h"
+#endif
 
 channel_address::channel_address(int DeviceId, int ChannelId) {
   this->DeviceId = DeviceId;
@@ -128,6 +134,11 @@ char supla_channel_emarr_clean(void *ptr) {
 
 char supla_channel_icarr_clean(void *ptr) {
   delete (supla_channel_ic_measurement *)ptr;
+  return 1;
+}
+
+char supla_channel_tharr_clean(void *ptr) {
+  delete (supla_channel_thermostat_measurement *)ptr;
   return 1;
 }
 
@@ -354,6 +365,37 @@ void supla_channel_ic_measurement::free(void *icarr) {
 
 //-----------------------------------------------------
 
+supla_channel_thermostat_measurement::supla_channel_thermostat_measurement(
+    int ChannelId, bool on, double MeasuredTemperature,
+    double PresetTemperature) {
+  this->MeasuredTemperature = MeasuredTemperature;
+  this->PresetTemperature = PresetTemperature;
+  this->on = on;
+  this->ChannelId = ChannelId;
+}
+
+int supla_channel_thermostat_measurement::getChannelId(void) {
+  return this->ChannelId;
+}
+
+double supla_channel_thermostat_measurement::getMeasuredTemperature(void) {
+  return MeasuredTemperature;
+}
+
+double supla_channel_thermostat_measurement::getPresetTemperature(void) {
+  return PresetTemperature;
+}
+
+bool supla_channel_thermostat_measurement::getOn(void) { return this->on; }
+
+// static
+void supla_channel_thermostat_measurement::free(void *tharr) {
+  safe_array_clean(tharr, supla_channel_tharr_clean);
+  safe_array_free(tharr);
+}
+
+//-----------------------------------------------------
+
 supla_device_channel::supla_device_channel(int Id, int Number, int Type,
                                            int Func, int Param1, int Param2,
                                            int Param3, char *TextParam1,
@@ -443,7 +485,16 @@ void supla_device_channel::getDouble(double *Value) {
 
 void supla_device_channel::getChar(char *Value) {
   if (Value == NULL) return;
-  *Value = this->value[0];
+  switch (Func) {
+    case SUPLA_CHANNELFNC_THERMOSTAT:
+    case SUPLA_CHANNELFNC_THERMOSTAT_HEATPOL_HOMEPLUS: {
+      TThermostat_Value *tv = (TThermostat_Value *)this->value;
+      *Value = tv->IsOn;
+    } break;
+    default:
+      *Value = this->value[0];
+      break;
+  }
 }
 
 bool supla_device_channel::getRGBW(int *color, char *color_brightness,
@@ -606,6 +657,8 @@ bool supla_device_channel::isCharValueWritable(void) {
     case SUPLA_CHANNELFNC_POWERSWITCH:
     case SUPLA_CHANNELFNC_LIGHTSWITCH:
     case SUPLA_CHANNELFNC_STAIRCASETIMER:
+    case SUPLA_CHANNELFNC_THERMOMETER:
+    case SUPLA_CHANNELFNC_THERMOSTAT_HEATPOL_HOMEPLUS:
       return 1;
 
       break;
@@ -654,7 +707,7 @@ unsigned int supla_device_channel::getValueDuration(void) {
   return 0;
 }
 
-std::list<int> supla_device_channel::slave_channel(void) {
+std::list<int> supla_device_channel::related_channel(void) {
   std::list<int> result;
 
   switch (Func) {
@@ -780,6 +833,29 @@ supla_device_channel::getImpulseCounterMeasurement(void) {
   return NULL;
 }
 
+supla_channel_thermostat_measurement *
+supla_device_channel::getThermostatMeasurement(void) {
+  switch (getType()) {
+    case SUPLA_CHANNELTYPE_THERMOSTAT:
+    case SUPLA_CHANNELTYPE_THERMOSTAT_HEATPOL_HOMEPLUS:
+      switch (getFunc()) {
+        case SUPLA_CHANNELFNC_THERMOSTAT:
+        case SUPLA_CHANNELFNC_THERMOSTAT_HEATPOL_HOMEPLUS: {
+          char value[SUPLA_CHANNELVALUE_SIZE];
+          getValue(value);
+          TThermostat_Value *th_val = (TThermostat_Value *)value;
+
+          return new supla_channel_thermostat_measurement(
+              getId(), th_val->IsOn > 0, th_val->MeasuredTemperature * 0.01,
+              th_val->PresetTemperature * 0.01);
+        }
+      }
+      break;
+  }
+
+  return NULL;
+}
+
 bool supla_device_channel::converValueToExtended(void) {
   bool result = false;
 
@@ -870,6 +946,7 @@ void supla_device_channels::add_channel(int Id, int Number, int Type, int Func,
   safe_array_unlock(arr);
 }
 
+#ifndef __NO_DATABASE
 void supla_device_channels::load(int DeviceID) {
   database *db = new database();
 
@@ -884,6 +961,7 @@ void supla_device_channels::load(int DeviceID) {
 
   delete db;
 }
+#endif
 
 bool supla_device_channels::get_channel_value(
     int ChannelID, char value[SUPLA_CHANNELVALUE_SIZE]) {
@@ -1078,7 +1156,7 @@ int supla_device_channels::get_channel_func(int ChannelID) {
   return Func;
 }
 
-std::list<int> supla_device_channels::ms_channel(int ChannelID, bool Master) {
+std::list<int> supla_device_channels::mr_channel(int ChannelID, bool Master) {
   std::list<int> result;
   if (ChannelID == 0) return result;
 
@@ -1087,7 +1165,7 @@ std::list<int> supla_device_channels::ms_channel(int ChannelID, bool Master) {
   supla_device_channel *channel = find_channel(ChannelID);
 
   if (channel)
-    result = Master ? channel->master_channel() : channel->slave_channel();
+    result = Master ? channel->master_channel() : channel->related_channel();
 
   safe_array_unlock(arr);
 
@@ -1095,11 +1173,11 @@ std::list<int> supla_device_channels::ms_channel(int ChannelID, bool Master) {
 }
 
 std::list<int> supla_device_channels::master_channel(int ChannelID) {
-  return ms_channel(ChannelID, true);
+  return mr_channel(ChannelID, true);
 }
 
-std::list<int> supla_device_channels::slave_channel(int ChannelID) {
-  return ms_channel(ChannelID, false);
+std::list<int> supla_device_channels::related_channel(int ChannelID) {
+  return mr_channel(ChannelID, false);
 }
 
 bool supla_device_channels::channel_exists(int ChannelID) {
@@ -1127,7 +1205,7 @@ void supla_device_channels::set_channels_value(
                         schannel_c[a].value, NULL);
   }
 }
-
+#ifndef __NO_USER
 void supla_device_channels::on_device_registered(
     supla_user *user, int DeviceId, TDS_SuplaDeviceChannel_B *schannel_b,
     TDS_SuplaDeviceChannel_C *schannel_c, int count) {
@@ -1145,6 +1223,7 @@ void supla_device_channels::on_device_registered(
     }
   }
 }
+#endif
 
 int supla_device_channels::get_channel_id(unsigned char ChannelNumber) {
   int result = 0;
@@ -1371,6 +1450,26 @@ void supla_device_channels::get_ic_measurements(void *icarr) {
   safe_array_unlock(arr);
 }
 
+void supla_device_channels::get_thermostat_measurements(void *tharr) {
+  int a;
+  safe_array_lock(arr);
+
+  for (a = 0; a < safe_array_count(arr); a++) {
+    supla_device_channel *channel =
+        (supla_device_channel *)safe_array_get(arr, a);
+
+    if (channel != NULL) {
+      supla_channel_thermostat_measurement *th =
+          channel->getThermostatMeasurement();
+      if (th) {
+        safe_array_add(tharr, th);
+      }
+    }
+  }
+
+  safe_array_unlock(arr);
+}
+
 supla_channel_ic_measurement *supla_device_channels::get_ic_measurement(
     int ChannelID) {
   supla_channel_ic_measurement *result = NULL;
@@ -1389,12 +1488,13 @@ supla_channel_ic_measurement *supla_device_channels::get_ic_measurement(
 }
 
 bool supla_device_channels::calcfg_request(void *srpc, int SenderID,
+                                           int ChannelID,
                                            bool SuperUserAuthorized,
-                                           TCS_DeviceCalCfgRequest *request) {
+                                           TCS_DeviceCalCfgRequest_B *request) {
   bool result = false;
   safe_array_lock(arr);
 
-  supla_device_channel *channel = find_channel(request->ChannelID);
+  supla_device_channel *channel = find_channel(ChannelID);
 
   if (channel) {
     TSD_DeviceCalCfgRequest drequest;

@@ -121,6 +121,26 @@ class supla_channel_ic_measurement {
   static void free(void *icarr);
 };
 
+class supla_channel_thermostat_measurement {
+ private:
+  int ChannelId;
+  bool on;
+  double MeasuredTemperature;
+  double PresetTemperature;
+
+ public:
+  supla_channel_thermostat_measurement(int ChannelId, bool on,
+                                       double MeasuredTemperature,
+                                       double PresetTemperature);
+
+  int getChannelId(void);
+  double getMeasuredTemperature(void);
+  double getPresetTemperature(void);
+  bool getOn(void);
+
+  static void free(void *icarr);
+};
+
 class supla_device_channel {
  private:
   int Id;
@@ -167,26 +187,26 @@ class supla_device_channel {
                char *on_off);
 
   std::list<int> master_channel(void);
-  std::list<int> slave_channel(void);
+  std::list<int> related_channel(void);
   supla_channel_temphum *getTempHum(void);
   supla_channel_electricity_measurement *getElectricityMeasurement(void);
   supla_channel_ic_measurement *getImpulseCounterMeasurement(void);
+  supla_channel_thermostat_measurement *getThermostatMeasurement(void);
   bool converValueToExtended(void);
 };
 
 class supla_device_channels {
  private:
-  void *arr;
+  supla_device_channel *find_channel(int Id);
+  supla_device_channel *find_channel_by_number(int Number);
+  std::list<int> mr_channel(int ChannelID, bool Master);
 
+ protected:
+  void *arr;
   static char arr_findcmp(void *ptr, void *id);
   static char arr_findncmp(void *ptr, void *n);
   static char arr_delcnd(void *ptr);
   void arr_clean(void);
-
-  supla_device_channel *find_channel(int Id);
-  supla_device_channel *find_channel_by_number(int Number);
-
-  std::list<int> ms_channel(int ChannelID, bool Master);
 
  public:
   supla_device_channels();
@@ -213,10 +233,11 @@ class supla_device_channels {
   void set_channels_value(TDS_SuplaDeviceChannel_B *schannel_b,
                           TDS_SuplaDeviceChannel_C *schannel_c, int count);
 
+  #ifndef __NO_USER
   void on_device_registered(supla_user *user, int DeviceId,
                             TDS_SuplaDeviceChannel_B *schannel_b,
                             TDS_SuplaDeviceChannel_C *schannel_c, int count);
-
+  #endif
   void set_device_channel_value(void *srpc, int SenderID, int ChannelID,
                                 const char value[SUPLA_CHANNELVALUE_SIZE]);
   bool set_device_channel_char_value(void *srpc, int SenderID, int ChannelID,
@@ -226,21 +247,24 @@ class supla_device_channels {
                                      char brightness, char on_off);
 
   std::list<int> master_channel(int ChannelID);
-  std::list<int> slave_channel(int ChannelID);
+  std::list<int> related_channel(int ChannelID);
   std::list<int> get_channel_ids(void);
   int get_channel_id(unsigned char ChannelNumber);
   bool channel_exists(int ChannelID);
+  #ifndef __NO_DATABASE
   void load(int DeviceID);
-
+  #endif
   void get_temp_and_humidity(void *tarr);
   void get_electricity_measurements(void *emarr);
   supla_channel_electricity_measurement *get_electricity_measurement(
       int ChannelID);
   void get_ic_measurements(void *icarr);
   supla_channel_ic_measurement *get_ic_measurement(int ChannelID);
+  void get_thermostat_measurements(void *tharr);
 
-  bool calcfg_request(void *srpc, int SenderID, bool SuperUserAuthorized,
-                      TCS_DeviceCalCfgRequest *request);
+  bool calcfg_request(void *srpc, int SenderID, int ChannelID,
+                      bool SuperUserAuthorized,
+                      TCS_DeviceCalCfgRequest_B *request);
 
   bool get_channel_complex_value(channel_complex_value *value, int ChannelID);
 };
