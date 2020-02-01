@@ -20,8 +20,8 @@
 #include <string>
 #include <vector>
 
+
 client_config *config;
-client_device_channels *channels;
 void *sclient;
 
 void client_loop_on_registererror(void *_suplaclient, void *sthread, int code) {
@@ -45,15 +45,16 @@ void client_loop_channel_update(void *_suplaclient, void *sthread,
   
   supla_log(LOG_DEBUG, "Channel Update %d %d", channel->Id, channel->online);
 
-  client_device_channel *channel = 
+  client_device_channel *c =
     channels->add_channel(channel->Id, 0, channel->Type, channel->Func, 0, 0, 0,
                         NULL, NULL, NULL, false, channel->online == 1,
-                        channel->Caption, states);
+                        channel->Caption);
 						
-  if (channel != NULL) {
-    channel->setValue(channel_value->value.value);
-    channel->setSubValue(channel_value->value.sub_value);
-	channel->notifyHomekit();
+
+  if (c != NULL) {
+    c->setHKValue(channel->value.value);
+    c->setSubValue(channel->value.sub_value);
+
   }; 
 }
 
@@ -84,11 +85,13 @@ void client_loop_channel_value_update(void *_suplaclient, void *sthread,
                                       TSC_SuplaChannelValue *channel_value) {
   client_device_channel *channel = channels->find_channel(channel_value->Id);
   
+
+
   if (channel != NULL) {
-    channel->setValue(channel_value->value.value);
+	channel->setOnline(channel_value->online);
+    channel->setHKValue(channel_value->value.value);
     channel->setSubValue(channel_value->value.sub_value);
-    channel->setOnline(channel_value->online);
-    channel->notifyHomekit();
+
   }
 }
 
@@ -96,11 +99,12 @@ void client_loop_channel_extendedalue_update(
     void *_suplaclient, void *sthread,
     TSC_SuplaChannelExtendedValue *channel_extendedvalue) {
 									  
-  client_device_channel *channel = channels->find_channel(channel_extendedvalue->Id); 
+  client_device_channel *channel = channels->find_channel(channel_extendedvalue->Id);
   
   if (channel != NULL) {
-	channel->setExtendedValue(channel_extendedvalue->value);
-	channel->notifyHomekit();
+	channel->setExtendedValue( &channel_extendedvalue->value );
+
+
   };
 }
 
@@ -180,7 +184,8 @@ void client_loop(void *user_data, void *sthread) {
     return;
   }
 
-  channels = new client_device_channels();
+
+
     
   if (user_data) *(void **)user_data = sclient;
 
@@ -200,6 +205,6 @@ void client_loop(void *user_data, void *sthread) {
 
   supla_client_free(sclient);
 
-  if (channels != NULL) delete channels;
+
   if (config != NULL) delete config;
 }

@@ -40,7 +40,7 @@ vector<PHKKeyRecord>readIn() {
 #else
     bool isEmpty = fs.peek() == EOF;
     while (!isEmpty&&fs.is_open()&&fs.good()&&!fs.eof()) {
-        fs.get(buffer, 69);
+        fs.read(buffer, 69);
 #endif
         bcopy(buffer, record.controllerID, 36);
         bcopy(&buffer[36], record.publicKey, 32);

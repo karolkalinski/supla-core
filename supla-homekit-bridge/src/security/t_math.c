@@ -13,9 +13,9 @@
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND, 
- * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY 
- * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.  
+ * THE SOFTWARE IS PROVIDED "AS-IS" AND WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS, IMPLIED OR OTHERWISE, INCLUDING WITHOUT LIMITATION, ANY
+ * WARRANTY OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
  *
  * IN NO EVENT SHALL STANFORD BE LIABLE FOR ANY SPECIAL, INCIDENTAL,
  * INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY KIND, OR ANY DAMAGES WHATSOEVER
@@ -349,36 +349,12 @@ BigIntegerCmpInt(c1, c2)
      BigInteger c1;
      unsigned int c2;
 {
-#ifdef OPENSSL
-  if(c1->top > 1)
-    return 1;
-  else if(c1->top < 1)
-    return (c2 > 0) ? -1 : 0;
-  else {
-    if(c1->d[0] > c2)
-      return 1;
-    else if(c1->d[0] < c2)
-      return -1;
-    else
-      return 0;
-  }
-#elif defined(CRYPTOLIB)
-  BigInteger t;
+  BIGNUM * a = BN_new();
   int rv;
-
-  t = bigInit(c2);
-  rv = bigCompare(c1, t);
-  freeBignum(t);
+  BN_set_word(a, c2);
+  rv = BN_cmp(c1, a);
+  BN_free(a);
   return rv;
-#elif defined(GNU_MP)
-  return mpz_cmp_ui(c1, c2);
-#elif defined(TOMMATH)
-  return mp_cmp_d(c1, c2);
-#elif defined(GCRYPT)
-  return gcry_mpi_cmp_ui(c1, c2);
-#elif defined(MPI)
-  return mp_cmp_int(c1, c2);
-#endif
 }
 
 BigIntegerResult
@@ -660,24 +636,14 @@ BigIntegerModMul(r, m1, m2, modulus, c)
      BigInteger r, m1, m2, modulus;
      BigIntegerCtx c;
 {
-#ifdef OPENSSL
+
   BN_CTX * ctx = NULL;
   if(c == NULL)
     c = ctx = BN_CTX_new();
   BN_mod_mul(r, m1, m2, modulus, c);
   if(ctx)
     BN_CTX_free(ctx);
-#elif defined(CRYPTOLIB)
-  bigMultiply(m1, m2, r);
-  bigMod(r, modulus, r);
-#elif defined(GNU_MP)
-  mpz_mul(r, m1, m2);
-  mpz_mod(r, r, modulus);
-#elif defined(GCRYPT)
-  gcry_mpi_mulm(r, m1, m2, modulus);
-#elif defined(MPI) || defined(TOMMATH)
-  mp_mulmod(m1, m2, modulus, r);
-#endif
+
   return BIG_INTEGER_SUCCESS;
 }
 
@@ -687,35 +653,10 @@ BigIntegerModExp(r, b, e, m, c, a)
      BigIntegerCtx c;
      BigIntegerModAccel a;
 {
-#ifdef OPENSSL
-  BN_CTX * ctx = NULL;
-  if(c == NULL)
-    c = ctx = BN_CTX_new();
-  if(default_modexp) {
-    (*default_modexp)(r, b, e, m, c, a);
-  }
-  else if(a == NULL) {
-    BN_mod_exp(r, b, e, m, c);
-  }
-#if OPENSSL_VERSION_NUMBER >= 0x00906000
-  else if(b->top == 1) {  /* 0.9.6 and above has mont_word optimization */
-    BN_ULONG B = b->d[0];
-    BN_mod_exp_mont_word(r, B, e, m, c, a);
-  }
-#endif
-  else
-    BN_mod_exp_mont(r, b, e, m, c, a);
-  if(ctx)
-    BN_CTX_free(ctx);
-#elif defined(CRYPTOLIB)
-  bigPow(b, e, m, r);
-#elif defined(GNU_MP)
-  mpz_powm(r, b, e, m);
-#elif defined(GCRYPT)
-  gcry_mpi_powm(r, b, e, m);
-#elif defined(MPI) || defined(TOMMATH)
-  mp_exptmod(b, e, m, r);
-#endif
+    	 BN_CTX * ctx = BN_CTX_new();
+    	   BN_mod_exp(r, b, e, m, ctx);
+    	   BN_CTX_free(ctx);
+
   return BIG_INTEGER_SUCCESS;
 }
 

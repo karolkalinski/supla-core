@@ -7,7 +7,15 @@ void homekit_loop(void *user_data, void *sthread) {
     
 	/*initAccessorySet - read from supla_device */
         
+
+
+
+	currentDeviceType = deviceType_bridge;
+
+	printf("Initial Bridge\n");
+
 	PHKNetworkIP networkIP;
+
 	while (sthread_isterminated(sthread) == 0) {
 		networkIP.handleConnection();
 	}

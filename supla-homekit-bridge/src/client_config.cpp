@@ -39,19 +39,9 @@ client_config::client_config() {
 }
 
 client_config::~client_config() {
-  for (auto command : commands) {
-    delete command;
-  }
 
-  commands.clear();
-  std::vector<client_command*>().swap(commands);
 
-  for (auto state : states) {
-    delete state;
-  }
 
-  states.clear();
-  std::vector<client_state*>().swap(states);
 }
 
 bool client_config::load(const char* config_file) {
@@ -85,67 +75,14 @@ bool client_config::load(const char* config_file) {
     if (!root["supla"].IsNone()) {
       this->supla_host = root["supla"]["host"].As<std::string>("localhost");
       this->supla_password = root["supla"]["password"].As<std::string>("");
-      this->supla_locationid = root["supla"]["location"].As<uint32_t>(2016);
+      this->supla_locationid = root["supla"]["access_id"].As<uint32_t>(2016);
       this->supla_port = root["supla"]["port"].As<uint16_t>(2016);
       this->supla_email = root["supla"]["email"].As<std::string>("");
       this->supla_protocol_version =
           root["supla"]["protocol_version"].As<uint16_t>(10);
     }
 
-    if (st_file_exists(this->mqtt_commands.c_str())) {
-      supla_log(LOG_DEBUG, "reading commands YAML flie");
-      Yaml::Node commandsRoot;
-      Yaml::Parse(commandsRoot, this->mqtt_commands.c_str());
 
-      for (auto itN = commandsRoot.Begin(); itN != commandsRoot.End(); itN++) {
-        Yaml::Node& command = (*itN).second;
-
-        client_command* cc = new client_command();
-        cc->setId(command["id"].As<std::string>(""));
-        cc->setTopic(
-            command["topic"].As<std::string>("supla/channels/command/#"));
-        cc->setBrightness(command["brightness"].As<std::string>(""));
-        cc->setColor(command["color"].As<std::string>(""));
-        cc->setColorB(command["color_b"].As<std::string>(""));
-        cc->setColorR(command["color_r"].As<std::string>(""));
-        cc->setColorG(command["color_g"].As<std::string>(""));
-        cc->setOnOff(command["on_off"].As<std::string>(""));
-        cc->setOnValue(command["on_value"].As<std::string>("1"));
-        cc->setOffValue(command["off_value"].As<std::string>("0"));
-        cc->setShut(command["shut"].As<std::string>(""));
-        cc->setColorBrightness(command["color_brightness"].As<std::string>(""));
-
-        this->commands.push_back(cc);
-      }
-
-    } else {
-      supla_log(LOG_INFO, "command file not exists.");
-      return false;
-    }
-
-    if (st_file_exists(this->mqtt_states.c_str())) {
-      Yaml::Node statesRoot;
-      Yaml::Parse(statesRoot, this->mqtt_states.c_str());
-
-      bool enabled = true;
-      std::string default_topic =
-          statesRoot["default_state_topic"].As<std::string>("");
-
-      for (auto itN = statesRoot["channels"].Begin();
-           itN != statesRoot["channels"].End(); itN++) {
-        Yaml::Node& state = (*itN).second;
-        client_state* cs = new client_state();
-        cs->setFunction(state["channel_type"].As<int>(0));
-        cs->setPayload(state["payload_template"].As<std::string>(""));
-        cs->setEnabled(state["enabled"].As<bool>(enabled));
-        cs->setTopic(state["state_topic"].As<std::string>(default_topic));
-
-        this->states.push_back(cs);
-      }
-    } else {
-      supla_log(LOG_INFO, "states file not exists");
-      return false;
-    }
     return true;
   } catch (std::exception& exception) {
     std::cout << exception.what() << std::endl;
@@ -153,12 +90,7 @@ bool client_config::load(const char* config_file) {
   }
 }
 
-void client_config::getTopicsToSubscribe(std::vector<std::string>* vect) {
-  for (auto command : this->commands) {
-    std::string topic = command->getTopic();
-    if (!exists_in_vect(vect, topic)) vect->push_back(topic);
-  }
-}
+
 
 bool client_config::getMqttPublishEvents() { return this->mqtt_publish_events; }
 
@@ -166,51 +98,7 @@ std::string client_config::getMqttCommands() { return this->mqtt_commands; }
 
 std::string client_config::getMqttStates() { return this->mqtt_states; }
 
-void client_config::getCommandsForTopic(std::string topic,
-                                        std::vector<client_command*>* output) {
-  std::vector<std::string> topic_tokens;
-  std::string token;
-  std::istringstream tokenStream(topic);
-  while (std::getline(tokenStream, token, '/')) {
-    topic_tokens.push_back(token);
-  }
 
-  for (auto command : this->commands) {
-    std::vector<std::string> command_tokens;
-    std::istringstream tokenStream(command->getTopic());
-
-    while (std::getline(tokenStream, token, '/')) {
-      command_tokens.push_back(token);
-    }
-
-    bool added = false;
-
-    if (topic_tokens.size() < command_tokens.size()) continue;
-    unsigned int i = 0;
-
-    for (i = 0; i < command_tokens.size(); i++) {
-      if (command_tokens[i].compare("#") == 0) {
-        output->push_back(command);
-        added = true;
-      }
-
-      if (command_tokens[i].compare("+") == 0) continue;
-      if (command_tokens[i].compare(topic_tokens[i]) != 0) break;
-    }
-
-    if (!added && (i == command_tokens.size() - 1)) {
-      output->push_back(command);
-    }
-  }
-}
-
-void client_config::getStatesForFunction(uint16_t function,
-                                         std::vector<client_state*>* output) {
-  for (auto state : this->states) {
-    if (state->getFunction() == function && state->getEnabled())
-      output->push_back(state);
-  }
-}
 
 std::string client_config::getMqttClientName() {
   return this->mqtt_client_name;

@@ -5222,7 +5222,7 @@ void swap(typename Json::key_value_type& a, typename Json::key_value_type& b) no
     a.swap(b);
 }
 
-typedef basic_json<char,sorted_policy,std::allocator<char>> json;
+typedef basic_json<char,preserve_order_policy,std::allocator<char>> json;
 typedef basic_json<wchar_t,sorted_policy,std::allocator<char>> wjson;
 typedef basic_json<char, preserve_order_policy, std::allocator<char>> ojson;
 typedef basic_json<wchar_t, preserve_order_policy, std::allocator<char>> wojson;

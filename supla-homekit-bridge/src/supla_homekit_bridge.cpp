@@ -22,11 +22,16 @@
 #include <unistd.h>
 
 #include "client_loop.h"
+#include "homekit_loop.h"
 #include "clientcfg.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/sthread.h"
 #include "supla-client-lib/supla-client.h"
 #include "supla-client-lib/tools.h"
+#include "globals.h"
+
+homekit_accessories* accessories;
+client_device_channels* channels;
 
 int main(int argc, char *argv[]) {
   void *client_loop_t = NULL;
@@ -44,6 +49,10 @@ int main(int argc, char *argv[]) {
 
   void *sclient = NULL;
   
+  channels = new client_device_channels();
+  accessories = new homekit_accessories();
+
+
   client_loop_t = sthread_simple_run(client_loop, (void *)&sclient, 0);
   homekit_loop_t = sthread_simple_run(homekit_loop, (void*)&sclient, 0);
   
@@ -56,6 +65,9 @@ int main(int argc, char *argv[]) {
   
   st_mainloop_free();
   clientcfg_free();
+
+  delete channels;
+  delete accessories;
 
   return EXIT_SUCCESS;
 }

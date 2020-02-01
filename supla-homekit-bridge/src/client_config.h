@@ -23,8 +23,6 @@
 #include <string.h>
 #include <string>
 #include <vector>
-#include "client_command.h"
-#include "client_state.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/tools.h"
 #include "yaml/yaml.h"
@@ -48,8 +46,7 @@ class client_config {
   std::string supla_email;
   uint16_t supla_protocol_version;
 
-  std::vector<client_command *> commands;
-  std::vector<client_state *> states;
+
 
  public:
   client_config();
@@ -73,11 +70,7 @@ class client_config {
   std::string getSuplaEmail();
   const uint16_t getSuplaProtocolVersion();
 
-  void getCommandsForTopic(std::string topic,
-                           std::vector<client_command *> *output);
-  void getStatesForFunction(uint16_t function,
-                            std::vector<client_state *> *output);
-  void getTopicsToSubscribe(std::vector<std::string> *vect);
+
 };
 
 #endif /* CLIENT_CONFIG_H_ */

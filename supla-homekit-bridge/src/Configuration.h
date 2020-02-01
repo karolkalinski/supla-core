@@ -7,15 +7,15 @@
 //
 //
 
-#define HomeKitLog 0
-#define HomeKitReplyHeaderLog 0
+#define HomeKitLog 1
+#define HomeKitReplyHeaderLog 1
 #define PowerOnTest 0
 
 //Device Setting
-#define deviceName "House Sensor"    //Name
+#define deviceName "Supla HomeKit Bridge"    //Name
 #define deviceIdentity "11:10:34:23:51:12"  //ID
 #define _manufactuerName "ET Chan"   //Manufactuer
-#define devicePassword "523-12-643" //Password
+#define devicePassword "123-44-321" //Password
 #define deviceUUID "62F47751-8F26-46BF-9552-8F4238E67D60"   //UUID, for pair verify
 #define controllerRecordsAddress "./PHK_controller" //Where to store the client keys
 
@@ -31,7 +31,7 @@
  * Count how many notifiable value exist in your set
  * For dynamic add/drop model, please estimate the maximum number (Too few->Buffer overflow)
  */
-#define numberOfNotifiableValue 2
+#define numberOfNotifiableValue 20
 
 #define keepAlivePeriod 60
 
@@ -41,6 +41,8 @@
 #include <openssl/sha.h>
 #include <stdint.h>
 #include <unistd.h>
+
+
 
 typedef SHA512_CTX SHACTX;
 #define SHAInit SHA512_Init

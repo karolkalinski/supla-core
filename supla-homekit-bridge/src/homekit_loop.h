@@ -6,7 +6,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "client_device.h"
 #include "clientcfg.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/srpc.h"

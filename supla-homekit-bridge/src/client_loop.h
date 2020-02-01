@@ -24,16 +24,14 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "client_loop.h"
-
-#include "client_device.h"
+#include "client_config.h"
 #include "clientcfg.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/srpc.h"
 #include "supla-client-lib/sthread.h"
 #include "supla-client-lib/supla-client.h"
 #include "supla-client-lib/tools.h"
-
+#include "globals.h"
 void client_loop(void *user_data, void *sthread);
 
 #endif /* CLIENT_LOOP_H_ */

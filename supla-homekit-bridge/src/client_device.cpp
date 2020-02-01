@@ -17,298 +17,346 @@
  */
 
 #include "client_device.h"
+#include "globals.h"
+#include "PHKAccessory.h"
 
-client_device_channel::client_device_channel(
-    int Id, int Number, int Type, int Func, int Param1, int Param2, int Param3,
-    char *TextParam1, char *TextParam2, char *TextParam3, bool Hidden,
-    bool Online, char *Caption)
-    : supla_device_channel(Id, Number, Type, Func, Param1, Param2, Param3,
-                           TextParam1, TextParam2, TextParam3, Hidden) {
-  this->Online = Online;
-  this->Caption =
-      Caption ? strndup(Caption, SUPLA_CHANNEL_CAPTION_MAXSIZE) : NULL;
-  
-  this->accessoryId = -1;
-  memset(this->Sub_value, 0, SUPLA_CHANNELVALUE_SIZE);
+void* lck = lck_init();
+void* lck_value = lck_init();
+
+void identify_callback_routine_execution(void *ptr, void *aid) {
+	lck_lock(lck);
+
+	client_device_channel* channel = channels->find_channel(*((int *) aid) - 1);
+
+	if (channel)
+		supla_log(LOG_DEBUG, "Channel found");
+	else
+		supla_log(LOG_DEBUG, "Channel not found");
+
+	lck_unlock(lck);
+}
+
+void set_value_callback_routine_execution(void *ptr, void *aid) {
+
+	lck_lock(lck_value);
+
+	client_device_channel* channel = channels->find_channel(*((_supla_int64_t *) aid)-1);
+
+	if (channel) {
+		switch (channel->getFunc()) {
+		case SUPLA_CHANNELFNC_POWERSWITCH:
+		case SUPLA_CHANNELFNC_LIGHTSWITCH: {
+			boolCharacteristic* c = ((boolCharacteristic *) ptr);
+
+			if (c->getValue())
+				supla_client_open(sclient, channel->getId(), 0, 1);
+			else
+				supla_client_open(sclient, channel->getId(), 0, 0);
+		}
+			break;
+		};
+	}
+
+	lck_unlock(lck_value);
 }
 
 client_device_channel::~client_device_channel() {
-  if (this->Caption) {
-    free(this->Caption);
-    this->Caption = NULL;
-  }
+
 }
 
-int client_device_channel::getAccessoryId(void) { return this->accessoryId; }
+client_device_channel::client_device_channel(int Id, int Number, int Type,
+		int Func, int Param1, int Param2, int Param3, char *TextParam1,
+		char *TextParam2, char *TextParam3, bool Hidden, bool Online,
+		char *Caption, int accessoryId) :
+		supla_device_channel(Id, Number, Type, Func, Param1, Param2, Param3,
+				TextParam1, TextParam2, TextParam3, Hidden) {
+	this->Online = Online;
+	this->Caption =
+			Caption ? strndup(Caption, SUPLA_CHANNEL_CAPTION_MAXSIZE) : NULL;
+	this->isHK = false;
 
-void client_device_channel::notifyHomekit(void) {
-    
-   Accessory *a = AccessorySet::getInstance().accessoryAtIndex(this->getAccessoryId());
-   
-   if (a == NULL) return;
-   
-   switch (this->getFunc()) {
-	  case SUPLA_CHANNELFNC_CONTROLLINGTHEDOORLOCK: {
-	  
-	    char value[SUPLA_CHANNELVALUE_SIZE];
-        char sub_value[SUPLA_CHANNELVALUE_SIZE];
-        channel->getSubValue(sub_value); /* sensors */
-        channel->getChar(value); /* relay */
-        bool hi = value[0] > 0;
-		
-		intCharacteristics* c = a->characteristicAtType(charType_currentPosition);
-		
-		char current_position = 0;
-		
-		if (c != NULL) {
-		
-			if (sub_value[0] > 0)
-			  current_position = 100;
-			
-			c->setValue(value);
-			c->notify();
-		};
-		
-		c = a->characteristicAtType(charType_positionState);
-		
-		if (c != NULL) {
-		  
-		  char value = 2;
+	memset(this->Sub_value, 0, SUPLA_CHANNELVALUE_SIZE);
 
-          if (hi) {
-			
-			if (current_position = 0) {
-				value = 1; 
-			} else {
-			    value = 0;
-			};
-			  
-		  };
-           			  
-		  c->setValue(value);
-		  c->notify();
-		};
-		
-		c = a->characteristicAtType(charType_targetPosition);
-		
-		if (c!= NULL) {
-		  c->setValue(std::toString(hi));
-		  c->notify();
+	this->firmware_revision = "1.0";
+	this->manufacturer = "unknown";
+	this->model = "unknown";
+	this->name = std::string(Caption);
+	this->serial_number = "0000000000";
+}
+
+
+
+int client_device_channel::getAccessoryId(void) { return this->getId() + 1; }
+
+
+int client_device_channel::getId(void) { return supla_device_channel::getId(); }
+
+void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
+	this->setValue(value);
+
+	jsoncons::json describe;
+	jsoncons::json characteristics = jsoncons::json::make_array();
+	bool wasDescribed = false;
+
+	switch (this->getFunc()) {
+	case SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE: {
+
+		accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
+
+		if (!accessory)
+			break;
+
+		service* service = accessory->getServiceByType(
+				serviceType_temperatureSensor);
+
+		if (!service)
+			break;
+
+		floatCharacteristic* temperature =
+				(floatCharacteristic*) service->getCharacteristicByType(
+						charType_currentTemperature);
+
+		if (!temperature)
+			break;
+
+		boolCharacteristic* active = (boolCharacteristic*)service->getCharacteristicByType(charType_sensorActive);
+
+		if (active)
+		{
+			active->setValue(this->Online);
+			characteristics.push_back(active->describeValue());
 		}
-	    
-	  }; break;
-	  
-	  case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR: {
-	  
-	    char value[SUPLA_CHANNELVALUE_SIZE];
-        char sub_value[SUPLA_CHANNELVALUE_SIZE];
-        channel->getSubValue(sub_value); /* sensors */
-        channel->getChar(value); /* relay */
-        bool hi = value[0] > 0;
-		bool isOnline = channel->getOnline();
-		
-		intCharacteristics* c = a->characteristicAtType(charType_currentDoorState);
-		
-		if (c != NULL) {
-			
-			char value = 4;
-			if (sub_value[0] > 0) {
-			  value = 0;
-			  if (hi) {
-				  value = 2;
-			  }
-			  
-			} else {
-			  value = 1;
-			  if (hi) {
-			    value = 3;  
-			  }; 			  
-			};
-			
-			c->setValue(value);
-			c->notify();
-		};
-		
-		c = a->characteristicAtType(charType_targetDoorState);
-		
-		if (c != NULL) {
-		  c->setValue(std::toString(hi));
-		  c->notify();
-		};
-		
-		c = a->characteristicAtType(charType_obstruction);
-		
-		if (c != NULL) {
-		  c->setValue(std::toString(!isOnline));
-		  c->notify();
-		};
-		
-	  } break;
-	  case SUPLA_CHANNELFNC_THERMOMETER:
-      case SUPLA_CHANNELFNC_HUMIDITY:
-      case SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE: {
-		  
-        supla_channel_temphum* tempHum = channel->getTempHum();
-        if (tempHum) {
-          double temp = tempHum->getTemperature();
-          
-		  floatCharacteristics* c = a->characteristicAtType(charType_currentTemperature); 
-		  
-		  if (c != NULL) {
-			c->setValue(std::to_string(temp));
-			c->notify();
-		  }
-		  
-		  if (tempHum->isTempAndHumidity()) {
-			double hum = tempHum->getHumidity();
 
-			c = a->characteristicAtType(charType_currentTemperature); 
+		service = accessory->getServiceByType(serviceType_humiditySensor);
 
-			if (c != NULL) {
-			  c->setValue(std::to_string(hum));
-			  c->notify();
-		    }
-    	  }
-		  
+		if (!service)
+					break;
+
+		floatCharacteristic* humidity =
+				(floatCharacteristic*)service->getCharacteristicByType(charType_currentHumidity);
+
+		active = (boolCharacteristic*)service->getCharacteristicByType(charType_sensorActive);
+
+		if (active)
+		{
+			active->setValue(this->Online);
+			characteristics.push_back(active->describeValue());
+		}
+
+		if (!humidity)
+			break;
+
+		supla_channel_temphum* tempHum = this->getTempHum();
+		if (tempHum) {
+		  double temp = tempHum->getTemperature();
+		  double hum = tempHum->getHumidity();
 		  delete tempHum;
+
+		  temperature->setValue(temp);
+          characteristics.push_back(temperature->describeValue());
+          humidity->setValue(hum);
+          characteristics.push_back(humidity->describeValue());
+		  wasDescribed = true;
         }
-     } break;
-	 case SUPLA_CHANNELFNC_POWERSWITCH: 
-     case SUPLA_CHANNELFNC_LIGHTSWITCH: {
-		
-		boolCharacteristics* c = a->characteristicAtType(charType_on); 
-		
-		if (c != NULL) {
-		  char cv[SUPLA_CHANNELVALUE_SIZE];
-          this->getChar(cv);
-          bool hi = cv[0] > 0;	
-		  c->setValue(cv[0]);
-		  c->notify();
+
+	} break;
+	case SUPLA_CHANNELFNC_THERMOMETER: {
+		accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
+
+		if (!accessory)
+			break;
+
+		service* service = accessory->getServiceByType(
+				serviceType_temperatureSensor);
+
+		if (!service)
+			break;
+
+		floatCharacteristic* temperature =
+				(floatCharacteristic*) service->getCharacteristicByType(
+						charType_currentTemperature);
+
+		if (!temperature)
+			break;
+
+		boolCharacteristic* active = (boolCharacteristic*)service->getCharacteristicByType(charType_sensorActive);
+
+		if (active)
+    	{
+			active->setValue(this->Online);
+			characteristics.push_back(active->describeValue());
 		}
-	 } break;
-	 
-   }	   
+
+
+		double temp;
+		this->getDouble(&temp);
+		temperature->setValue(temp);
+
+		characteristics.push_back(temperature->describeValue());
+
+		wasDescribed = true;
+	}
+		break;
+	case SUPLA_CHANNELFNC_LIGHTSWITCH: {
+		accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
+		if (!accessory)
+			break;
+
+		service* service = accessory->getServiceByType(serviceType_lightBulb);
+		if (!service)
+			break;
+
+		boolCharacteristic* on =
+				(boolCharacteristic*) service->getCharacteristicByType(
+						charType_on);
+
+		if (!on)
+			break;
+
+		char value;
+		this->getChar(&value);
+		on->setValue(value > 0);
+
+		characteristics.push_back(on->describeValue());
+		wasDescribed = true;
+	}
+		break;
+	case SUPLA_CHANNELFNC_POWERSWITCH: {
+			accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
+			if (!accessory)
+				break;
+
+			service* service = accessory->getServiceByType(serviceType_switch);
+			if (!service)
+				break;
+
+			boolCharacteristic* on =
+					(boolCharacteristic*) service->getCharacteristicByType(
+							charType_on);
+
+			if (!on)
+				break;
+
+			char value;
+			this->getChar(&value);
+			on->setValue(value > 0);
+
+			characteristics.push_back(on->describeValue());
+			wasDescribed = true;
+		}
+			break;
+	};
+
+	if (wasDescribed) {
+		std::string broadcastTemp;
+		describe["characteristics"] = characteristics;
+		describe.dump(broadcastTemp);
+
+		char* cstr = strdup(broadcastTemp.c_str());
+
+		broadcastInfo * info = new broadcastInfo;
+		info->sender = NULL;
+		info->desc = cstr;
+
+		pthread_t thread;
+		pthread_create(&thread, NULL, announce, info);
+	}
 }
 
-char *client_device_channel::getCaption(void) { return Caption; }
+std::string client_device_channel::getSerialNumber(void) {
+	return this->serial_number;
+}
+std::string client_device_channel::getName(void) {
+	return this->name;
+}
+std::string client_device_channel::getModel(void) {
+	return this->model;
+}
+std::string client_device_channel::getManufacturer(void) {
+	return this->manufacturer;
+}
+std::string client_device_channel::getFirmwareRevision(void) {
+	return this->firmware_revision;
+}
+
+char *client_device_channel::getCaption(void) {
+	return Caption;
+}
+
+bool client_device_channel::isHidden(void) {
+	return !this->isHK;
+}
 
 void client_device_channel::setSubValue(
-    char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
-  memcpy(this->Sub_value, sub_value, SUPLA_CHANNELVALUE_SIZE);
+		char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
+	memcpy(this->Sub_value, sub_value, SUPLA_CHANNELVALUE_SIZE);
 }
 
 void client_device_channel::getSubValue(
-    char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
-  memcpy(sub_value, this->Sub_value, SUPLA_CHANNELVALUE_SIZE);
+		char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
+	memcpy(sub_value, this->Sub_value, SUPLA_CHANNELVALUE_SIZE);
 }
 
-void client_device_channel::setOnline(bool value) { this->Online = value; }
-bool client_device_channel::getOnline() { return this->Online; }
+void client_device_channel::setOnline(bool value) {
+	this->Online = value;
 
-client_device_channel* client_device_channels::add_channel(
-    int Id, int Number, int Type, int Func, int Param1, int Param2, int Param3,
-    char *TextParam1, char *TextParam2, char *TextParam3, bool Hidden,
-    bool Online, char *Caption) {
-  
-  safe_array_lock(arr);
 
-  client_device_channel *channel = find_channel(Id);
-  if (channel == 0) {
-    if (Type == 0) {
-      /* enable support for proto version < 10 */
-      switch (Func) {
-        case SUPLA_CHANNELFNC_THERMOMETER:
-          Type = SUPLA_CHANNELTYPE_THERMOMETERDS18B20;
-          break;
-        case SUPLA_CHANNELFNC_DISTANCESENSOR:
-          Type = SUPLA_CHANNELTYPE_DISTANCESENSOR;
-          break;
-        case SUPLA_CHANNELFNC_DIMMER:
-          Type = SUPLA_CHANNELTYPE_DIMMER;
-          break;
-        case SUPLA_CHANNELFNC_DIMMERANDRGBLIGHTING:
-          Type = SUPLA_CHANNELTYPE_DIMMERANDRGBLED;
-          break;
-        case SUPLA_CHANNELFNC_THERMOSTAT:
-          Type = SUPLA_CHANNELTYPE_THERMOSTAT;
-          break;
-        case SUPLA_CHANNELFNC_THERMOSTAT_HEATPOL_HOMEPLUS:
-          Type = SUPLA_CHANNELTYPE_THERMOSTAT_HEATPOL_HOMEPLUS;
-          break;
-        case SUPLA_CHANNELFNC_RGBLIGHTING:
-          Type = SUPLA_CHANNELTYPE_RGBLEDCONTROLLER;
-          break;
-        case SUPLA_CHANNELFNC_GAS_METER:
-        case SUPLA_CHANNELFNC_WATER_METER:
-          Type = SUPLA_CHANNELTYPE_IMPULSE_COUNTER;
-          break;
-        case SUPLA_CHANNELFNC_ELECTRICITY_METER:
-          Type = SUPLA_CHANNELTYPE_ELECTRICITY_METER;
-          break;
-        case SUPLA_CHANNELFNC_HUMIDITY:
-        case SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE:
-          Type = SUPLA_CHANNELTYPE_DHT11;
-          break;
-        case SUPLA_CHANNELFNC_WEATHER_STATION:
-          Type = SUPLA_CHANNELTYPE_WEATHER_STATION;
-          break;
-        case SUPLA_CHANNELFNC_WEIGHTSENSOR:
-          Type = SUPLA_CHANNELTYPE_WEIGHTSENSOR;
-          break;
-        case SUPLA_CHANNELFNC_RAINSENSOR:
-          Type = SUPLA_CHANNELTYPE_RAINSENSOR;
-          break;
-        case SUPLA_CHANNELFNC_PRESSURESENSOR:
-          Type = SUPLA_CHANNELTYPE_PRESSURESENSOR;
-          break;
-        case SUPLA_CHANNELFNC_WINDSENSOR:
-          Type = SUPLA_CHANNELTYPE_WINDSENSOR;
-          break;
-        case SUPLA_CHANNELFNC_MAILSENSOR:
-          Type = SUPLA_CHANNELTYPE_SENSORNC;
-          break;
-        case SUPLA_CHANNELFNC_LIGHTSWITCH:
-        case SUPLA_CHANNELFNC_POWERSWITCH:
-          Type = SUPLA_CHANNELTYPE_RELAY;
-          break;
-      }
-    }
 
-    *channel = new client_device_channel(
-        Id, Number, Type, Func, Param1, Param2, Param3, TextParam1, TextParam2,
-        TextParam3, Hidden, Online, Caption);
 
-    if (channel != NULL && safe_array_add(arr, channel) == -1) {
-      delete channel;
-      channel = NULL;
+}
+bool client_device_channel::getOnline() {
+	return this->Online;
+}
+
+client_device_channel* client_device_channels::add_channel(int Id, int Number,
+		int Type, int Func, int Param1, int Param2, int Param3,
+		char *TextParam1, char *TextParam2, char *TextParam3, bool Hidden,
+		bool Online, char *Caption) {
+
+	safe_array_lock(arr);
+
+	client_device_channel *channel = find_channel(Id);
+
+	if (channel == 0) {
+		channel = new client_device_channel(Id, Number, Type, Func, Param1,
+				Param2, Param3, TextParam1, TextParam2, TextParam3, Hidden,
+				Online, Caption, ++current_accessory_id);
+
+		if (channel != NULL && safe_array_add(arr, channel) == -1) {
+			delete channel;
+			channel = NULL;
+		} else {
+
+
+			accessories->add_accessory_for_supla_channel(channel,
+						identify_callback_routine_execution,
+						set_value_callback_routine_execution);
+		}
 	} else {
-		
-	  /*add homekit accessory */
+		channel->setOnline(Online);
 	}
-  } else {
-    channel->setOnline(Online);
-  }
 
-  safe_array_unlock(arr);
-  
-  return channel;
+	safe_array_unlock(arr);
+
+	return channel;
 }
 
-void client_device_channels::set_channel_sub_value(
-    int ChannelID, char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
-  if (ChannelID == 0) return;
+void client_device_channels::set_channel_sub_value(int ChannelID,
+		char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
+	if (ChannelID == 0)
+		return;
 
-  safe_array_lock(arr);
+	safe_array_lock(arr);
 
-  client_device_channel *channel = find_channel(ChannelID);
+	client_device_channel *channel = find_channel(ChannelID);
 
-  if (channel) {
-    channel->setSubValue(sub_value);
-  }
-  safe_array_unlock(arr);
+	if (channel) {
+		channel->setSubValue(sub_value);
+	}
+	safe_array_unlock(arr);
 }
 
 client_device_channel *client_device_channels::find_channel(int ChannelId) {
-  return (client_device_channel *)safe_array_findcnd(arr, arr_findcmp,
-															&ChannelId);
+	return (client_device_channel *) safe_array_findcnd(arr, arr_findcmp,
+			&ChannelId);
 }
