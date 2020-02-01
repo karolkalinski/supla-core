@@ -1,3 +1,13 @@
 # supla-homekit-bridge
 
-libavahi-compat-libdnssd-dev
+
+sudo apt-get install -y --no-install-recommends \
+        git \
+        make \
+        gcc \
+        g++ \
+        libssl-dev \
+        ca-certificates \
+        ssl-cert \
+        libavahi-compat-libdnssd-dev 
+        
