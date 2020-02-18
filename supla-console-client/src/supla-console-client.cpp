@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include "client_loop.h"
+#include "notification_loop.h"
 #include "clientcfg.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/sthread.h"
@@ -46,6 +47,7 @@ int kbhit() {
 
 int main(int argc, char *argv[]) {
   void *client_loop_t = NULL;
+  void *notification_loop_t = NULL;
 
   if (clientcfg_init(argc, argv) == 0) {
     clientcfg_free();
@@ -59,13 +61,7 @@ int main(int argc, char *argv[]) {
   unlink("ssocket_write.raw");
 #endif
 
-  if (lifetime > 0) {
-    supla_log(LOG_INFO, "Lifetime: %i sec.", lifetime);
-  }
 
-  if (input_off == 1) {
-    supla_log(LOG_INFO, "Input: off");
-  }
 
   st_mainloop_init();
   st_hook_signals();
@@ -73,60 +69,19 @@ int main(int argc, char *argv[]) {
   // CLIENT LOOP
   void *sclient = NULL;
   client_loop_t = sthread_simple_run(client_loop, (void *)&sclient, 0);
+  notification_loop_t = sthread_simple_run(notification_loop, NULL, 0);
 
   // MAIN LOOP
 
   while (st_app_terminate == 0) {
-    if (input_off == 0 && sclient != NULL && kbhit() > 0) {
-      switch (getch()) {
-        case '0':
-          supla_client_open(sclient, 14, 1, 0);
-          break;
-        case '1':
-          supla_client_open(sclient, 14, 1, 1);
-          break;
-        case '2':
-          supla_client_open(sclient, 14, 1, 2);
-          break;
-
-        case '4':
-          supla_client_open(sclient, 28, 0, 1);
-          break;
-        case '5':
-          supla_client_open(sclient, 29, 0, 1);
-          break;
-        case '6':
-          supla_client_open(sclient, 30, 0, 1);
-          break;
-        case '7':
-          supla_client_get_registration_enabled(sclient);
-          break;
-        case 's':
-          supla_client_superuser_authorization_request(sclient, NULL, "abcd");
-          break;
-        case 'c':
-          TCS_DeviceCalCfgRequest request;
-          memset(&request, 0, sizeof(TCS_DeviceCalCfgRequest));
-          supla_client_device_calcfg_request(sclient, &request);
-          break;
-      }
-    }
-
-    if (lifetime > 0) {
-      struct timeval now;
-      gettimeofday(&now, NULL);
-
-      if (now.tv_sec - runtime.tv_sec >= lifetime) {
-        supla_log(LOG_INFO, "Timeout");
-        break;
-      }
-    }
 
     st_mainloop_wait(1000);
   }
 
   // RELEASE BLOCK
   sthread_twf(client_loop_t);
+  sthread_twf(notification_loop_t);
+
   st_mainloop_free();
   clientcfg_free();
 

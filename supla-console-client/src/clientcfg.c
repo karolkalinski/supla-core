@@ -32,67 +32,23 @@
 char *cfg_id_file = NULL;
 char *cfg_authkey_file = NULL;
 
-char *cfg_email = NULL;
-char *cfg_host = NULL;
-int cfg_port = 0;
-char cfg_ssl_enabled = 1;
-
-int cfg_aid = 0;
-char *cfg_pwd = NULL;
+char *cfg_config_file = NULL;
 
 char cfg_client_GUID[SUPLA_GUID_SIZE];
 char cfg_client_AuthKey[SUPLA_AUTHKEY_SIZE];
 
-int lifetime = 0;
-char input_off = 0;
-
-unsigned char proto_version = 0;
-
 unsigned char clientcfg_init(int argc, char *argv[]) {
-  int a, x;
+  int a;
   struct passwd *pw;
   char *buffer;
   char GUIDHEX[SUPLA_GUID_HEXSIZE + 1];
 
   for (a = 0; a < argc; a++) {
-    if (strcmp("-i", argv[a]) == 0 && a < argc - 1) {
-      cfg_id_file = strdup(argv[a + 1]);
-      a++;
-    } else if (strcmp("-h", argv[a]) == 0 && a < argc - 1) {
-      cfg_host = strdup(argv[a + 1]);
-      a++;
-    } else if (strcmp("-tcp", argv[a]) == 0) {
-      cfg_ssl_enabled = 0;
-    } else if (strcmp("-p", argv[a]) == 0 && a < argc - 1) {
-      cfg_port = atoi(argv[a + 1]);
-      a++;
-    } else if (strcmp("-aid", argv[a]) == 0 && a < argc - 1) {
-      cfg_aid = atoi(argv[a + 1]);
-      a++;
-    } else if (strcmp("-pwd", argv[a]) == 0 && a < argc - 1) {
-      cfg_pwd = strdup(argv[a + 1]);
-      a++;
-    } else if (strcmp("-email", argv[a]) == 0 && a < argc - 1) {
-      cfg_email = strdup(argv[a + 1]);
-      a++;
-    } else if (strcmp("-proto", argv[a]) == 0 && a < argc - 1) {
-      x = atoi(argv[a + 1]);
-      if (x >= SUPLA_PROTO_VERSION_MIN && x <= SUPLA_PROTO_VERSION) {
-        proto_version = x;
-      }
-      a++;
-    } else if (strcmp("-lifetime", argv[a]) == 0 && a < argc - 1) {
-      lifetime = atoi(argv[a + 1]);
-      a++;
-    } else if (strcmp("-input", argv[a]) == 0 && a < argc - 1) {
-      input_off = strcmp("off", argv[a + 1]) == 0;
+    if (strcmp("-config", argv[a]) == 0 && a < argc - 1) {
+      cfg_config_file = strdup(argv[a + 1]);
       a++;
     }
   }
-
-  if (cfg_port == 0) cfg_port = cfg_ssl_enabled == 1 ? 2016 : 2015;
-
-  if (cfg_host == NULL) cfg_host = strdup("127.0.0.1");
 
   if (cfg_id_file == NULL) {
     pw = getpwuid(getuid());  // NOLINT
@@ -100,7 +56,7 @@ unsigned char clientcfg_init(int argc, char *argv[]) {
 
     buffer = malloc(a);
 
-    if (snprintf(buffer, a, "%s/.supla-client", pw->pw_dir) < 1) {
+    if (snprintf(buffer, a, "%s/.supla-mqtt-client", pw->pw_dir) < 1) {
       free(buffer);
       return 0;
     }
@@ -112,7 +68,7 @@ unsigned char clientcfg_init(int argc, char *argv[]) {
       }
     }
 
-    if (snprintf(buffer, a, "%s/.supla-client/id", pw->pw_dir) < 1) {
+    if (snprintf(buffer, a, "%s/.supla-mqtt-client/id", pw->pw_dir) < 1) {
       free(buffer);
       return 0;
     }
@@ -157,18 +113,8 @@ void clientcfg_free(void) {
     cfg_authkey_file = NULL;
   }
 
-  if (cfg_host) {
-    free(cfg_host);
-    cfg_host = NULL;
-  }
-
-  if (cfg_pwd) {
-    free(cfg_pwd);
-    cfg_pwd = NULL;
-  }
-
-  if (cfg_email) {
-    free(cfg_email);
-    cfg_email = NULL;
+  if (cfg_config_file) {
+    free(cfg_config_file);
+    cfg_config_file = NULL;
   }
 }
