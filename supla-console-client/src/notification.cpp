@@ -177,12 +177,12 @@ void notification::setTrigger(enum_trigger value) {
 		return this->message;
 	}
 
-***REMOVED***:notifications() {
+notifications::notifications() {
 	arr = safe_array_init();
 }
 
 
-***REMOVED***:~notifications() {
+notifications::~notifications() {
 
 	safe_array_lock(arr);
 	for (int i = 0; i < safe_array_count(arr); i++) {
@@ -194,7 +194,7 @@ void notification::setTrigger(enum_trigger value) {
 }
 
 
-void ***REMOVED***:add_notifiction(enum_trigger trigger, std::string time,
+void notifications::add_notifiction(enum_trigger trigger, std::string time,
   std::string condition, std::string device,
   std::string title, std::string message) {
 
@@ -216,17 +216,17 @@ void ***REMOVED***:add_notifiction(enum_trigger trigger, std::string time,
   safe_array_unlock(arr);
 }
 
-void ***REMOVED***:setUser(std::string value) {
+void notifications::setUser(std::string value) {
 	this->user = value;
 }
 
-void ***REMOVED***:setToken(std::string value) {
+void notifications::setToken(std::string value) {
 	this->token = value;
 }
 
 
 
-void ***REMOVED***:handle() {
+void notifications::handle() {
 
 	safe_array_lock(arr);
 
