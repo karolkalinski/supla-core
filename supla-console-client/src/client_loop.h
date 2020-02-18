@@ -19,14 +19,8 @@
 #ifndef CLIENT_LOOP_H_
 #define CLIENT_LOOP_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "channel.h"
 
 void client_loop(void *user_data, void *sthread);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* CLIENT_LOOP_H_ */

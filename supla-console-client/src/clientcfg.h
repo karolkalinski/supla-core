@@ -27,21 +27,10 @@ extern "C" {
 
 extern char *cfg_id_file;
 
-extern char *cfg_email;
-extern char *cfg_host;
-extern int cfg_port;
-extern char cfg_ssl_enabled;
-
-extern int cfg_aid;
-extern char *cfg_pwd;
+extern char *cfg_config_file;
 
 extern char cfg_client_GUID[SUPLA_GUID_SIZE];
 extern char cfg_client_AuthKey[SUPLA_AUTHKEY_SIZE];
-
-extern unsigned char proto_version;
-
-extern int lifetime;
-extern char input_off;
 
 unsigned char clientcfg_init(int argc, char *argv[]);
 void clientcfg_free();
