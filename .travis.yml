@@ -1,7 +1,7 @@
-***REMOVED***
+notifications:
   slack:
     rooms:
-      - ***REMOVED***dauFpwhgEGeyy9ERzqOYeJyY#github
+      - supla:dauFpwhgEGeyy9ERzqOYeJyY#github
 
 matrix:
   include:

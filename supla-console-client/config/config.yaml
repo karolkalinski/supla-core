@@ -1,0 +1,16 @@
+supla:
+  port: 2016
+  host: '192.168.1.216'
+  protocol_version: 10
+  email: 'lukaszbek@gmail.com'
+
+pushover:
+  token: 'a2ms5m2viknux6svj1uo2nfvyeno23'
+  user: 'ukfou5nbqy39uf3p99qvai9k3i2q9m'
+
+notifications:
+  - trigger: ontime
+    time: '*/15 * * * * *'
+    condition: '(%channel_91% == 1)'
+    message: 'notification 2'
+
