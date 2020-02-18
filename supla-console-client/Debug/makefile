@@ -43,7 +43,7 @@ endif
 all: supla-pushover
 
 # Tool invocations
-supla-pushover: $(OBJS) $(USER_OBJS)
+supla-***REMOVED*** $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
 	g++ -L$(SSLDIR)/lib -pthread -lrt -o "supla-pushover" $(OBJS) $(USER_OBJS) $(LIBS)
