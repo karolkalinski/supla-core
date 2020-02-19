@@ -11,6 +11,7 @@
 #include "supla-client-lib/safearray.h"
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include "supla-client-lib/proto.h"
 class channel {

@@ -36,6 +36,7 @@ private:
    bool isChannelsSet;
    void* lck;
    std::vector<channel_index> channels;
+   
    std::string notificationCmd;
    std::string buildNotificationCommand();
    bool isConditionSet(void);
