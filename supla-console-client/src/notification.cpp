@@ -80,7 +80,7 @@ void notification::setChannelTrigger(void) {
 void notification::setChannels(void) {
   if (isChannelsSet) return;
   
-  if (this->condition.length() == 0) return false;
+  if (this->condition.length() == 0) return;
   
   std::string temp = this->condition;
   
@@ -90,7 +90,7 @@ void notification::setChannels(void) {
 
 	  std::string channelId = temp.substr(start + 9, end - start - 9);
 
-	  auto vect = split(channelid, '_');
+	  auto vect = split(channelId, '_');
       
 	  if (vect.size() > 1)
 		channels.push_back({std::stoi(vect[0]), 0, false}); 	
@@ -109,18 +109,20 @@ bool notification::isConditionSet(void) {
   
   if (this->channels.size() == 0) return;
   
+  std::string temp = this->condition;
+  
   for (auto channel_struct : this->channels) {
 	  
 	  channel* chnl = chnls->find_channel(channel_struct.channelid);
 
 	  if (!chnl)
       {
-		supla_log(LOG_DEBUG, "channel %d not found", channel_struct.channelId);
+		supla_log(LOG_DEBUG, "channel %d not found", channel_struct.channelid);
 		return 0;
 	  }
 
 	  std::string val = chnl->getStringValue(channel_struct.index);
-
+      
 	  if (channel_struct.wasIndexed)
 		  replace_string_in_place(&temp, "%channel_" + 
 	         std::to_string(channel_struct.channelid) + "_" + 
@@ -158,7 +160,7 @@ void notification::setUser(std::string value) {
 }
 
 void notification::notify_on_time_trigger(void) {
-  if (this->time.length() == 0 ) continue;
+  if (this->time.length() == 0 ) return;
 
   cron_expr expr;
   const char* err = NULL;
@@ -166,7 +168,7 @@ void notification::notify_on_time_trigger(void) {
   cron_parse_expr(this->time.c_str(), &expr, &err);
   if (err) {
 		supla_log(LOG_DEBUG, "error parsing crontab value %s", err);
-	    continue;
+	    return;
   }
   time_t cur = time(NULL);
   time_t next = cron_next(&expr, cur);
@@ -266,6 +268,7 @@ void notifications::handle() {
 	safe_array_lock(arr);
 
 	for (int i = 0; i < safe_array_count(arr); i++) {
+		
 		notification* ntf = (notification*)safe_array_get(arr, i);
 
 		ntf->setChannels();
