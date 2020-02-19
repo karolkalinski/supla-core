@@ -10,15 +10,15 @@
 
 #include <string>
 #include <vector>
-#include "channel.h"
+ 
 #include "supla-client-lib/safearray.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/lck.h"
 #include "crontab_parser.h"
 #include "ccronexpr.h"
+#include "globals.h"
 #include <time.h>
 #include <ctime>
-#include <globals.h>
 
 enum enum_trigger { none, onchange, ontime };
 
@@ -36,11 +36,9 @@ private:
    bool isChannelsSet;
    void* lck;
    std::vector<channel_index> channels;
-   
    std::string notificationCmd;
    std::string buildNotificationCommand();
    bool isConditionSet(void);
-   
 public:
 	notification();
 	virtual ~notification();

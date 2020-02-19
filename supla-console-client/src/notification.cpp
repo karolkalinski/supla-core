@@ -13,7 +13,6 @@ struct channel_index {
 }
 
 notification::notification() {
-	// TODO Auto-generated constructor stub
   this->condition = "";
   this->device = "";
   this->message = "";
@@ -34,14 +33,12 @@ bool notification::setNextTime(time_t value) {
 	 double sec = difftime(value, next);
 	 this->next = value;
 	 supla_log(LOG_DEBUG, "%s", ctime(&this->next));
-
 	 return sec > 0;
-
 }
 
 std::string notification::buildNotificationCommand() {
+	
 	if (this->notificationCmd.length() == 0) {
-
 		notificationCmd.append("curl -d ");
 		notificationCmd.append("\"token=");
 		notificationCmd.append(this->token);
