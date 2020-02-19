@@ -49,7 +49,10 @@ unsigned char clientcfg_init(int argc, char *argv[]) {
       a++;
     }
   }
-
+  
+  if (cfg_config_file == NULL)
+	cfg_config_file = "./supla-pushover-config.yaml";  
+  
   if (cfg_id_file == NULL) {
     pw = getpwuid(getuid());  // NOLINT
     a = strlen(pw->pw_dir) + 50;
