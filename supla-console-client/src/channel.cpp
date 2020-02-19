@@ -22,7 +22,12 @@ void channel::add_notification(void* value) {
   }
 }	
 
-void channel::notify(void) { }
+void channel::notify(void) { 
+
+  for (auto p : notification_list) {
+     
+  }
+}
 
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
   

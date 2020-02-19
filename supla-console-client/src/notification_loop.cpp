@@ -20,3 +20,7 @@ void notification_loop(void *user_data, void *sthread) {
    }
 }
 
+void notification_notify(void* value) {
+	((notification*)value)->notify();
+}
+

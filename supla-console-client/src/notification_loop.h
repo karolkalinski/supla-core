@@ -13,8 +13,9 @@
 #include <string.h>
 #include <unistd.h>
 #include "crontab_parser.h"
-
+#include "notification.h"
 
 void notification_loop(void *user_data, void *sthread);
+void notification_notify(void* value);
 
 #endif /* NOTIFICATION_LOOP_H_ */
