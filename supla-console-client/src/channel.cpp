@@ -17,8 +17,7 @@ channel::~channel() {}
 
 void channel::add_notification(void* value) {
   
-  supla_log(LOG_DEBUG, "adding notification to channels's %d list", 
-    this->channel_id);
+  
 	
   bool found = false;  
   for (auto p : notification_list) {
@@ -28,8 +27,11 @@ void channel::add_notification(void* value) {
 	}
   }
   
-  if (!found)
+  if (!found) {
+    supla_log(LOG_DEBUG, "adding notification to channels's %d list", 
+      this->channel_id);
     notification_list.push_back(value);
+  }
 }	
 
 void channel::notify(void) { 
