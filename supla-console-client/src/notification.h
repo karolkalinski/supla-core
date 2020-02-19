@@ -71,7 +71,7 @@ public:
 	void notify(void);
 	void setChannels(void);
 	void setChannelTrigger(void);
-	void notification::notify_on_time_trigger(void);
+	void notify_on_time_trigger(void);
 };
 
 class notifications {
