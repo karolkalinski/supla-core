@@ -32,6 +32,10 @@ bool notification::setNextTime(time_t value) {
   return sec > 0;
 }
 
+time_t notification::getNextTime(void) {
+  return this->next;
+}
+
 std::string notification::buildNotificationCommand() {
   if (this->notificationCmd.length() == 0) {
     notificationCmd.append("curl -d ");
@@ -164,15 +168,19 @@ void notification::setUser(std::string value) { this->user = value; }
 void notification::notify_on_time_trigger(void) {
   if (this->time.length() == 0) return;
 
+  time_t cur = std::time(NULL);
+  if (difftime(this->next, cur) > 0) return;
+
   cron_expr expr;
   const char* err = NULL;
   memset(&expr, 0, sizeof(expr));
   cron_parse_expr(this->time.c_str(), &expr, &err);
+  
   if (err) {
     supla_log(LOG_DEBUG, "error parsing crontab value %s", err);
     return;
   }
-  time_t cur = std::time(NULL);
+  
   time_t next = cron_next(&expr, cur);
   if (setNextTime(next)) {
     supla_log(LOG_DEBUG, "sending on time notification %s", this->time.c_str());
