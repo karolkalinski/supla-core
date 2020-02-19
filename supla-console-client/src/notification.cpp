@@ -83,7 +83,8 @@ void notification::setChannels(void) {
   if (isChannelsSet) return;
   if (this->condition.length() == 0) return;
   
-  supla_log(LOG_DEBUG, "setting channels list for notification...");
+  supla_log(LOG_DEBUG, "setting channels list for notification... %s", 
+    this->condition.c_str());
 	
   std::string temp = this->condition;
   
@@ -93,13 +94,15 @@ void notification::setChannels(void) {
 
 	  std::string channelId = temp.substr(start + 9, end - start - 9);
 
+      supla_log(LOG_DEBUG, "setting channel for %s", channelId.c_str());
+	  
 	  auto vect = split(channelId, '_');
       
-	  if (vect.size() > 1)
+	  
+	  if (vect.size() == 1)
 		channels.push_back({std::stoi(vect[0]), 0, false}); 	
       else 
 		channels.push_back({std::stoi(vect[0]), std::stoi(vect[1]), true});
-	  
 	 
 	  temp = temp.substr(end + 1);
 	  start = temp.find("%channel_"); // 0
