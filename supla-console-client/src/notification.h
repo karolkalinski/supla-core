@@ -24,6 +24,12 @@
 
 enum enum_trigger { none, onchange, ontime };
 
+typedef struct {
+  int channelid;
+  int index;
+  bool wasIndexed;
+} channel_index;
+
 class notification {
 private:
    enum_trigger trigger;

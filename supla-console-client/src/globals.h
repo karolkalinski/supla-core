@@ -14,10 +14,6 @@
 extern notifications* ntfns;
 extern channels* chnls;
 
-typedef struct {
-  int channelid;
-  int index;
-  bool wasIndexed;
-} channel_index;
+
 
 #endif /* GLOBALS_H_ */
