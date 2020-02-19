@@ -16,7 +16,9 @@
 #include "supla-client-lib/lck.h"
 #include "crontab_parser.h"
 #include "ccronexpr.h"
-#include "globals.h"
+
+#include "channel.h"
+
 #include <time.h>
 #include <ctime>
 
@@ -82,7 +84,6 @@ public:
 
 	void setUser(std::string value);
 	void setToken(std::string value);
-
 	void handle();
 };
 
