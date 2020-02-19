@@ -25,7 +25,8 @@ void channel::add_notification(void* value) {
 void channel::notify(void) { 
 
   for (auto p : notification_list) {
-     
+    void notification_notify(p); 
+ 
   }
 }
 

@@ -12,6 +12,7 @@
 #include <cstring>
 #include <string>
 #include <vector>
+#include "notification_loop.h"
 
 #include "supla-client-lib/proto.h"
 class channel {
