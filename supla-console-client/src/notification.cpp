@@ -7,7 +7,10 @@
 
 #include "notification.h"
 
-
+struct channel_index {
+  int channelid;
+  uint8_t index;
+}
 
 notification::notification() {
 	// TODO Auto-generated constructor stub
@@ -19,10 +22,12 @@ notification::notification() {
   this->trigger = none;
   this->next =  std::time(0);
   this->notificationCmd = "";
+  this->isChannelsSet = false;
+  lck = lck_init();
 }
 
 notification::~notification() {
-	// TODO Auto-generated destructor stub
+	lck_free(lck);
 }
 
 bool notification::setNextTime(time_t value) {
@@ -34,16 +39,16 @@ bool notification::setNextTime(time_t value) {
 
 }
 
-std::string notification::buildNotificationCommand(std::string token, std::string user) {
-
+std::string notification::buildNotificationCommand() {
 	if (this->notificationCmd.length() == 0) {
+
 		notificationCmd.append("curl -d ");
 		notificationCmd.append("\"token=");
-		notificationCmd.append(token);
+		notificationCmd.append(this->token);
 		notificationCmd.append("&user=");
-		notificationCmd.append(user);
+		notificationCmd.append(this->user);
 		notificationCmd.append("&message=");
-		notificationCmd.append(message);
+		notificationCmd.append(this->message);
 		notificationCmd.append("\" ");
 		notificationCmd.append("-H \"Content-Type: application/x-www-form-urlencoded\" ");
 		notificationCmd.append("-X POST https://api.pushover.net/1/messages.json >  /dev/null 2>&1");
@@ -52,91 +57,126 @@ std::string notification::buildNotificationCommand(std::string token, std::strin
 	return this->notificationCmd;
 }
 
-void notification::sendNotification(std::string token, std::string user) {
 
-  std::string command = buildNotificationCommand(token, user);
+void notification::notify(void) {
+   lck_lock(lck);
 
-  supla_log(LOG_DEBUG, "sending notification!");
+   if (!isConditionSet()) return;
+  
+   std::string command = buildNotificationCommand();
 
-  int commandResult = system(command.c_str());
-  if (commandResult != 0) {
-          supla_log(LOG_WARNING, "%s", command.c_str());
-          supla_log(LOG_WARNING, "The command above failed with exist status %d",
-                    commandResult);
+   int commandResult = system(command.c_str());
+   if (commandResult != 0) {
+      supla_log(LOG_WARNING, "%s", command.c_str());
+      supla_log(LOG_WARNING, "The command above failed with exist status %d",
+        commandResult);
   }
-
+  
+  lck_unlock(lck);   
+}
+void notification::setChannelTrigger(void) {
+  
+  if (!isChannelsSet) return;
+  
+  for (auto channel_struct: this->channels) {
+	  channel* ch = chnls->find_channel(channel_struct.channelid);
+	  if (ch) ch->addNotification(this);
+  }
 }
 
-bool notification::isConditionSet(void) {
-  /* if condition is not set than is always true */
-
+void notification::setChannels(void) {
+  if (isChannelsSet) return;
+  
   if (this->condition.length() == 0) return false;
-
-  std::vector<std::string> channels;
-
+  
   std::string temp = this->condition;
-
-  //%channel_12_1% = %channel_13%
-
+  
   std::size_t start = temp.find("%channel_"); // 0
   while (start != std::string::npos) {
 	  std::size_t end = temp.find("%", start + 1); // 11
 
 	  std::string channelId = temp.substr(start + 9, end - start - 9);
 
-	  channels.push_back(channelId);
-
+	  auto vect = split(channelid, '_');
+      
+	  if (vect.size() > 1)
+		channels.push_back({std::stoi(vect[0]), 0, false}); 	
+      else 
+		channels.push_back({std::stoi(vect[0]), std::stoi(vect[1]), true);
+	  
+	 
 	  temp = temp.substr(end + 1);
 	  start = temp.find("%channel_"); // 0
   }
+  
+  isChannelsSet = true;
+}
 
-  temp = this->condition;
-
-  for (auto channelid : channels) {
-
-	  auto vect = split(channelid, '_');
-
-
-	  channel* chnl = chnls->find_channel(std::stoi(vect[0]));
+bool notification::isConditionSet(void) {
+  
+  if (this->channels.size() == 0) return;
+  
+  for (auto channel_struct : this->channels) {
+	  channel* chnl = chnls->find_channel(channel_struct.channelid);
 
 	  if (!chnl)
       {
-		supla_log(LOG_DEBUG, "channel %d not found", channelid);
+		supla_log(LOG_DEBUG, "channel %d not found", channel_struct.channelId);
 		return 0;
 	  }
 
-	  int index = 0;
+	  std::string val = chnl->getStringValue(channel_struct.index);
 
-	  if (vect.size() >1) index = std::stoi(vect[1]);
-
-	  std::string val = chnl->getStringValue(index);
-
-	  if (vect.size() > 1)
-		  replace_string_in_place(&temp, "%channel_" + vect[0] + "_" + vect[1] + "%", val);
+	  if (channel_struct.wasIndexed)
+		  replace_string_in_place(&temp, "%channel_" + 
+	         std::to_string(channel_struct.channelid) + "_" + 
+			 std::to_string(channel_struct.index) + "%", val);
       else
-		  replace_string_in_place(&temp, "%channel_" + vect[0] +"%", val);
+		  replace_string_in_place(&temp, "%channel_" + 
+			std::to_string(channel_struct.channelid) +"%", val);
+  };
 
+  std::string command;
+  command.append("echo ");
+  command.append("\"");
+  command.append(temp);
+  command.append("\" ");
+  command.append("| bc");
+
+  std::string commandResult = get_command_output(command);
+  if (commandResult.compare("0\n") == 0) return false;
+  if (commandResult.compare("1\n") == 0) return true;
+
+  if (commandResult != "") {
+      supla_log(LOG_WARNING, "%s", temp.c_str());
+      supla_log(LOG_WARNING, "The command above failed with exist status %d",
+                commandResult);
   }
 
-  	  std::string command;
-  	  command.append("echo ");
-  	  command.append("\"");
-  	  command.append(temp);
-  	  command.append("\" ");
-  	  command.append("| bc");
-
-  	  std::string commandResult = get_command_output(command);
-      if (commandResult.compare("0\n") == 0) return false;
-      if (commandResult.compare("1\n") == 0) return true;
-
-  	  if (commandResult != "") {
-        supla_log(LOG_WARNING, "%s", temp.c_str());
-        supla_log(LOG_WARNING, "The command above failed with exist status %d",
-                  commandResult);
-      }
-
   return false;
+}
 
+void setToken(std::string value) {
+  this->token = value;
+}
+void setUser(std::string value) {
+  this->user = value;
+}
+
+void notification::notify_on_time_trigger(void) {
+  if (this->time.length() == 0 ) continue;
+
+  cron_expr expr;
+  const char* err = NULL;
+  memset(&expr, 0, sizeof(expr));
+  cron_parse_expr(this->time.c_str(), &expr, &err);
+  if (err) {
+		supla_log(LOG_DEBUG, "error parsing crontab value %s", err);
+	    continue;
+  }
+  time_t cur = time(NULL);
+  time_t next = cron_next(&expr, cur);
+  if (setNextTime(next)) notify();
 }
 
 void notification::setTrigger(enum_trigger value) {
@@ -157,7 +197,6 @@ void notification::setTrigger(enum_trigger value) {
 	void notification::setMessage(std::string value) {
 		this->message = value;
 	}
-
 	enum_trigger notification::getTrigger(void) {
 		return this->trigger;
 	}
@@ -181,7 +220,6 @@ notifications::notifications() {
 	arr = safe_array_init();
 }
 
-
 notifications::~notifications() {
 
 	safe_array_lock(arr);
@@ -189,14 +227,17 @@ notifications::~notifications() {
 		notification* ntf = (notification*)safe_array_get(arr, i);
 		if (ntf) delete ntf;
 	}
+	
 	safe_array_unlock(arr);
 	safe_array_free(arr);
 }
 
 
-void notifications::add_notifiction(enum_trigger trigger, std::string time,
+
+void notifications::add_notifiction(
+  enum_trigger trigger, std::string time,
   std::string condition, std::string device,
-  std::string title, std::string message) {
+  std::string title, std::string message, std::string token, std::string user) {
 
   safe_array_lock(arr);
 
@@ -208,6 +249,8 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
   nt->setTime(time);
   nt->setTitle(title);
   nt->setTrigger(trigger);
+  nt->setUser(user);
+  nt->setToken(token);
 
   if (safe_array_add(arr, nt) == -1) {
 	  delete nt;
@@ -224,8 +267,6 @@ void notifications::setToken(std::string value) {
 	this->token = value;
 }
 
-
-
 void notifications::handle() {
 
 	safe_array_lock(arr);
@@ -233,36 +274,18 @@ void notifications::handle() {
 	for (int i = 0; i < safe_array_count(arr); i++) {
 		notification* ntf = (notification*)safe_array_get(arr, i);
 
-		if (!ntf->isConditionSet()) continue;
-
+		ntf->setChannels();
+				
 		switch (ntf->getTrigger()) {
 			case none: continue;
+			case onchange: {
+				ntf->setChannelTrigger();
+			}
 			case ontime : {
-
-				if (ntf->getTime().length() == 0 ) continue;
-
-				cron_expr expr;
-				const char* err = NULL;
-				memset(&expr, 0, sizeof(expr));
-				cron_parse_expr(ntf->getTime().c_str(), &expr, &err);
-
-				if (err) {
-					supla_log(LOG_DEBUG, "error parsing crontab value %s", err);
-				    continue;
-				}
-
-				time_t cur = time(NULL);
-
-				supla_log(LOG_DEBUG, "%s", ctime(&cur));
-
-				time_t next = cron_next(&expr, cur);
-
-				if (ntf->setNextTime(next))
-					ntf->sendNotification(token, user);
+				ntf->notifyOnTimeTrigger();
 			} break;
-
-			case onchange : {  } break;
 		}
 	}
+	
 	safe_array_unlock(arr);
 }

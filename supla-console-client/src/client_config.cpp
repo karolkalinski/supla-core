@@ -77,15 +77,12 @@ bool client_config::load(const char* config_file) {
     	  else
     		  trigger = none;
 
-    	  ntfns->setToken(pushover_token);
-    	  ntfns->setUser(pushover_user);
-
-
     	  ntfns->add_notifiction(trigger, command["time"].As<std::string>(""),
     			  command["condition"].As<std::string>(""),
 				  command["device"].As<std::string>(""),
 				  command["title"].As<std::string>(""),
-				  command["message"].As<std::string>("mock message"));
+				  command["message"].As<std::string>("mock message"),
+				  pushover_token, pushover_user);
     	}
     }
 
