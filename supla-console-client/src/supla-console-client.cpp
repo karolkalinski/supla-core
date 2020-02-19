@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
   // MAIN LOOP
 
   while (st_app_terminate == 0) {
-    st_mainloop_wait(1000);
+    st_mainloop_wait(5000);
   }
 
   // RELEASE BLOCK
