@@ -10,6 +10,7 @@ RM := rm -rf
 -include sources.mk
 -include src/supla-client-lib/subdir.mk
 -include src/subdir.mk
+-include src/yaml/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -45,7 +46,7 @@ all: supla-console-client
 supla-console-client: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
-	g++ -L$(SSLDIR)/lib -pthread -lrt -o "supla-console-client" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L$(SSLDIR)/lib -pthread -lrt -o "supla-pushover" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

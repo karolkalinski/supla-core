@@ -22,8 +22,8 @@
 #include <unistd.h>
 
 #include "client_loop.h"
-#include "notification_loop.h"
 #include "clientcfg.h"
+#include "notification_loop.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/sthread.h"
 #include "supla-client-lib/supla-client.h"
@@ -61,8 +61,6 @@ int main(int argc, char *argv[]) {
   unlink("ssocket_write.raw");
 #endif
 
-
-
   st_mainloop_init();
   st_hook_signals();
 
@@ -74,7 +72,6 @@ int main(int argc, char *argv[]) {
   // MAIN LOOP
 
   while (st_app_terminate == 0) {
-
     st_mainloop_wait(1000);
   }
 

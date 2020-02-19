@@ -23,13 +23,11 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include "globals.h"
+#include "notification.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/tools.h"
 #include "yaml/yaml.h"
-#include "notification.h"
-#include "globals.h"
-
-
 
 class client_config {
  private:
@@ -49,14 +47,12 @@ class client_config {
   virtual ~client_config();
   bool load(const char *config_file);
 
-
   std::string getSuplaHost();
   std::string getSuplaPassword();
   const uint16_t getSuplaPort();
   const uint32_t getSuplaAccessId();
   std::string getSuplaEmail();
   const uint16_t getSuplaProtocolVersion();
-
 };
 
 #endif /* CLIENT_CONFIG_H_ */

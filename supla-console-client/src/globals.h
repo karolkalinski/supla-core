@@ -14,6 +14,4 @@
 extern notifications* ntfns;
 extern channels* chnls;
 
-
-
 #endif /* GLOBALS_H_ */

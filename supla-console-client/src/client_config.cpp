@@ -34,9 +34,7 @@ client_config::client_config() {
   this->pushover_device = "";
 }
 
-client_config::~client_config() {
-
-}
+client_config::~client_config() {}
 
 bool client_config::load(const char* config_file) {
   try {
@@ -58,32 +56,34 @@ bool client_config::load(const char* config_file) {
     }
 
     if (!root["pushover"].IsNone()) {
-    	this->pushover_token = root["pushover"]["token"].As<std::string>("");
-    	this->pushover_user = root["pushover"]["user"].As<std::string>("");
-    	this->pushover_device = root["pushover"]["device"].As<std::string>("");
+      this->pushover_token = root["pushover"]["token"].As<std::string>("");
+      this->pushover_user = root["pushover"]["user"].As<std::string>("");
+      this->pushover_device = root["pushover"]["device"].As<std::string>("");
     }
 
     if (!root["notifications"].IsNone()) {
-    	for (auto itN = root["notifications"].Begin(); itN != root["notifications"].End(); itN++) {
-    	        Yaml::Node& command = (*itN).second;
+      for (auto itN = root["notifications"].Begin();
+           itN != root["notifications"].End(); itN++) {
+        Yaml::Node& command = (*itN).second;
 
-    	  enum_trigger trigger;
-    	  std::string str_trigger = command["trigger"].As<std::string>("none");
+        enum_trigger trigger;
+        std::string str_trigger = command["trigger"].As<std::string>("none");
 
-    	  if (str_trigger.compare("onchange") == 0)
-    	     trigger = onchange;
-    	  else if (str_trigger.compare("ontime") == 0)
-    		  trigger = ontime;
-    	  else
-    		  trigger = none;
+        if (str_trigger.compare("onchange") == 0)
+          trigger = onchange;
+        else if (str_trigger.compare("ontime") == 0)
+          trigger = ontime;
+        else
+          trigger = none;
 
-    	  ntfns->add_notifiction(trigger, command["time"].As<std::string>(""),
-    			  command["condition"].As<std::string>(""),
-				  command["device"].As<std::string>(""),
-				  command["title"].As<std::string>(""),
-				  command["message"].As<std::string>("mock message"),
-				  pushover_token, pushover_user);
-    	}
+        ntfns->add_notifiction(
+            trigger, command["time"].As<std::string>(""),
+            command["condition"].As<std::string>(""),
+            command["device"].As<std::string>(""),
+            command["title"].As<std::string>(""),
+            command["message"].As<std::string>("mock message"), pushover_token,
+            pushover_user);
+      }
     }
 
     return true;
