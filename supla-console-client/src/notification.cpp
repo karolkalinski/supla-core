@@ -95,7 +95,7 @@ void notification::setChannels(void) {
 	  if (vect.size() > 1)
 		channels.push_back({std::stoi(vect[0]), 0, false}); 	
       else 
-		channels.push_back({std::stoi(vect[0]), std::stoi(vect[1]), true);
+		channels.push_back({std::stoi(vect[0]), std::stoi(vect[1]), true});
 	  
 	 
 	  temp = temp.substr(end + 1);
@@ -107,7 +107,7 @@ void notification::setChannels(void) {
 
 bool notification::isConditionSet(void) {
   
-  if (this->channels.size() == 0) return;
+  if (this->channels.size() == 0) return false;
   
   std::string temp = this->condition;
   
@@ -118,7 +118,7 @@ bool notification::isConditionSet(void) {
 	  if (!chnl)
       {
 		supla_log(LOG_DEBUG, "channel %d not found", channel_struct.channelid);
-		return 0;
+		return false;
 	  }
 
 	  std::string val = chnl->getStringValue(channel_struct.index);
@@ -170,7 +170,7 @@ void notification::notify_on_time_trigger(void) {
 		supla_log(LOG_DEBUG, "error parsing crontab value %s", err);
 	    return;
   }
-  time_t cur = time(NULL);
+  time_t cur = std::time(NULL);
   time_t next = cron_next(&expr, cur);
   if (setNextTime(next)) notify();
 }
