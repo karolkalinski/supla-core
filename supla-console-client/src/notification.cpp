@@ -276,7 +276,7 @@ void notifications::handle() {
 				ntf->setChannelTrigger();
 			}
 			case ontime : {
-				ntf->notifyOnTimeTrigger();
+				ntf->notify_on_time_trigger();
 			} break;
 		}
 	}
