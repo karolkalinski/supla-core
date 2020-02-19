@@ -149,6 +149,8 @@ bool notification::isConditionSet(void) {
   command.append("\" ");
   command.append("| bc");
 
+  supla_log(LOG_DEBUG, "check command %s", command.c_str());
+
   std::string commandResult = get_command_output(command);
   if (commandResult.compare("0\n") == 0) return false;
   if (commandResult.compare("1\n") == 0) return true;
