@@ -28,7 +28,8 @@ void channel::add_notification(void* value) {
 	}
   }
   
-  notification_list.push_back(value);
+  if (!found)
+    notification_list.push_back(value);
 }	
 
 void channel::notify(void) { 
