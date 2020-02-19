@@ -61,3 +61,7 @@ valgrind-suppressions.cfg
 
 /supla-dev/Debug/supla-dev
 /supla-dev/Release/supla-dev
+
+/supla-console-client/Debug/supla-pushover
+/supla-console-client/Release/supla-pushover
+
