@@ -70,7 +70,7 @@ public:
     
 	void notify(void);
 	void setChannels(void);
-	void setChannelTrigger(void);
+	void set_channel_trigger(void);
 	void notify_on_time_trigger(void);
 };
 

@@ -8,6 +8,7 @@
 #include "notification.h"
 
 notification::notification() {
+  
   this->condition = "";
   this->device = "";
   this->message = "";
@@ -26,10 +27,9 @@ notification::~notification() {
 }
 
 bool notification::setNextTime(time_t value) {
-	 double sec = difftime(value, next);
-	 this->next = value;
-	 supla_log(LOG_DEBUG, "%s", ctime(&this->next));
-	 return sec > 0;
+   double sec = difftime(value, next);
+   this->next = value;
+   return sec > 0;
 }
 
 std::string notification::buildNotificationCommand() {
@@ -46,19 +46,21 @@ std::string notification::buildNotificationCommand() {
 		notificationCmd.append("-H \"Content-Type: application/x-www-form-urlencoded\" ");
 		notificationCmd.append("-X POST https://api.pushover.net/1/messages.json >  /dev/null 2>&1");
 	}
-
 	return this->notificationCmd;
 }
 
 
 void notification::notify(void) {
+   
    lck_lock(lck);
 
    if (!isConditionSet()) return;
   
    std::string command = buildNotificationCommand();
 
-   int commandResult = system(command.c_str());
+   supla_log(LOG_DEBUG, "sending notification");
+   int commandResult = 0;//system(command.c_str());
+   
    if (commandResult != 0) {
       supla_log(LOG_WARNING, "%s", command.c_str());
       supla_log(LOG_WARNING, "The command above failed with exist status %d",
@@ -67,7 +69,7 @@ void notification::notify(void) {
   
   lck_unlock(lck);   
 }
-void notification::setChannelTrigger(void) {
+void notification::set_channel_trigger(void) {
   
   if (!isChannelsSet) return;
   
@@ -116,10 +118,8 @@ bool notification::isConditionSet(void) {
 	  channel* chnl = chnls->find_channel(channel_struct.channelid);
 
 	  if (!chnl)
-      {
-		supla_log(LOG_DEBUG, "channel %d not found", channel_struct.channelid);
-		return false;
-	  }
+        return false;
+	  
 
 	  std::string val = chnl->getStringValue(channel_struct.index);
       
@@ -223,7 +223,6 @@ notifications::~notifications() {
 		notification* ntf = (notification*)safe_array_get(arr, i);
 		if (ntf) delete ntf;
 	}
-	
 	safe_array_unlock(arr);
 	safe_array_free(arr);
 }
@@ -264,7 +263,7 @@ void notifications::setToken(std::string value) {
 }
 
 void notifications::handle() {
-
+	
 	safe_array_lock(arr);
 
 	for (int i = 0; i < safe_array_count(arr); i++) {
@@ -276,7 +275,7 @@ void notifications::handle() {
 		switch (ntf->getTrigger()) {
 			case none: continue;
 			case onchange: {
-				ntf->setChannelTrigger();
+				ntf->set_channel_trigger();
 			}
 			case ontime : {
 				ntf->notify_on_time_trigger();
