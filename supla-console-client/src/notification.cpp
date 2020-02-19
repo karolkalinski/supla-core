@@ -73,7 +73,7 @@ void notification::setChannelTrigger(void) {
   
   for (auto channel_struct: this->channels) {
 	  channel* ch = chnls->find_channel(channel_struct.channelid);
-	  if (ch) ch->addNotification(this);
+	  //if (ch) ch->addNotification(this);
   }
 }
 
@@ -150,10 +150,10 @@ bool notification::isConditionSet(void) {
   return false;
 }
 
-void setToken(std::string value) {
+void notification::setToken(std::string value) {
   this->token = value;
 }
-void setUser(std::string value) {
+void notification::setUser(std::string value) {
   this->user = value;
 }
 
