@@ -22,6 +22,7 @@ private:
   std::string caption;
   char value[SUPLA_CHANNELVALUE_SIZE];
   char sub_value[SUPLA_CHANNELVALUE_SIZE];
+  std::vector<void*> notification_list;
   
 public:
 	channel(int channel_id, int channel_function, std::string caption);
@@ -39,7 +40,7 @@ public:
 	int getFunction(void);
 	int getChannelId(void);
 	std::string getStringValue(int index);
-	 
+	void add_notification(void* value); 
 };
 
 class channels {

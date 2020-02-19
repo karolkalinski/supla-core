@@ -15,6 +15,13 @@ channel::channel(int channel_id, int channel_function, std::string caption){
 
 channel::~channel() {} 
 
+void channel::add_notification(void* value) {
+
+  for (auto p : notification_list) {
+    if (p != value) notification_list.push_back(value);
+  }
+}	
+
 void channel::notify(void) { }
 
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {

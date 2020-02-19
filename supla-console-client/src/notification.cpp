@@ -73,7 +73,7 @@ void notification::setChannelTrigger(void) {
   
   for (auto channel_struct: this->channels) {
 	  channel* ch = chnls->find_channel(channel_struct.channelid);
-	  //if (ch) ch->addNotification(this);
+	  if (ch) ch->add_notification((void*)this);
   }
 }
 
