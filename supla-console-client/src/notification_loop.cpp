@@ -11,8 +11,6 @@
 
 
 void notification_loop(void *user_data, void *sthread) {
-
-
 	while (sthread_isterminated(sthread) == 0) {
 
 		ntfns->handle();
@@ -21,6 +19,8 @@ void notification_loop(void *user_data, void *sthread) {
 }
 
 void notification_notify(void* value) {
-	((notification*)value)->notify();
+	
+	if (value != null)
+	  ((notification*)value)->notify();
 }
 

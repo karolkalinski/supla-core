@@ -16,17 +16,28 @@ channel::channel(int channel_id, int channel_function, std::string caption){
 channel::~channel() {} 
 
 void channel::add_notification(void* value) {
-
+  
+  supla_log(LOG_DEBUG, "adding notification to channels's %d list", 
+    this->channel_id);
+	
+  bool found = false;  
   for (auto p : notification_list) {
-    if (p != value) notification_list.push_back(value);
+    if (p == value)  {
+	  found = true;
+	  break;
+	}
   }
+  
+  notification_list.push_back(value);
 }	
 
 void channel::notify(void) { 
-
+  
   for (auto p : notification_list) {
-    notification_notify(p); 
- 
+ 	supla_log(LOG_DEBUG, "pushing onchange notification on channel %d", 
+	  this->channel_id);
+	
+	notification_notify(p); 
   }
 }
 

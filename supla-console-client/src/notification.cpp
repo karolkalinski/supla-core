@@ -81,9 +81,10 @@ void notification::set_channel_trigger(void) {
 
 void notification::setChannels(void) {
   if (isChannelsSet) return;
-  
   if (this->condition.length() == 0) return;
   
+  supla_log(LOG_DEBUG, "setting channels list for notification...");
+	
   std::string temp = this->condition;
   
   std::size_t start = temp.find("%channel_"); // 0
@@ -105,6 +106,8 @@ void notification::setChannels(void) {
   }
   
   isChannelsSet = true;
+  
+  supla_log(LOG_DEBUG, "setting channels list for notification...OK");
 }
 
 bool notification::isConditionSet(void) {
