@@ -13,34 +13,9 @@ channel::channel(int channel_id, int channel_function, std::string caption){
 	this->caption = caption;
 }
 
-channel::~channel() {
-  for (auto notif : notification_list) {
-    delete notif;
-  }
+channel::~channel() {} 
 
-  notification_list.clear();
-  std::vector<notification*>().swap(notification_list);
-}
-
-void channel::addNotification(notification* value) {
-	
-  bool found = false;
-  for (auto notif : notification_list){
-    if (notif == value)
-	{
-		found = true;
-		break;
-	}
-  }
-  if (!found)
-	notification_list.push_back(value);
-}
-
-void channel::notify(void) {
-  for (auto notif: notification_list) {
-    notif->notify();
-  }
-}
+void channel::notify(void) { }
 
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
   

@@ -7,11 +7,6 @@
 
 #include "notification.h"
 
-struct channel_index {
-  int channelid;
-  uint8_t index;
-}
-
 notification::notification() {
   this->condition = "";
   this->device = "";
@@ -22,11 +17,12 @@ notification::notification() {
   this->next =  std::time(0);
   this->notificationCmd = "";
   this->isChannelsSet = false;
+  
   lck = lck_init();
 }
 
 notification::~notification() {
-	lck_free(lck);
+  lck_free(lck);
 }
 
 bool notification::setNextTime(time_t value) {
@@ -114,6 +110,7 @@ bool notification::isConditionSet(void) {
   if (this->channels.size() == 0) return;
   
   for (auto channel_struct : this->channels) {
+	  
 	  channel* chnl = chnls->find_channel(channel_struct.channelid);
 
 	  if (!chnl)
@@ -218,7 +215,7 @@ notifications::notifications() {
 }
 
 notifications::~notifications() {
-
+	
 	safe_array_lock(arr);
 	for (int i = 0; i < safe_array_count(arr); i++) {
 		notification* ntf = (notification*)safe_array_get(arr, i);

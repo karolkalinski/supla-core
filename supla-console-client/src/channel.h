@@ -12,7 +12,6 @@
 #include <cstring>
 #include <string>
 #include <vector>
-#include "notification.h"
 
 #include "supla-client-lib/proto.h"
 class channel {
@@ -23,7 +22,7 @@ private:
   std::string caption;
   char value[SUPLA_CHANNELVALUE_SIZE];
   char sub_value[SUPLA_CHANNELVALUE_SIZE];
-  std::vector<notification*> notification_list;
+  
 public:
 	channel(int channel_id, int channel_function, std::string caption);
 	virtual ~channel();
@@ -40,7 +39,7 @@ public:
 	int getFunction(void);
 	int getChannelId(void);
 	std::string getStringValue(int index);
-	void addNotification(notification* value);
+	 
 };
 
 class channels {
