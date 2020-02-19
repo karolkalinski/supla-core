@@ -61,7 +61,9 @@ void notification::notify(void) {
 
   std::string command = buildNotificationCommand();
 
-  supla_log(LOG_DEBUG, "sending notification");
+  supla_log(LOG_DEBUG, "sending notification %s", command.c_str());
+
+
   int commandResult = system(command.c_str());
 
   if (commandResult != 0) {
