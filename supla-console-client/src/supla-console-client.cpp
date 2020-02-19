@@ -29,6 +29,8 @@
 #include "supla-client-lib/supla-client.h"
 #include "supla-client-lib/tools.h"
 
+
+
 int getch() {
   int r;
   unsigned char c;
@@ -48,7 +50,15 @@ int kbhit() {
 int main(int argc, char *argv[]) {
   void *client_loop_t = NULL;
   void *notification_loop_t = NULL;
+  
+  printf("SUPLA-PUSHOVER v1.0.0\n");
 
+  for (int i = 0; i < argc; i++) {
+    if (strcmp("-v", argv[i]) == 0) {
+      return 0;
+    }
+  }
+  
   if (clientcfg_init(argc, argv) == 0) {
     clientcfg_free();
     return EXIT_FAILURE;
