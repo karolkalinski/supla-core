@@ -49,6 +49,15 @@ std::string notification::buildNotificationCommand() {
     notificationCmd.append(this->token);
     notificationCmd.append("&user=");
     notificationCmd.append(this->user);
+	notificationCmd.append("&title=");
+	notificationCmd.append(this->title);
+	
+	if (this->device.length() > 0)
+	{
+		notificationCmd.append("&device=");
+		notificationCmd.append(this->device);
+	}
+	
     notificationCmd.append("&message=");
     notificationCmd.append(this->message);
     notificationCmd.append("\" ");
@@ -249,7 +258,8 @@ notifications::~notifications() {
 void notifications::add_notifiction(enum_trigger trigger, std::string time,
                                     std::string condition, std::string device,
                                     std::string title, std::string message,
-                                    std::string token, std::string user) {
+                                    std::string token, std::string user,
+									std::string device, std::string title) {
   safe_array_lock(arr);
 
   notification* nt = new notification();
@@ -262,6 +272,8 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
   nt->setTrigger(trigger);
   nt->setUser(user);
   nt->setToken(token);
+  nt->setDevice(device);
+  nt->setTitle(title);
 
   if (safe_array_add(arr, nt) == -1) {
     delete nt;

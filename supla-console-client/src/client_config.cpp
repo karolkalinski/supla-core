@@ -59,6 +59,7 @@ bool client_config::load(const char* config_file) {
       this->pushover_token = root["pushover"]["token"].As<std::string>("");
       this->pushover_user = root["pushover"]["user"].As<std::string>("");
       this->pushover_device = root["pushover"]["device"].As<std::string>("");
+	  this->pushover_title = root["pushover"]["title"].As<std::string>("SUPLA");
     }
 
     if (!root["notifications"].IsNone()) {
@@ -81,8 +82,8 @@ bool client_config::load(const char* config_file) {
             command["condition"].As<std::string>(""),
             command["device"].As<std::string>(""),
             command["title"].As<std::string>(""),
-            command["message"].As<std::string>("mock message"), pushover_token,
-            pushover_user);
+            command["message"].As<std::string>("mock message"), 
+			pushover_token, pushover_user, pushover_device, pushover_title);
       }
     }
 

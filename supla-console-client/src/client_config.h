@@ -41,7 +41,8 @@ class client_config {
   std::string pushover_token;
   std::string pushover_user;
   std::string pushover_device;
-
+  std::string pushover_title;
+  
  public:
   client_config();
   virtual ~client_config();
