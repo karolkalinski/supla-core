@@ -23,6 +23,7 @@
 #include <ctime>
 
 enum enum_trigger { none, onchange, ontime };
+enum enum_reset { none, automatic };
 
 typedef struct {
   int channelid;
@@ -32,6 +33,7 @@ typedef struct {
 
 class notification {
 private:
+   enum_reset reset;
    enum_trigger trigger;
    std::string time;
    std::string condition;
@@ -47,7 +49,7 @@ private:
    std::string notificationCmd;
    std::string buildNotificationCommand();
    bool isConditionSet(void);
-   
+   bool lastResult;
 public:
 	notification();
 	virtual ~notification();
@@ -60,20 +62,26 @@ public:
 	void setMessage(std::string value);
 	void setToken(std::string value);
 	void setUser(std::string value);
-
+    void setLastResult(bool value);
+	void setReset(enum_reset value);
+	
+	bool setNextTime(time_t value);
+    
 	enum_trigger getTrigger(void);
 	std::string getTime(void);
 	std::string getCondtion(void);
 	std::string getDevice(void);
 	std::string getTitle(void);
 	std::string getMessage(void);
-	bool setNextTime(time_t value);
-    time_t getNextTime(void);
+	bool getLastResult(void);
+	enum_reset getReset(void);
+	time_t getNextTime(void);
 	
 	void notify(void);
 	void setChannels(void);
 	void set_channel_trigger(void);
 	void notify_on_time_trigger(void);
+	
 };
 
 class notifications {

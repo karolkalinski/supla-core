@@ -17,11 +17,16 @@ notification::notification() {
   this->next = 0;  // std::time(0);
   this->notificationCmd = "";
   this->isChannelsSet = false;
-
+  this->lastResult = false;
+  this->reset = automatic;
   lck = lck_init();
 }
 
 notification::~notification() { lck_free(lck); }
+
+bool notification::getLastResult(void) {return this->lastResult;}
+
+void notification::setLastResult(bool value) { this->lastResult = value; }
 
 bool notification::setNextTime(time_t value) {
   /*don't set on start */
@@ -37,6 +42,7 @@ time_t notification::getNextTime(void) {
 }
 
 std::string notification::buildNotificationCommand() {
+  
   if (this->notificationCmd.length() == 0) {
     notificationCmd.append("curl -d ");
     notificationCmd.append("\"token=");
@@ -51,6 +57,7 @@ std::string notification::buildNotificationCommand() {
     notificationCmd.append(
         "-X POST https://api.pushover.net/1/messages.json >  /dev/null 2>&1");
   }
+  
   return this->notificationCmd;
 }
 
@@ -154,15 +161,30 @@ bool notification::isConditionSet(void) {
   supla_log(LOG_DEBUG, "check command %s", command.c_str());
 
   std::string commandResult = get_command_output(command);
-  if (commandResult.compare("0\n") == 0) return false;
-  if (commandResult.compare("1\n") == 0) return true;
-
+  if (commandResult.compare("0\n") == 0) {
+    this->lastResult = false;	
+	return false;
+  }
+  
+  if (commandResult.compare("1\n") == 0)  { 
+	if (this->reset == automatic) {
+	  if (this->lastResult != true)
+	  {
+		  this->lastResult = true;
+		  return true;
+	  } else return false;
+	} else {
+	  return true;
+	}
+  }
+  
   if (commandResult != "") {
     supla_log(LOG_WARNING, "%s", temp.c_str());
     supla_log(LOG_WARNING, "The command above failed with exist status %d",
               commandResult);
   }
-
+  
+  this->lastResult = false;
   return false;
 }
 
@@ -264,6 +286,6 @@ void notifications::handle() {
       } break;
     }
   }
-
+  
   safe_array_unlock(arr);
 }
