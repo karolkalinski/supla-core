@@ -13,7 +13,8 @@
 void notification_loop(void *user_data, void *sthread) {
 	while (sthread_isterminated(sthread) == 0) {
 		ntfns->handle();
-		usleep(2000000);
+		/* 1 sec sleep */
+		usleep(1000000);
    }
 }
 
