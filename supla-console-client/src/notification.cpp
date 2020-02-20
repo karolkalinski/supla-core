@@ -243,6 +243,7 @@ void notification::notify_on_time_trigger(void) {
   }
 }
 
+void notification::setReset(enum_reset value) { this->reset = value; }
 void notification::setTrigger(enum_trigger value) { this->trigger = value; }
 void notification::setTime(std::string time) { this->time = time; }
 void notification::setCondition(std::string value) { this->condition = value; }
