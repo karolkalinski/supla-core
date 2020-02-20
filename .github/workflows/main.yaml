@@ -12,9 +12,12 @@ jobs:
     - uses: actions/checkout@v2
       with:
         ref: supla-pushover
-    - name: C/C++ code linter (clang-tidy, clang-format, and cppcheck)
+      
+    - name: format
       uses: ArtificialAmateur/cpp-linter-action@0.01
+      
     - name: make all
-      run: cd supla-console-client/Release && make all
+      working-directory: supla-console-client
+      run: cd Release && make all
     env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
