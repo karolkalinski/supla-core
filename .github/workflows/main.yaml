@@ -17,7 +17,7 @@ jobs:
       uses: ArtificialAmateur/cpp-linter-action@0.01
       
     - name: make all
-      working-directory: supla-console-client
       run: cd Release && make all
     env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        PROJECT_PATH: ./supla-console-client/src
