@@ -81,7 +81,6 @@ public:
 	void setChannels(void);
 	void set_channel_trigger(void);
 	void notify_on_time_trigger(void);
-	
 };
 
 class notifications {
