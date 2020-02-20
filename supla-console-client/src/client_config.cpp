@@ -76,6 +76,14 @@ bool client_config::load(const char* config_file) {
           trigger = ontime;
         else
           trigger = none;
+	  
+	    enum_reset reset;
+		
+		std::string str_reset = command["reset"].As<std::string>("auto");
+		if (str_reset.compare("auto") == 0)
+		  reset = r_automatic;
+	    else
+		  reset = r_none;
         
 		this->pushover_title = command["title"].As<std::string>(pushover_title);
 		this->pushover_device = command["device"].As<std::string>(pushover_device);
@@ -85,7 +93,7 @@ bool client_config::load(const char* config_file) {
             command["condition"].As<std::string>(""),
             pushover_device,  pushover_title,
             command["message"].As<std::string>("sample message"), 
-			pushover_token, pushover_user);
+			pushover_token, pushover_user, reset);
       }
     }
 
