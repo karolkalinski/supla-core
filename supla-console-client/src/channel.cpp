@@ -41,12 +41,23 @@ void channel::notify(void) {
   }
 }
 
+bool channel::value_changed(char first[SUPLA_CHANNELVALUE_SIZE],
+ char second[SUPLA_CHANNELVALUE_SIZE]) {
+  
+  for (int i = 0; i < SUPLA_CHANNELVALUE_SIZE; i++){
+    if (first[i] != second[i]) return true;
+  }
+  
+  return false;  
+}
+  
+
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
   bool hasChanged = false;
   
   supla_log(LOG_DEBUG, "value changed %s", value);  
   
-  if (strcmp(value, this->value) != 0) hasChanged = true;
+  if value_changed(this->value, value) hasChanged = true;
 
   memcpy(this->value, value, SUPLA_CHANNELVALUE_SIZE);
 
@@ -54,7 +65,8 @@ void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 }
 void channel::setSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
   bool hasChanged = false;	
-  if (strcmp(sub_value, this->sub_value) != 0) hasChanged = true;
+  
+  if value_changed(this->sub_value, sub_value) hasChanged = true;
  
   memcpy(this->sub_value, sub_value, SUPLA_CHANNELVALUE_SIZE);
   

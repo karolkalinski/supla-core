@@ -24,7 +24,8 @@ class channel {
   char value[SUPLA_CHANNELVALUE_SIZE];
   char sub_value[SUPLA_CHANNELVALUE_SIZE];
   std::vector<void*> notification_list;
-
+  bool value_changed(char first[SUPLA_CHANNELVALUE_SIZE], char second[SUPLA_CHANNELVALUE_SIZE]);
+  
  public:
   channel(int channel_id, int channel_function, std::string caption);
   virtual ~channel();
