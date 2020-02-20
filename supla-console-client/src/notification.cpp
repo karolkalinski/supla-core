@@ -288,7 +288,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
   nt->setToken(token);
   nt->setReset(reset);
   
-  supla_log(LOG_DEBUG, "log added");
+  
   
   if (safe_array_add(arr, nt) == -1) {
     delete nt;
