@@ -279,13 +279,12 @@ void notifications::handle() {
   for (int i = 0; i < safe_array_count(arr); i++) {
     notification* ntf = (notification*)safe_array_get(arr, i);
 
-    ntf->setChannels();
-
+    if (ntf->getTrigger() == none) continue;
+    
+	ntf->setChannels();
     switch (ntf->getTrigger()) {
-      case none:
-        continue;
       case onchange: {
-        ntf->set_channel_trigger();
+		ntf->set_channel_trigger();
       }
       case ontime: {
         ntf->notify_on_time_trigger();
