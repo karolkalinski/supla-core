@@ -86,7 +86,10 @@ void notification::set_channel_trigger(void) {
 
   for (auto channel_struct : this->channels) {
     channel* ch = chnls->find_channel(channel_struct.channelid);
-    if (ch) ch->add_notification((void*)this);
+    
+	if (ch) {
+		ch->add_notification((void*)this); 
+	}
   }
 }
 
@@ -105,15 +108,18 @@ void notification::setChannels(void) {
 
       std::string channelId = temp.substr(start + 9, end - start - 9);
 
-      supla_log(LOG_DEBUG, "setting channel for %s", channelId.c_str());
-
       auto vect = split(channelId, '_');
 
-      if (vect.size() == 1)
-        channels.push_back({std::stoi(vect[0]), 0, false});
+      if (vect.size() == 1) {
+		channels.push_back({std::stoi(vect[0]), 0, false});
+		supla_log(LOG_DEBUG, "setting notification for channel %s", vect[0].c_str());
+	  }
       else
-        channels.push_back({std::stoi(vect[0]), std::stoi(vect[1]), true});
-
+      {
+		channels.push_back({std::stoi(vect[0]), std::stoi(vect[1]), true});
+		supla_log(LOG_DEBUG, "setting notification for channel %s with index %s", vect[0].c_str(), vect[1].c_str());
+	  }
+	  
       temp = temp.substr(end + 1);
       start = temp.find("%channel_");  // 0
     }

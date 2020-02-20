@@ -17,6 +17,7 @@ channel::~channel() {}
 
 void channel::add_notification(void* value) {
   bool found = false;
+  
   for (auto p : notification_list) {
     if (p == value) {
       found = true;
