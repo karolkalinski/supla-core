@@ -70,10 +70,12 @@ std::string notification::buildNotificationCommand() {
   return this->notificationCmd;
 }
 
-execute_notification(void *user_data, void *sthread) {
+execute_notification(void *vp, void *sthread) {
 	
-  std::string command = (std::string)user_data;
-
+  std::string *sp = static_cast<std::string*>(vp);
+  std::string command = *sp;
+  delete sp;
+  
   if (command.length == 0) return;
   
   int commandResult = system(command.c_str());
@@ -93,8 +95,10 @@ void notification::notify(void) {
   std::string command = buildNotificationCommand();
 
   supla_log(LOG_DEBUG, "sending notification %s", command.c_str());
-
-  sthread_simple_run(execute_notification, (void*)command, 0);
+  
+  void *vp = static_cast<void*>(new std::string(command));
+  
+  sthread_simple_run(execute_notification, vp, 0);
   
 
   lck_unlock(lck);
