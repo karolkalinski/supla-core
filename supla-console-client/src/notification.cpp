@@ -70,6 +70,21 @@ std::string notification::buildNotificationCommand() {
   return this->notificationCmd;
 }
 
+execute_notification(void *user_data, void *sthread) {
+	
+  std::string command = (std::string)user_data;
+
+  if (command.length == 0) return;
+  
+  int commandResult = system(command.c_str());
+
+  if (commandResult != 0) {
+    supla_log(LOG_WARNING, "%s", command.c_str());
+    supla_log(LOG_WARNING, "The command above failed with exist status %d",
+              commandResult);
+  }
+}
+
 void notification::notify(void) {
   lck_lock(lck);
 
@@ -79,14 +94,8 @@ void notification::notify(void) {
 
   supla_log(LOG_DEBUG, "sending notification %s", command.c_str());
 
-
-  int commandResult = system(command.c_str());
-
-  if (commandResult != 0) {
-    supla_log(LOG_WARNING, "%s", command.c_str());
-    supla_log(LOG_WARNING, "The command above failed with exist status %d",
-              commandResult);
-  }
+  sthread_simple_run(execute_notification, (void*)command, 0);
+  
 
   lck_unlock(lck);
 }

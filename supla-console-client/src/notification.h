@@ -14,6 +14,7 @@
 #include "supla-client-lib/safearray.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/lck.h"
+#include "supla-client-lib/sthread.h"
 #include "crontab_parser.h"
 #include "ccronexpr.h"
 
