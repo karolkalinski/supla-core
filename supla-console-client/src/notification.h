@@ -23,7 +23,7 @@
 #include <ctime>
 
 enum enum_trigger { none, onchange, ontime };
-enum enum_reset { none, automatic };
+enum enum_reset { r_none, r_automatic };
 
 typedef struct {
   int channelid;

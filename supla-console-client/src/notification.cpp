@@ -18,7 +18,7 @@ notification::notification() {
   this->notificationCmd = "";
   this->isChannelsSet = false;
   this->lastResult = false;
-  this->reset = automatic;
+  this->reset = r_automatic;
   lck = lck_init();
 }
 
@@ -167,7 +167,7 @@ bool notification::isConditionSet(void) {
   }
   
   if (commandResult.compare("1\n") == 0)  { 
-	if (this->reset == automatic) {
+	if (this->reset == r_automatic) {
 	  if (this->lastResult != true)
 	  {
 		  this->lastResult = true;
