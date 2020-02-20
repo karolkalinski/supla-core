@@ -70,13 +70,15 @@ std::string notification::buildNotificationCommand() {
   return this->notificationCmd;
 }
 
-void execute_notification(void *vp, void *sthread) {
+
+void* execute_notification(void *vp) {
 	
+
   std::string *sp = static_cast<std::string*>(vp);
   std::string command = *sp;
   delete sp;
   
-  if (command.length() == 0) return;
+  if (command.length() == 0) return NULL;
   
   int commandResult = system(command.c_str());
 
@@ -85,6 +87,9 @@ void execute_notification(void *vp, void *sthread) {
     supla_log(LOG_WARNING, "The command above failed with exist status %d",
               commandResult);
   }
+
+
+  return NULL;
 }
 
 void notification::notify(void) {
@@ -94,9 +99,11 @@ void notification::notify(void) {
   
   std::string* command = new std::string(buildNotificationCommand());
   void *vp = static_cast<void*>(command);
- 
-  sthread_simple_run(execute_notification, vp, 0);
-  
+
+  pthread_t thread;
+  pthread_create(&thread, NULL, execute_notification, vp);
+  pthread_detach(thread);
+
   lck_unlock(lck);
 }
 void notification::set_channel_trigger(void) {

@@ -11,6 +11,10 @@ channel::channel(int channel_id, int channel_function, std::string caption) {
   this->channel_id = channel_id;
   this->channel_function = channel_function;
   this->caption = caption;
+
+  memset(this->value, 0, SUPLA_CHANNELVALUE_SIZE);
+  memset(this->sub_value, 0, SUPLA_CHANNELVALUE_SIZE);
+
 }
 
 channel::~channel() {}

@@ -28,6 +28,7 @@
 #include "supla-client-lib/sthread.h"
 #include "supla-client-lib/supla-client.h"
 #include "supla-client-lib/tools.h"
+#include "globals.h"
 
 int getch() {
   int r;
@@ -86,6 +87,9 @@ int main(int argc, char *argv[]) {
   // RELEASE BLOCK
   sthread_twf(client_loop_t);
   sthread_twf(notification_loop_t);
+
+  delete ntfns;
+  delete chnls;
 
   st_mainloop_free();
   clientcfg_free();
