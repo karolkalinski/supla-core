@@ -75,7 +75,7 @@ bool client_config::load(const char* config_file) {
         else if (str_trigger.compare("ontime") == 0)
           trigger = ontime;
         else
-          trigger = no ne;
+          trigger = none;
 	  
 	    enum_reset reset;
 		
