@@ -92,7 +92,7 @@ void notification::notify(void) {
 
   lck_lock(lck);
   
-  std::string command* = new std::string(buildNotificationCommand());
+  std::string* command = new std::string(buildNotificationCommand());
   void *vp = static_cast<void*>(command);
  
   sthread_simple_run(execute_notification, vp, 0);
