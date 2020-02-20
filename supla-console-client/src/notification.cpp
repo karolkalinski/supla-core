@@ -271,8 +271,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
   nt->setTrigger(trigger);
   nt->setUser(user);
   nt->setToken(token);
-   
-
+  
   if (safe_array_add(arr, nt) == -1) {
     delete nt;
   }
@@ -296,7 +295,7 @@ void notifications::handle() {
     switch (ntf->getTrigger()) {
       case onchange: {
 		ntf->set_channel_trigger();
-      }
+      } break;
       case ontime: {
         ntf->notify_on_time_trigger();
       } break;
