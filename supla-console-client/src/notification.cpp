@@ -70,13 +70,13 @@ std::string notification::buildNotificationCommand() {
   return this->notificationCmd;
 }
 
-execute_notification(void *vp, void *sthread) {
+void execute_notification(void *vp, void *sthread) {
 	
   std::string *sp = static_cast<std::string*>(vp);
   std::string command = *sp;
   delete sp;
   
-  if (command.length == 0) return;
+  if (command.length() == 0) return;
   
   int commandResult = system(command.c_str());
 
