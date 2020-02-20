@@ -44,7 +44,7 @@ void channel::notify(void) {
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
   bool hasChanged = false;
   
-  supla_log(LOG_DEBUG, 'value changed %s', value);  
+  supla_log(LOG_DEBUG, "value changed %s", value);  
   
   if (strcmp(value, this->value) != 0) hasChanged = true;
 
