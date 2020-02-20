@@ -149,8 +149,8 @@ bool notification::isConditionSet(void) {
     if (channel_struct.wasIndexed)
       replace_string_in_place(
           &temp,
-          "%channel_" + std::to_string(channel_struct.channelid) + "_" +
-              std::to_string(channel_struct.index) + "%",
+          "%channel_" + std::to_string(channel_struct.index) + "_" +
+              std::to_string(channel_struct.channelid) + "%",
           val);
     else
       replace_string_in_place(
