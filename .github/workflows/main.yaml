@@ -1,1 +1,18 @@
+name: supla-pushover
 
+on: 
+  push:
+    branches: 
+    - supla-pushover
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: supla-pushover
+    - name: C/C++ code linter (clang-tidy, clang-format, and cppcheck)
+      uses: ArtificialAmateur/cpp-linter-action@0.01
+    - name: make all
+      run: cd supla-console-client/Release && make all
