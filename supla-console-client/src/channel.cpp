@@ -57,7 +57,7 @@ void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
   
   supla_log(LOG_DEBUG, "value changed %s", value);  
   
-  if value_changed(this->value, value) hasChanged = true;
+  if (value_changed(this->value, value)) hasChanged = true;
 
   memcpy(this->value, value, SUPLA_CHANNELVALUE_SIZE);
 
@@ -66,7 +66,7 @@ void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 void channel::setSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
   bool hasChanged = false;	
   
-  if value_changed(this->sub_value, sub_value) hasChanged = true;
+  if (value_changed(this->sub_value, sub_value)) hasChanged = true;
  
   memcpy(this->sub_value, sub_value, SUPLA_CHANNELVALUE_SIZE);
   
