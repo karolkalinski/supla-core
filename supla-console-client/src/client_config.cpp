@@ -76,14 +76,16 @@ bool client_config::load(const char* config_file) {
           trigger = ontime;
         else
           trigger = none;
-
+        
+		this->pushover_title = command["title"].As<std::string>(pushover_title);
+		this->pushover_device = command["device"].As<std::string>(pushover_device);
+		
         ntfns->add_notifiction(
             trigger, command["time"].As<std::string>(""),
             command["condition"].As<std::string>(""),
-            command["device"].As<std::string>(""),
-            command["title"].As<std::string>(""),
-            command["message"].As<std::string>("mock message"), 
-			pushover_token, pushover_user, pushover_device, pushover_title);
+            pushover_device,  pushover_title,
+            command["message"].As<std::string>("sample message"), 
+			pushover_token, pushover_user);
       }
     }
 

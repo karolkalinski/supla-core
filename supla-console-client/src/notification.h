@@ -95,8 +95,7 @@ public:
 	void add_notifiction(enum_trigger trigger, std::string time,
 	  std::string condition, std::string device,
 	  std::string title, std::string message, 
-	  std::string token, std::string user,
-	  std::string device, std::string title);
+	  std::string token, std::string user);
 
 	void setUser(std::string value);
 	void setToken(std::string value);

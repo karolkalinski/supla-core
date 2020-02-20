@@ -258,8 +258,7 @@ notifications::~notifications() {
 void notifications::add_notifiction(enum_trigger trigger, std::string time,
                                     std::string condition, std::string device,
                                     std::string title, std::string message,
-                                    std::string token, std::string user,
-									std::string device, std::string title) {
+                                    std::string token, std::string user) {
   safe_array_lock(arr);
 
   notification* nt = new notification();
@@ -272,8 +271,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
   nt->setTrigger(trigger);
   nt->setUser(user);
   nt->setToken(token);
-  nt->setDevice(device);
-  nt->setTitle(title);
+   
 
   if (safe_array_add(arr, nt) == -1) {
     delete nt;
