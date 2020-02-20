@@ -17,7 +17,7 @@ channel::~channel() {}
 
 void channel::add_notification(void* value) {
   bool found = false;
-  
+
   for (auto p : notification_list) {
     if (p == value) {
       found = true;
@@ -42,21 +42,17 @@ void channel::notify(void) {
 }
 
 bool channel::value_changed(char first[SUPLA_CHANNELVALUE_SIZE],
- char second[SUPLA_CHANNELVALUE_SIZE]) {
-  
-  for (int i = 0; i < SUPLA_CHANNELVALUE_SIZE; i++){
+                            char second[SUPLA_CHANNELVALUE_SIZE]) {
+  for (int i = 0; i < SUPLA_CHANNELVALUE_SIZE; i++) {
     if (first[i] != second[i]) return true;
   }
-  
-  return false;  
+
+  return false;
 }
-  
 
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
   bool hasChanged = false;
-  
-   
-  
+
   if (value_changed(this->value, value)) hasChanged = true;
 
   memcpy(this->value, value, SUPLA_CHANNELVALUE_SIZE);
@@ -64,13 +60,13 @@ void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
   if (hasChanged) notify();
 }
 void channel::setSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
-  bool hasChanged = false;	
-  
+  bool hasChanged = false;
+
   if (value_changed(this->sub_value, sub_value)) hasChanged = true;
- 
+
   memcpy(this->sub_value, sub_value, SUPLA_CHANNELVALUE_SIZE);
-  
-  if (hasChanged) notify();  
+
+  if (hasChanged) notify();
 }
 void channel::setCaption(std::string value) { this->caption = value; }
 
@@ -104,12 +100,16 @@ std::string channel::getStringValue(int index) {
     case SUPLA_CHANNELFNC_OPENINGSENSOR_ROLLERSHUTTER:
     case SUPLA_CHANNELFNC_OPENINGSENSOR_WINDOW: {
       switch (index) {
-	    case 0 : return std::to_string(this->value[0]); /* relay data */
-		case 1 : return std::to_string(this->sub_value[0]); /* sensor 1 data */
-		case 2 : return std::to_string(this->sub_value[1]); /* sensor 2 data */
-		default: return std::to_string(this->value[0]);
-	  }
-	} break;
+        case 0:
+          return std::to_string(this->value[0]); /* relay data */
+        case 1:
+          return std::to_string(this->sub_value[0]); /* sensor 1 data */
+        case 2:
+          return std::to_string(this->sub_value[1]); /* sensor 2 data */
+        default:
+          return std::to_string(this->value[0]);
+      }
+    } break;
     case SUPLA_CHANNELFNC_THERMOMETER: {
       double temp;
       memcpy(&temp, this->value, sizeof(double));
