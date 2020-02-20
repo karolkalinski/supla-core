@@ -112,8 +112,8 @@ void notification::setChannels(void) {
       auto vect = split(channelId, '_');
 
       if (vect.size() == 1) {
-		channels.push_back({std::stoi(vect[1]), 0, false});
-		supla_log(LOG_DEBUG, "setting notification for channel %s", vect[1].c_str());
+		channels.push_back({std::stoi(vect[0]), 0, false});
+		supla_log(LOG_DEBUG, "setting notification for channel %s", vect[0].c_str());
 	  }
       else
       {
