@@ -6,6 +6,7 @@
  */
 
 #include "notification_loop.h"
+
 #include "globals.h"
 #include "supla-client-lib/sthread.h"
 

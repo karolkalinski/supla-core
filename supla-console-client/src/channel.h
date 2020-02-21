@@ -11,10 +11,10 @@
 #include <cstring>
 #include <string>
 #include <vector>
-#include "notification_loop.h"
-#include "supla-client-lib/safearray.h"
 
+#include "notification_loop.h"
 #include "supla-client-lib/proto.h"
+#include "supla-client-lib/safearray.h"
 class channel {
  private:
   int channel_id;

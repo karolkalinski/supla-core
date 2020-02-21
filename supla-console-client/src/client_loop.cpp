@@ -16,13 +16,14 @@
  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  */
 
+#include "client_loop.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "client_config.h"
-#include "client_loop.h"
 #include "clientcfg.h"
 #include "globals.h"
 #include "supla-client-lib/log.h"

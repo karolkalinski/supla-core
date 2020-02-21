@@ -21,8 +21,10 @@
 
 #include <stdio.h>
 #include <string.h>
+
 #include <string>
 #include <vector>
+
 #include "globals.h"
 #include "notification.h"
 #include "supla-client-lib/log.h"

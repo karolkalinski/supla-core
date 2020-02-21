@@ -17,6 +17,7 @@
  */
 
 #include "client_config.h"
+
 #include <string>
 
 notifications* ntfns = new notifications();
@@ -59,7 +60,7 @@ bool client_config::load(const char* config_file) {
       this->pushover_token = root["pushover"]["token"].As<std::string>("");
       this->pushover_user = root["pushover"]["user"].As<std::string>("");
       this->pushover_device = root["pushover"]["device"].As<std::string>("");
-	  this->pushover_title = root["pushover"]["title"].As<std::string>("SUPLA");
+      this->pushover_title = root["pushover"]["title"].As<std::string>("SUPLA");
     }
 
     if (!root["notifications"].IsNone()) {
@@ -76,24 +77,25 @@ bool client_config::load(const char* config_file) {
           trigger = ontime;
         else
           trigger = none;
-	  
-	    enum_reset reset;
-		
-		std::string str_reset = command["reset"].As<std::string>("auto");
-		if (str_reset.compare("auto") == 0)
-		  reset = r_automatic;
-	    else
-		  reset = r_none;
-        
-		this->pushover_title = command["title"].As<std::string>(pushover_title);
-		this->pushover_device = command["device"].As<std::string>(pushover_device);
-		
+
+        enum_reset reset;
+
+        std::string str_reset = command["reset"].As<std::string>("auto");
+        if (str_reset.compare("auto") == 0)
+          reset = r_automatic;
+        else
+          reset = r_none;
+
+        this->pushover_title = command["title"].As<std::string>(pushover_title);
+        this->pushover_device =
+            command["device"].As<std::string>(pushover_device);
+
         ntfns->add_notifiction(
             trigger, command["time"].As<std::string>(""),
-            command["condition"].As<std::string>(""),
-            pushover_device,  pushover_title,
-            command["message"].As<std::string>("sample message"), 
-			pushover_token, pushover_user, reset);
+            command["condition"].As<std::string>(""), pushover_device,
+            pushover_title,
+            command["message"].As<std::string>("sample message"),
+            pushover_token, pushover_user, reset);
       }
     }
 
