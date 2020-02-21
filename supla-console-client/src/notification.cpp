@@ -336,7 +336,7 @@ void notifications::handle() {
         ntf->notify_on_time_trigger();
       } break;
       case onconnection: {
-        ntf->set_on_connection_trigger();
+        ntf->set_on_change_connection_trigger();
       }
     }
   }

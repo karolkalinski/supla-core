@@ -82,7 +82,7 @@ class notification {
   void setChannels(void);
 
   void set_on_change_trigger(void);
-  void set_on_connection_trigger(void);
+  void set_on_change_connection_trigger(void);
   void notify_on_time_trigger(void);
 };
 
