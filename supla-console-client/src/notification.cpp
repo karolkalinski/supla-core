@@ -184,7 +184,7 @@ bool notification::isConditionSet(void) {
     if (this->trigger == onchange || this->trigger == ontime)
       val = chnl->getStringValue(channel_struct.index);
     else if (this->trigger == onconnection)
-      val = std::to_string(chnl->getOnline);
+      val = std::to_string(chnl->getOnline());
     else
       return false;
 
