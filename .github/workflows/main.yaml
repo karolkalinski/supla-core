@@ -6,11 +6,13 @@ on:
     - supla-pushover-develop
 jobs:
   lint:
-    name: clang-format Code Formatter
+    name: clang-format && make
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
+      name: checkout sources
     - uses: DoozyX/clang-format-lint-action@v0.5
+      name: clang-format
       with:
         source: 'supla-console-client/src'
         extensions: 'h,cpp,c'
@@ -18,3 +20,7 @@ jobs:
         exclude: 'supla-console-client/src/supla-client-lib'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name : make 
+      run: cd supla-console-client/Release && make all
+ 
+   
