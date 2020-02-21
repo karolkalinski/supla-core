@@ -18,3 +18,11 @@ jobs:
         exclude: 'supla-console-client/src/supla-client-lib'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  build:
+    name: build
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - run: cd supla-console-client/Release && make all
+      
+   
