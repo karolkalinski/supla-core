@@ -4,13 +4,13 @@ on:
   push:
     branches: 
     - supla-pushover-develop
-    
+	
 jobs:
-  build:
+  lint:
+    name: clang-format Code Formatter
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-      with:
-        ref: supla-pushover-develop
-    - name: make all
-      run: cd supla-console-client/Release && make all
+    - name: Clang Code Formatter
+      uses: antoinealb/clang-format-action@clang9
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
