@@ -48,7 +48,7 @@ class channel {
 
   void add_notification_on_change(void* value);
   void add_notification_on_connection(void* value);
-  
+
   bool getOnline(void);
   void setOnline(bool value);
 };
