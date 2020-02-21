@@ -74,7 +74,7 @@ void* execute_notification(void* vp) {
   if (command.length() == 0) return NULL;
 
   supla_log(LOG_DEBUG, "executing command %s", command.c_str());
-  
+
   int commandResult = system(command.c_str());
 
   if (commandResult != 0) {
