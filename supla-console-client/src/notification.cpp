@@ -97,16 +97,30 @@ void notification::notify(void) {
 
   lck_unlock(lck);
 }
-void notification::set_channel_trigger(void) {
+void notification::set_on_change_connection_trigger(void) {
+  if (!isChannelsSet) return;
+
+  for (auto channel_struct : this->channels) {
+    channel* ch = chnls->find_channel(channel_struct.channelid);
+    
+	if (ch) {
+      ch->add_notification_on_connection((void*)this);
+    } else
+      supla_log(LOG_DEBUG, "set_channel_on_connection_trigger: channel %d not found",
+                channel_struct.channelid);
+  }
+}
+
+void notification::set_on_change_trigger_trigger(void) {
   if (!isChannelsSet) return;
 
   for (auto channel_struct : this->channels) {
     channel* ch = chnls->find_channel(channel_struct.channelid);
 
     if (ch) {
-      ch->add_notification((void*)this);
+      ch->add_notification_on_change((void*)this);
     } else
-      supla_log(LOG_DEBUG, "set_channel_trigger: channel %d not found",
+      supla_log(LOG_DEBUG, "set_channel_on_change_trigger: channel %d not found",
                 channel_struct.channelid);
   }
 }
@@ -292,7 +306,6 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
 }
 
 void notifications::setUser(std::string value) { this->user = value; }
-
 void notifications::setToken(std::string value) { this->token = value; }
 
 void notifications::handle() {
@@ -304,13 +317,17 @@ void notifications::handle() {
     if (ntf->getTrigger() == none) continue;
 
     ntf->setChannels();
+	
     switch (ntf->getTrigger()) {
       case onchange: {
-        ntf->set_channel_trigger();
+        ntf->set_on_change_trigger();
       } break;
       case ontime: {
         ntf->notify_on_time_trigger();
       } break;
+	  case onconnection: {
+	    ntf->set_on_connection_trigger();
+	  }
     }
   }
 

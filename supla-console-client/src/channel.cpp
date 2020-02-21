@@ -11,11 +11,14 @@ channel::channel(int channel_id, int channel_function, std::string caption) {
   this->channel_id = channel_id;
   this->channel_function = channel_function;
   this->caption = caption;
+  this->online = true;
+  
+  
 }
 
 channel::~channel() {}
 
-void channel::add_notification(void* value) {
+void channel::add_notification_on_change(void* value) {
   bool found = false;
 
   for (auto p : notification_list) {
@@ -29,6 +32,23 @@ void channel::add_notification(void* value) {
     supla_log(LOG_DEBUG, "adding notification to channels's %d list",
               this->channel_id);
     notification_list.push_back(value);
+  }
+}
+
+void channel::add_notification_on_connection(void* value) {
+  bool found = false;
+
+  for (auto p : connection_change_list) {
+    if (p == value) {
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    supla_log(LOG_DEBUG, "adding notification connection to channels's %d list",
+              this->channel_id);
+    connection_change_list.push_back(value);
   }
 }
 
@@ -48,6 +68,11 @@ bool channel::value_changed(char first[SUPLA_CHANNELVALUE_SIZE],
   }
 
   return false;
+}
+
+void channel::setOnline(bool value) {
+	
+	
 }
 
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {

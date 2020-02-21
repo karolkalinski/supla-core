@@ -19,11 +19,13 @@ class channel {
  private:
   int channel_id;
   int channel_function;
+  bool online;
 
   std::string caption;
   char value[SUPLA_CHANNELVALUE_SIZE];
   char sub_value[SUPLA_CHANNELVALUE_SIZE];
   std::vector<void*> notification_list;
+  std::vector<void*> connection_change_list;
   bool value_changed(char first[SUPLA_CHANNELVALUE_SIZE],
                      char second[SUPLA_CHANNELVALUE_SIZE]);
 
@@ -43,7 +45,9 @@ class channel {
   int getFunction(void);
   int getChannelId(void);
   std::string getStringValue(int index);
-  void add_notification(void* value);
+  
+  void add_notification_on_change(void* value);
+  void add_notification_on_connection(void* value);
 };
 
 class channels {

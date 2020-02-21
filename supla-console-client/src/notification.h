@@ -22,7 +22,7 @@
 #include "supla-client-lib/safearray.h"
 #include "supla-client-lib/sthread.h"
 
-enum enum_trigger { none, onchange, ontime };
+enum enum_trigger { none, onchange, ontime, onconnection };
 enum enum_reset { r_none, r_automatic };
 
 typedef struct {
@@ -50,7 +50,6 @@ class notification {
   std::string buildNotificationCommand();
   bool isConditionSet(void);
   bool lastResult;
-
  public:
   notification();
   virtual ~notification();
@@ -80,7 +79,9 @@ class notification {
 
   void notify(void);
   void setChannels(void);
-  void set_channel_trigger(void);
+  
+  void set_on_change_trigger(void);
+  void set_on_connection_trigger(void);
   void notify_on_time_trigger(void);
 };
 
