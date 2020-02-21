@@ -113,7 +113,7 @@ void notification::set_on_change_connection_trigger(void) {
   }
 }
 
-void notification::set_on_change_trigger_trigger(void) {
+void notification::set_on_change_trigger(void) {
   if (!isChannelsSet) return;
 
   for (auto channel_struct : this->channels) {
