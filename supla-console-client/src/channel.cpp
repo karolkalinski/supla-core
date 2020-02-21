@@ -86,7 +86,7 @@ void channel::setOnline(bool value) {
   }
 }
 
-bool channel::getOnline() { return this->online; }
+bool channel::getOnline(void) { return this->online; }
 
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
   bool hasChanged = false;
