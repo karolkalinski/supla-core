@@ -14,7 +14,6 @@ channel::channel(int channel_id, int channel_function, std::string caption) {
 
   memset(this->value, 0, SUPLA_CHANNELVALUE_SIZE);
   memset(this->sub_value, 0, SUPLA_CHANNELVALUE_SIZE);
-
 }
 
 channel::~channel() {}

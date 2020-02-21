@@ -23,12 +23,12 @@
 
 #include "client_loop.h"
 #include "clientcfg.h"
+#include "globals.h"
 #include "notification_loop.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/sthread.h"
 #include "supla-client-lib/supla-client.h"
 #include "supla-client-lib/tools.h"
-#include "globals.h"
 
 int getch() {
   int r;
