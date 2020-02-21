@@ -15,5 +15,6 @@ jobs:
         source: 'supla-console-client/src'
         extensions: 'h,cpp,c'
         clangFormatVersion: 9
+        exclude: 'supla-console-client/src/supla-client-lib'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
