@@ -23,6 +23,7 @@
 
 #include "client_loop.h"
 #include "clientcfg.h"
+#include "globals.h"
 #include "notification_loop.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/sthread.h"
@@ -86,6 +87,9 @@ int main(int argc, char *argv[]) {
   // RELEASE BLOCK
   sthread_twf(client_loop_t);
   sthread_twf(notification_loop_t);
+
+  delete ntfns;
+  delete chnls;
 
   st_mainloop_free();
   clientcfg_free();

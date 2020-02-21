@@ -60,6 +60,7 @@ void client_loop_channel_update(void *_suplaclient, void *sthread,
 
   chnl->setValue(channel->value.value);
   chnl->setSubValue(channel->value.sub_value);
+  chnl->setOnline(channel->online);
 }
 
 void client_loop_channelgroup_update(void *_suplaclient, void *sthread,
@@ -78,6 +79,7 @@ void client_loop_channel_value_update(void *_suplaclient, void *sthread,
   if (chnl != NULL) {
     chnl->setValue(channel_value->value.value);
     chnl->setSubValue(channel_value->value.sub_value);
+    chnl->setOnline(channel_value->online);
   }
 }
 

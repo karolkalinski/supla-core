@@ -12,8 +12,9 @@ channel::channel(int channel_id, int channel_function, std::string caption) {
   this->channel_function = channel_function;
   this->caption = caption;
   this->online = true;
-  
-  
+
+  memset(this->value, 0, SUPLA_CHANNELVALUE_SIZE);
+  memset(this->sub_value, 0, SUPLA_CHANNELVALUE_SIZE);
 }
 
 channel::~channel() {}
@@ -71,9 +72,21 @@ bool channel::value_changed(char first[SUPLA_CHANNELVALUE_SIZE],
 }
 
 void channel::setOnline(bool value) {
-	
-	
+  bool hasChanged = this->online != value;
+
+  this->online = value;
+
+  if (hasChanged) {
+    for (auto p : connection_change_list) {
+      supla_log(LOG_DEBUG, "pushing onchange notification on channel %d",
+                this->channel_id);
+
+      notification_notify(p);
+    }
+  }
 }
+
+bool channel::getOnline() { return this->online; }
 
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
   bool hasChanged = false;

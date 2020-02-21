@@ -66,12 +66,12 @@ std::string notification::buildNotificationCommand() {
   return this->notificationCmd;
 }
 
-void execute_notification(void* vp, void* sthread) {
+void* execute_notification(void* vp) {
   std::string* sp = static_cast<std::string*>(vp);
   std::string command = *sp;
   delete sp;
 
-  if (command.length() == 0) return;
+  if (command.length() == 0) return NULL;
 
   int commandResult = system(command.c_str());
 
@@ -80,20 +80,21 @@ void execute_notification(void* vp, void* sthread) {
     supla_log(LOG_WARNING, "The command above failed with exist status %d",
               commandResult);
   }
+
+  return NULL;
 }
 
 void notification::notify(void) {
-  lck_lock(lck);
-
   if (!isConditionSet()) return;
 
-  std::string command = buildNotificationCommand();
+  lck_lock(lck);
 
-  supla_log(LOG_DEBUG, "sending notification %s", command.c_str());
+  std::string* command = new std::string(buildNotificationCommand());
+  void* vp = static_cast<void*>(command);
 
-  void* vp = static_cast<void*>(new std::string(command));
-
-  sthread_simple_run(execute_notification, vp, 0);
+  pthread_t thread;
+  pthread_create(&thread, NULL, execute_notification, vp);
+  pthread_detach(thread);
 
   lck_unlock(lck);
 }
@@ -102,11 +103,12 @@ void notification::set_on_change_connection_trigger(void) {
 
   for (auto channel_struct : this->channels) {
     channel* ch = chnls->find_channel(channel_struct.channelid);
-    
-	if (ch) {
+
+    if (ch) {
       ch->add_notification_on_connection((void*)this);
     } else
-      supla_log(LOG_DEBUG, "set_channel_on_connection_trigger: channel %d not found",
+      supla_log(LOG_DEBUG,
+                "set_channel_on_connection_trigger: channel %d not found",
                 channel_struct.channelid);
   }
 }
@@ -120,7 +122,8 @@ void notification::set_on_change_trigger_trigger(void) {
     if (ch) {
       ch->add_notification_on_change((void*)this);
     } else
-      supla_log(LOG_DEBUG, "set_channel_on_change_trigger: channel %d not found",
+      supla_log(LOG_DEBUG,
+                "set_channel_on_change_trigger: channel %d not found",
                 channel_struct.channelid);
   }
 }
@@ -176,7 +179,14 @@ bool notification::isConditionSet(void) {
 
     if (!chnl) return false;
 
-    std::string val = chnl->getStringValue(channel_struct.index);
+    std::string val;
+
+    if (this->trigger == onchange || this->trigger == ontime)
+      val = chnl->getStringValue(channel_struct.index);
+    else if (this->trigger == onconnection)
+      val = std::to_string(chnl->getOnline);
+    else
+      return false;
 
     if (channel_struct.wasIndexed)
       replace_string_in_place(
@@ -317,7 +327,7 @@ void notifications::handle() {
     if (ntf->getTrigger() == none) continue;
 
     ntf->setChannels();
-	
+
     switch (ntf->getTrigger()) {
       case onchange: {
         ntf->set_on_change_trigger();
@@ -325,9 +335,9 @@ void notifications::handle() {
       case ontime: {
         ntf->notify_on_time_trigger();
       } break;
-	  case onconnection: {
-	    ntf->set_on_connection_trigger();
-	  }
+      case onconnection: {
+        ntf->set_on_connection_trigger();
+      }
     }
   }
 

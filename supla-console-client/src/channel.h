@@ -45,7 +45,7 @@ class channel {
   int getFunction(void);
   int getChannelId(void);
   std::string getStringValue(int index);
-  
+
   void add_notification_on_change(void* value);
   void add_notification_on_connection(void* value);
 };
