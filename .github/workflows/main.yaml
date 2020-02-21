@@ -4,7 +4,6 @@ on:
   push:
     branches: 
     - supla-pushover-develop
-	
 jobs:
   lint:
     name: clang-format Code Formatter
