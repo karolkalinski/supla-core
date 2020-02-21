@@ -24,7 +24,9 @@
  */
 
 #include "yaml.h"
+
 #include <stdarg.h>
+
 #include <cstdio>
 #include <fstream>
 #include <list>

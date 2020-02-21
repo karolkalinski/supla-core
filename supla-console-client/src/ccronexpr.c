@@ -21,6 +21,8 @@
  * Created on February 24, 2015, 9:35 AM
  */
 
+#include "ccronexpr.h"
+
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
@@ -28,8 +30,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "ccronexpr.h"
 
 #define CRON_MAX_SECONDS 60
 #define CRON_MAX_MINUTES 60

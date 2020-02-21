@@ -8,20 +8,19 @@
 #ifndef NOTIFICATION_H_
 #define NOTIFICATION_H_
 
+#include <time.h>
+
+#include <ctime>
 #include <string>
 #include <vector>
 
 #include "ccronexpr.h"
+#include "channel.h"
 #include "crontab_parser.h"
 #include "supla-client-lib/lck.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/safearray.h"
 #include "supla-client-lib/sthread.h"
-
-#include "channel.h"
-
-#include <time.h>
-#include <ctime>
 
 enum enum_trigger { none, onchange, ontime };
 enum enum_reset { r_none, r_automatic };

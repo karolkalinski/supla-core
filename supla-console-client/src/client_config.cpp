@@ -17,6 +17,7 @@
  */
 
 #include "client_config.h"
+
 #include <string>
 
 notifications* ntfns = new notifications();
