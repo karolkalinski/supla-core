@@ -21,6 +21,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "ccronexpr.h"
 #include "client_loop.h"
 #include "clientcfg.h"
 #include "globals.h"
@@ -29,6 +30,7 @@
 #include "supla-client-lib/sthread.h"
 #include "supla-client-lib/supla-client.h"
 #include "supla-client-lib/tools.h"
+#include "time.h"
 
 int getch() {
   int r;
@@ -46,6 +48,27 @@ int kbhit() {
   return select(1, &fds, NULL, NULL, &tv);
 }
 
+void crontest(char *expression) {
+  cron_expr expr;
+  const char *err = NULL;
+  memset(&expr, 0, sizeof(expr));
+  cron_parse_expr(expression, &expr, &err);
+
+  if (err) {
+    std::cout << "error parsing crontab value " << err << std::endl;
+    return;
+  }
+
+  time_t next = std::time(NULL);
+
+  std::cout << "next 20 executions: " << std::endl;
+
+  for (int i = 0; i < 20; i++) {
+    next = cron_next(&expr, next);
+    std::cout << ctime(&next);
+  }
+}
+
 int main(int argc, char *argv[]) {
   void *client_loop_t = NULL;
   void *notification_loop_t = NULL;
@@ -54,6 +77,9 @@ int main(int argc, char *argv[]) {
 
   for (int i = 0; i < argc; i++) {
     if (strcmp("-v", argv[i]) == 0) {
+      return 0;
+    } else if ((strcmp("-ct", argv[i]) == 0)) {
+      crontest(argv[i + 1]);
       return 0;
     }
   }
