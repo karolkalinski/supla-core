@@ -75,8 +75,8 @@ bool client_config::load(const char* config_file) {
           trigger = onchange;
         else if (str_trigger.compare("ontime") == 0)
           trigger = ontime;
-	    else if (str_trigger.compare("onconnection") == 0)
-		  trigger = onconnection;
+        else if (str_trigger.compare("onconnection") == 0)
+          trigger = onconnection;
         else
           trigger = none;
 
