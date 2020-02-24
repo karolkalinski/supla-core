@@ -30,11 +30,15 @@ void notification::setLastResult(bool value) { this->lastResult = value; }
 
 bool notification::setNextTime(time_t value) {
   /*don't set on start */
-  if (this->next == 0) this->next = value;
+  bool firstRun = false;
+  if (this->next == 0) {
+    this->next = value;
+    firstRun = true;
+  }
 
   double sec = difftime(value, next);
   this->next = value;
-  return sec > 0;
+  return sec >= 0 && !firstRun;
 }
 
 time_t notification::getNextTime(void) { return this->next; }
@@ -72,6 +76,8 @@ void* execute_notification(void* vp) {
   delete sp;
 
   if (command.length() == 0) return NULL;
+
+  supla_log(LOG_DEBUG, "executing command %s", command.c_str());
 
   int commandResult = system(command.c_str());
 
