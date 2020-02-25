@@ -107,9 +107,9 @@ void notification::notify(void) {
     std::string* executionCmd = new std::string(this->executeCmd);
     void* ec = static_cast<void*>(executionCmd);
 
-    pthread_t thread;
-    pthread_create(&thread, NULL, execute_notification, vp);
-    pthread_detach(thread);
+    pthread_t thread_c;
+    pthread_create(&thread_c, NULL, execute_notification, ec);
+    pthread_detach(thread_c);
   }
 
   lck_unlock(lck);
