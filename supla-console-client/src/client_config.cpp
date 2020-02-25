@@ -97,7 +97,8 @@ bool client_config::load(const char* config_file) {
             command["condition"].As<std::string>(""), pushover_device,
             pushover_title,
             command["message"].As<std::string>("sample message"),
-            pushover_token, pushover_user, reset);
+            pushover_token, pushover_user, reset,
+            command["command"].As<std::string>(""));
       }
     }
 

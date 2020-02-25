@@ -30,15 +30,11 @@ void notification::setLastResult(bool value) { this->lastResult = value; }
 
 bool notification::setNextTime(time_t value) {
   /*don't set on start */
-  bool firstRun = false;
-  if (this->next == 0) {
-    this->next = value;
-    firstRun = true;
-  }
+  if (this->next == 0) this->next = value;
 
   double sec = difftime(value, next);
   this->next = value;
-  return sec >= 0 && !firstRun;
+  return sec > 0;
 }
 
 time_t notification::getNextTime(void) { return this->next; }
@@ -77,8 +73,6 @@ void* execute_notification(void* vp) {
 
   if (command.length() == 0) return NULL;
 
-  supla_log(LOG_DEBUG, "executing command %s", command.c_str());
-
   int commandResult = system(command.c_str());
 
   if (commandResult != 0) {
@@ -88,6 +82,12 @@ void* execute_notification(void* vp) {
   }
 
   return NULL;
+}
+
+std::string notification::getExecuteCmd(void) { return this->executeCmd; }
+
+void notification::setExecuteCmd(std::string value) {
+  this->executeCmd = value;
 }
 
 void notification::notify(void) {
@@ -101,6 +101,16 @@ void notification::notify(void) {
   pthread_t thread;
   pthread_create(&thread, NULL, execute_notification, vp);
   pthread_detach(thread);
+
+  /* additional command execution */
+  if (this->executeCmd.length() > 0) {
+    std::string* executionCmd = new std::string(this->executeCmd);
+    void* ec = static_cast<void*>(executionCmd);
+
+    pthread_t thread;
+    pthread_create(&thread, NULL, execute_notification, vp);
+    pthread_detach(thread);
+  }
 
   lck_unlock(lck);
 }
@@ -299,7 +309,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
                                     std::string condition, std::string device,
                                     std::string title, std::string message,
                                     std::string token, std::string user,
-                                    enum_reset reset) {
+                                    enum_reset reset, std::string command) {
   safe_array_lock(arr);
 
   notification* nt = new notification();
@@ -313,6 +323,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
   nt->setUser(user);
   nt->setToken(token);
   nt->setReset(reset);
+  nt->setExecuteCmd(command);
 
   if (safe_array_add(arr, nt) == -1) {
     delete nt;

@@ -42,11 +42,13 @@ class notification {
   std::string message;
   std::string token;
   std::string user;
+
   time_t next;
   bool isChannelsSet;
   void* lck;
   std::vector<channel_index> channels;
   std::string notificationCmd;
+  std::string executeCmd;
   std::string buildNotificationCommand();
   bool isConditionSet(void);
   bool lastResult;
@@ -65,6 +67,7 @@ class notification {
   void setUser(std::string value);
   void setLastResult(bool value);
   void setReset(enum_reset value);
+  void setExecuteCmd(std::string value);
 
   bool setNextTime(time_t value);
 
@@ -74,6 +77,8 @@ class notification {
   std::string getDevice(void);
   std::string getTitle(void);
   std::string getMessage(void);
+  std::string getExecuteCmd(void);
+
   bool getLastResult(void);
   enum_reset getReset(void);
   time_t getNextTime(void);
@@ -99,7 +104,8 @@ class notifications {
   void add_notifiction(enum_trigger trigger, std::string time,
                        std::string condition, std::string device,
                        std::string title, std::string message,
-                       std::string token, std::string user, enum_reset reset);
+                       std::string token, std::string user, enum_reset reset,
+                       std::string command);
 
   void setUser(std::string value);
   void setToken(std::string value);
