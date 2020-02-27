@@ -19,6 +19,7 @@ notification::notification() {
   this->isChannelsSet = false;
   this->lastResult = false;
   this->reset = r_automatic;
+  this->priority = 0;
   lck = lck_init();
 }
 
@@ -39,6 +40,10 @@ bool notification::setNextTime(time_t value) {
 
 time_t notification::getNextTime(void) { return this->next; }
 
+void notification::setPriority(uint8_t value) { this->priority = value; }
+
+uint8_t notification::getPriority(void) { return this->priority; }
+
 std::string notification::buildNotificationCommand() {
   if (this->notificationCmd.length() == 0) {
     notificationCmd.append("curl -d ");
@@ -48,6 +53,8 @@ std::string notification::buildNotificationCommand() {
     notificationCmd.append(this->user);
     notificationCmd.append("&title=");
     notificationCmd.append(this->title);
+    notificationCmd.append("&priority=");
+    notificationCmd.append(std::to_string(this->priority));
 
     if (this->device.length() > 0) {
       notificationCmd.append("&device=");
@@ -309,7 +316,8 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
                                     std::string condition, std::string device,
                                     std::string title, std::string message,
                                     std::string token, std::string user,
-                                    enum_reset reset, std::string command) {
+                                    enum_reset reset, std::string command,
+                                    uint8_t priority) {
   safe_array_lock(arr);
 
   notification* nt = new notification();
@@ -324,6 +332,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
   nt->setToken(token);
   nt->setReset(reset);
   nt->setExecuteCmd(command);
+  nt->setPriority(priority);
 
   if (safe_array_add(arr, nt) == -1) {
     delete nt;
