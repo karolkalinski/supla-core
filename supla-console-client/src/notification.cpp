@@ -322,7 +322,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
                                     std::string title, std::string message,
                                     std::string token, std::string user,
                                     enum_reset reset, std::string command,
-                                    uint8_t priority) {
+                                    int priority) {
   safe_array_lock(arr);
 
   notification* nt = new notification();
