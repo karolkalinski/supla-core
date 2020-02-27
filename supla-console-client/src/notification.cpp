@@ -40,9 +40,14 @@ bool notification::setNextTime(time_t value) {
 
 time_t notification::getNextTime(void) { return this->next; }
 
-void notification::setPriority(uint8_t value) { this->priority = value; }
+void notification::setPriority(int value) {
+  if (value < -2 || value > 2)
+    this->priority = 0;
+  else
+    this->priority = value;
+}
 
-uint8_t notification::getPriority(void) { return this->priority; }
+int notification::getPriority(void) { return this->priority; }
 
 std::string notification::buildNotificationCommand() {
   if (this->notificationCmd.length() == 0) {
