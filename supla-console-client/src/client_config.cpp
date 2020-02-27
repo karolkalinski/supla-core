@@ -99,7 +99,9 @@ bool client_config::load(const char* config_file) {
             command["message"].As<std::string>("sample message"),
             pushover_token, pushover_user, reset,
             command["command"].As<std::string>(""),
-            command["priority"].As<int>(0));
+            command["priority"].As<int>(0),
+            command["priority_expire"].As<int>(0),
+            command["priority_retry"].As<int>(30));
       }
     }
 

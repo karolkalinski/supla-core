@@ -43,6 +43,8 @@ class notification {
   std::string token;
   std::string user;
   int priority;
+  int expire;
+  int retry;
 
   time_t next;
   bool isChannelsSet;
@@ -70,6 +72,8 @@ class notification {
   void setReset(enum_reset value);
   void setExecuteCmd(std::string value);
   void setPriority(int value);
+  void setExpire(int value);
+  void setRetry(int value);
 
   bool setNextTime(time_t value);
 
@@ -81,6 +85,8 @@ class notification {
   std::string getMessage(void);
   std::string getExecuteCmd(void);
   int getPriority(void);
+  int getExpire(void);
+  int getRetry(void);
 
   bool getLastResult(void);
   enum_reset getReset(void);
@@ -108,7 +114,8 @@ class notifications {
                        std::string condition, std::string device,
                        std::string title, std::string message,
                        std::string token, std::string user, enum_reset reset,
-                       std::string command, int priority);
+                       std::string command, int priority, int expire,
+                       int retry);
 
   void setUser(std::string value);
   void setToken(std::string value);

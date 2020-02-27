@@ -20,6 +20,9 @@ notification::notification() {
   this->lastResult = false;
   this->reset = r_automatic;
   this->priority = 0;
+  this->retry = 30;
+  this->expire = 300;
+
   lck = lck_init();
 }
 
@@ -61,6 +64,15 @@ std::string notification::buildNotificationCommand() {
     notificationCmd.append("&priority=");
     notificationCmd.append(std::to_string(this->priority));
 
+    if (this->priority == 2) {
+      /* notification will be sended every 30 sec for 5 min if not acknowledged
+       */
+      notificationCmd.append("&retry=");
+      notificationCmd.append(std::to_string(this->retry));
+      notificationCmd.append("&expire=");
+      notificationCmd.append(std::to_string(this->expire));
+    };
+
     if (this->device.length() > 0) {
       notificationCmd.append("&device=");
       notificationCmd.append(this->device);
@@ -76,6 +88,22 @@ std::string notification::buildNotificationCommand() {
   }
 
   return this->notificationCmd;
+}
+
+void notification::setExpire(int value) {
+  if (value < 0)
+    this->expire = 0;
+  else if (value > 10800)
+    this->expire = 10800;
+  else
+    this->expire = value;
+}
+
+void notification::setRetry(int value) {
+  if (value < 30)
+    this->retry = 30;
+  else
+    this->retry = value;
 }
 
 void* execute_notification(void* vp) {
@@ -322,7 +350,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
                                     std::string title, std::string message,
                                     std::string token, std::string user,
                                     enum_reset reset, std::string command,
-                                    int priority) {
+                                    int priority, int expire, int retry) {
   safe_array_lock(arr);
 
   notification* nt = new notification();
@@ -338,6 +366,8 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
   nt->setReset(reset);
   nt->setExecuteCmd(command);
   nt->setPriority(priority);
+  nt->setExpire(expire);
+  nt->setRetry(retry);
 
   if (safe_array_add(arr, nt) == -1) {
     delete nt;
@@ -368,7 +398,9 @@ void notifications::handle() {
       } break;
       case onconnection: {
         ntf->set_on_change_connection_trigger();
-      }
+      } break;
+      case none:
+        break;
     }
   }
 
