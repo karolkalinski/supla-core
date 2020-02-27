@@ -73,7 +73,7 @@ int main(int argc, char *argv[]) {
   void *client_loop_t = NULL;
   void *notification_loop_t = NULL;
 
-  printf("SUPLA-PUSHOVER v1.0.0\n");
+  printf("SUPLA-PUSHOVER v1.0.3\n");
 
   for (int i = 0; i < argc; i++) {
     if (strcmp("-v", argv[i]) == 0) {
