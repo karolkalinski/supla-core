@@ -14,7 +14,6 @@ channel::channel(int channel_id, int channel_function, std::string caption,
   this->channel_function = channel_function;
   this->caption = caption;
   this->online = online;
-  this->debounce = 0;
 
   memcpy(this->value, value, SUPLA_CHANNELVALUE_SIZE);
   memcpy(this->sub_value, sub_value, SUPLA_CHANNELVALUE_SIZE);
