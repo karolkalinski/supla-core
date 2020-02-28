@@ -7,19 +7,22 @@
 
 #include "channel.h"
 
-channel::channel(int channel_id, int channel_function, std::string caption) {
+channel::channel(int channel_id, int channel_function, std::string caption,
+                 char value[SUPLA_CHANNELVALUE_SIZE],
+                 char sub_value[SUPLA_CHANNELVALUE_SIZE], bool online) {
   this->channel_id = channel_id;
   this->channel_function = channel_function;
   this->caption = caption;
-  this->online = true;
+  this->online = online;
+  this->debounce = 0;
 
-  memset(this->value, 0, SUPLA_CHANNELVALUE_SIZE);
-  memset(this->sub_value, 0, SUPLA_CHANNELVALUE_SIZE);
+  memcpy(this->value, value, SUPLA_CHANNELVALUE_SIZE);
+  memcpy(this->sub_value, sub_value, SUPLA_CHANNELVALUE_SIZE);
 }
 
 channel::~channel() {}
 
-void channel::add_notification_on_change(void* value) {
+void channel::add_notification_on_change(void* value, int debounce) {
   bool found = false;
 
   for (auto p : notification_list) {
@@ -33,7 +36,8 @@ void channel::add_notification_on_change(void* value) {
     supla_log(LOG_DEBUG, "adding notification to channels's %d list",
               this->channel_id);
     notification_list.push_back(value);
-  }
+    this->debounce = debounce;
+  };
 }
 
 void channel::add_notification_on_connection(void* value) {
@@ -89,22 +93,35 @@ void channel::setOnline(bool value) {
 bool channel::getOnline(void) { return this->online; }
 
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
-  bool hasChanged = false;
+  bool hasChanged = value_changed(this->value, value));
 
-  if (value_changed(this->value, value)) hasChanged = true;
+  if (!hasChanged) return;
 
   memcpy(this->value, value, SUPLA_CHANNELVALUE_SIZE);
 
-  if (hasChanged) notify();
+  steady_clock::time_point now = steady_clock::now();
+
+  duration<double, milli> time_span =
+      duration_cast<duration<double, milli>>(now - prev_value_changed);
+
+  this->prev_value_changed = now();
+
+  if (hasChanged && (time_span.count() > this->debounce)) notify();
 }
 void channel::setSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
-  bool hasChanged = false;
-
-  if (value_changed(this->sub_value, sub_value)) hasChanged = true;
+  bool hasChanged = value_changed(this->sub_value, sub_value);
+  if (!hasChanged) return;
 
   memcpy(this->sub_value, sub_value, SUPLA_CHANNELVALUE_SIZE);
 
-  if (hasChanged) notify();
+  steady_clock::time_point now = steady_clock::now();
+
+  duration<double, milli> time_span =
+      duration_cast<duration<double, milli>>(now - prev_sub_value_changed);
+
+  this->prev_sub_value_changed = now();
+
+  if (hasChanged && (time_span.count() > this->debounce)) notify();
 }
 void channel::setCaption(std::string value) { this->caption = value; }
 

@@ -55,14 +55,15 @@ void client_loop_channel_update(void *_suplaclient, void *sthread,
   if (chnl == NULL) {
     chnl = chnls->add_channel(
         channel->Id, channel->Func,
-        std::string(channel->Caption, SUPLA_CHANNEL_CAPTION_MAXSIZE));
+        std::string(channel->Caption, SUPLA_CHANNEL_CAPTION_MAXSIZE),
+        channel->value.value, channel->value.sub_value, channel->online);
+  } else {
+    if (channel->online) {
+      chnl->setValue(channel->value.value);
+      chnl->setSubValue(channel->value.sub_value);
+    };
+    chnl->setOnline(channel->online);
   };
-
-  if (channel->online) {
-    chnl->setValue(channel->value.value);
-    chnl->setSubValue(channel->value.sub_value);
-  };
-  chnl->setOnline(channel->online);
 }
 
 void client_loop_channelgroup_update(void *_suplaclient, void *sthread,

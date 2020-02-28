@@ -176,7 +176,7 @@ void notification::set_on_change_trigger(void) {
     channel* ch = chnls->find_channel(channel_struct.channelid);
 
     if (ch) {
-      ch->add_notification_on_change((void*)this);
+      ch->add_notification_on_change((void*)this, this->debounce);
     } else
       supla_log(LOG_DEBUG,
                 "set_channel_on_change_trigger: channel %d not found",
@@ -224,6 +224,8 @@ void notification::setChannels(void) {
               this->condition.c_str());
   }
 }
+
+void notification::setDebounce(int value) { this->debounce = debounce; }
 
 bool notification::isConditionSet(void) {
   if (this->channels.size() == 0) return false;
@@ -350,7 +352,8 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
                                     std::string title, std::string message,
                                     std::string token, std::string user,
                                     enum_reset reset, std::string command,
-                                    int priority, int expire, int retry) {
+                                    int priority, int expire, int retry,
+                                    int debounce) {
   safe_array_lock(arr);
 
   notification* nt = new notification();
@@ -368,6 +371,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
   nt->setPriority(priority);
   nt->setExpire(expire);
   nt->setRetry(retry);
+  nt->setDebounce(debounce);
 
   if (safe_array_add(arr, nt) == -1) {
     delete nt;
