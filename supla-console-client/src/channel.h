@@ -17,21 +17,15 @@
 #include "supla-client-lib/proto.h"
 #include "supla-client-lib/safearray.h"
 
-using namespace std::chrono;
-
 class channel {
  private:
   int channel_id;
   int channel_function;
   bool online;
 
-  steady_clock::time_point prev_value_changed;
-  steady_clock::time_point prev_sub_value_changed;
-
   std::string caption;
   char value[SUPLA_CHANNELVALUE_SIZE];
   char sub_value[SUPLA_CHANNELVALUE_SIZE];
-  int debounce;
 
   std::vector<void*> notification_list;
   std::vector<void*> connection_change_list;
@@ -57,7 +51,7 @@ class channel {
   int getChannelId(void);
   std::string getStringValue(int index);
 
-  void add_notification_on_change(void* value, int debounce);
+  void add_notification_on_change(void* value);
   void add_notification_on_connection(void* value);
 
   bool getOnline(void);

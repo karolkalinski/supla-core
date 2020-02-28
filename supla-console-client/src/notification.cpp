@@ -7,6 +7,8 @@
 
 #include "notification.h"
 
+using namespace std::chrono;
+
 notification::notification() {
   this->condition = "";
   this->device = "";
@@ -225,7 +227,7 @@ void notification::setChannels(void) {
   }
 }
 
-void notification::setDebounce(int value) { this->debounce = debounce; }
+void notification::setDebounce(int value) { this->debounce = value; }
 
 bool notification::isConditionSet(void) {
   if (this->channels.size() == 0) return false;
@@ -273,15 +275,33 @@ bool notification::isConditionSet(void) {
     return false;
   }
 
+  auto end = std::chrono::high_resolution_clock::now();
+  auto dur = end - this->prev_value_changed;
+  auto milis = std::chrono::duration_cast<std::chrono::milliseconds>(dur);
+
   if (commandResult.compare("1\n") == 0) {
     if (this->reset == r_automatic) {
       if (this->lastResult != true) {
         this->lastResult = true;
-        return true;
+        /* debouce check */
+
+        this->prev_value_changed = std::chrono::high_resolution_clock::now();
+
+        if (milis.count() > this->debouce)
+          return true;
+        else
+          return false;
+
       } else
         return false;
     } else {
-      return true;
+      /* debounce check */
+      this->prev_value_changed = std::chrono::high_resolution_clock::now();
+
+      if (milis.count() > this->debouce)
+        return true;
+      else
+        return false;
     }
   }
 

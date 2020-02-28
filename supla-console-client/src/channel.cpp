@@ -22,7 +22,7 @@ channel::channel(int channel_id, int channel_function, std::string caption,
 
 channel::~channel() {}
 
-void channel::add_notification_on_change(void* value, int debounce) {
+void channel::add_notification_on_change(void* value) {
   bool found = false;
 
   for (auto p : notification_list) {
@@ -36,7 +36,6 @@ void channel::add_notification_on_change(void* value, int debounce) {
     supla_log(LOG_DEBUG, "adding notification to channels's %d list",
               this->channel_id);
     notification_list.push_back(value);
-    this->debounce = debounce;
   };
 }
 
@@ -99,14 +98,7 @@ void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 
   memcpy(this->value, value, SUPLA_CHANNELVALUE_SIZE);
 
-  steady_clock::time_point now = steady_clock::now();
-
-  duration<double, std::milli> time_span =
-      duration_cast<duration<double, std::milli>>(now - prev_value_changed);
-
-  this->prev_value_changed = now;
-
-  if (hasChanged && (time_span.count() > this->debounce)) notify();
+  if (hasChanged) notify();
 }
 void channel::setSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
   bool hasChanged = value_changed(this->sub_value, sub_value);
@@ -114,14 +106,7 @@ void channel::setSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
 
   memcpy(this->sub_value, sub_value, SUPLA_CHANNELVALUE_SIZE);
 
-  steady_clock::time_point now = steady_clock::now();
-
-  duration<double, std::milli> time_span =
-      duration_cast<duration<double, std::milli>>(now - prev_sub_value_changed);
-
-  this->prev_sub_value_changed = now;
-
-  if (hasChanged && (time_span.count() > this->debounce)) notify();
+  if (hasChanged) notify();
 }
 void channel::setCaption(std::string value) { this->caption = value; }
 
