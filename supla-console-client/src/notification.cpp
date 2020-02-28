@@ -178,7 +178,7 @@ void notification::set_on_change_trigger(void) {
     channel* ch = chnls->find_channel(channel_struct.channelid);
 
     if (ch) {
-      ch->add_notification_on_change((void*)this, this->debounce);
+      ch->add_notification_on_change((void*)this);
     } else
       supla_log(LOG_DEBUG,
                 "set_channel_on_change_trigger: channel %d not found",
