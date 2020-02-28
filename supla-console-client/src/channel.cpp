@@ -102,7 +102,7 @@ void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
   steady_clock::time_point now = steady_clock::now();
 
   duration<double, milli> time_span =
-      duration_cast<duration<double, milli>>(now - prev_value_changed);
+      duration_cast<duration<double, std::milli>>(now - prev_value_changed);
 
   this->prev_value_changed = now();
 
@@ -117,7 +117,7 @@ void channel::setSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
   steady_clock::time_point now = steady_clock::now();
 
   duration<double, milli> time_span =
-      duration_cast<duration<double, milli>>(now - prev_sub_value_changed);
+      duration_cast<duration<double, std::milli>>(now - prev_sub_value_changed);
 
   this->prev_sub_value_changed = now();
 
