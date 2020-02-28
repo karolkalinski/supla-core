@@ -285,22 +285,22 @@ bool notification::isConditionSet(void) {
         this->lastResult = true;
         /* debouce check */
 
-        this->prev_value_changed = std::chrono::high_resolution_clock::now();
-
-        if (milis.count() > this->debounce)
+        if (milis.count() > this->debounce) {
+          this->prev_value_changed = std::chrono::high_resolution_clock::now();
           return true;
-        else
+        } else
           return false;
 
       } else
         return false;
     } else {
       /* debounce check */
-      this->prev_value_changed = std::chrono::high_resolution_clock::now();
 
-      if (milis.count() > this->debounce)
+      if (milis.count() > this->debounce) {
+        this->prev_value_changed = std::chrono::high_resolution_clock::now();
+
         return true;
-      else
+      } else
         return false;
     }
   }
