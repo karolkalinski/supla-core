@@ -73,7 +73,8 @@ class channels {
   virtual ~channels();
 
   channel* add_channel(int channel_id, int channel_function,
-                       std::string caption);
+                       std::string caption, char value[SUPLA_CHANNELVALUE_SIZE],
+                       char sub_value[SUPLA_CHANNELVALUE_SIZE], bool online);
   channel* find_channel(int channel_id);
 };
 

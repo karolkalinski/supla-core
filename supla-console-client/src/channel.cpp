@@ -224,13 +224,17 @@ channel* channels::find_channel(int channel_id) {
 }
 
 channel* channels::add_channel(int channel_id, int channel_function,
-                               std::string caption) {
+                               std::string caption,
+                               char value[SUPLA_CHANNELVALUE_SIZE],
+                               char sub_value[SUPLA_CHANNELVALUE_SIZE],
+                               bool online) {
   safe_array_lock(arr);
 
   channel* result = find_channel(channel_id);
 
   if (result == NULL) {
-    result = new channel(channel_id, channel_function, caption);
+    result = new channel(channel_id, channel_function, caption, value,
+                         sub_value, online);
 
     if (result != NULL && safe_array_add(arr, result) == -1) {
       delete result;
