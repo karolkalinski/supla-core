@@ -93,7 +93,7 @@ void channel::setOnline(bool value) {
 bool channel::getOnline(void) { return this->online; }
 
 void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
-  bool hasChanged = value_changed(this->value, value));
+  bool hasChanged = value_changed(this->value, value);
 
   if (!hasChanged) return;
 
@@ -101,10 +101,10 @@ void channel::setValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 
   steady_clock::time_point now = steady_clock::now();
 
-  duration<double, milli> time_span =
+  duration<double, std::milli> time_span =
       duration_cast<duration<double, std::milli>>(now - prev_value_changed);
 
-  this->prev_value_changed = now();
+  this->prev_value_changed = now;
 
   if (hasChanged && (time_span.count() > this->debounce)) notify();
 }
@@ -116,10 +116,10 @@ void channel::setSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]) {
 
   steady_clock::time_point now = steady_clock::now();
 
-  duration<double, milli> time_span =
+  duration<double, std::milli> time_span =
       duration_cast<duration<double, std::milli>>(now - prev_sub_value_changed);
 
-  this->prev_sub_value_changed = now();
+  this->prev_sub_value_changed = now;
 
   if (hasChanged && (time_span.count() > this->debounce)) notify();
 }
