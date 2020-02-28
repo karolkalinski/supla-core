@@ -47,6 +47,8 @@ class notification {
   int expire;
   int retry;
   int debounce;
+  std::chrono::time_point<std::chrono::high_resolution_clock>
+      prev_value_changed;
 
   time_t next;
   bool isChannelsSet;

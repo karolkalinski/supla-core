@@ -287,7 +287,7 @@ bool notification::isConditionSet(void) {
 
         this->prev_value_changed = std::chrono::high_resolution_clock::now();
 
-        if (milis.count() > this->debouce)
+        if (milis.count() > this->debounce)
           return true;
         else
           return false;
@@ -298,7 +298,7 @@ bool notification::isConditionSet(void) {
       /* debounce check */
       this->prev_value_changed = std::chrono::high_resolution_clock::now();
 
-      if (milis.count() > this->debouce)
+      if (milis.count() > this->debounce)
         return true;
       else
         return false;
