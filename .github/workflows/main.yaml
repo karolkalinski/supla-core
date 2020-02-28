@@ -1,9 +1,9 @@
-name: supla-pushover-develop
+name: supla-pushover
 
 on: 
   push:
     branches: 
-    - supla-pushover-develop
+    - supla-pushover
 jobs:
   lint:
     name: clang-format && make
