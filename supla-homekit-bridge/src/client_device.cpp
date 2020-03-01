@@ -81,7 +81,7 @@ client_device_channel::client_device_channel(int Id, int Number, int Type,
 	this->Online = Online;
 	this->Caption =
 			Caption ? strndup(Caption, SUPLA_CHANNEL_CAPTION_MAXSIZE) : NULL;
-	this->isHK = false;
+	this->isHK = true;
 
 	memset(this->Sub_value, 0, SUPLA_CHANNELVALUE_SIZE);
 
@@ -90,6 +90,10 @@ client_device_channel::client_device_channel(int Id, int Number, int Type,
 	this->model = "unknown";
 	this->name = std::string(Caption);
 	this->serial_number = "0000000000";
+
+	//if (this->getFunc() == SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR)
+//		this->isHK = true;
+
 }
 
 
@@ -273,24 +277,11 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 		intCharacteristic* currentDoorState = (intCharacteristic*)service->getCharacteristicByType(charType_currentDoorState);
 		if (!currentDoorState) break;
 
-		char val[SUPLA_CHANNELVALUE_SIZE];
+		/* ustawiamy stan na podstawie wartości czujnika otwarcia/zamknięcia */
+		/* ToDo lukbek obsłużyć stany otwieranie/zamykanie (działanie przekaźnika?) */
 
-		this->getValue(val);
-
-		if (val[0] == 1) /* przekaźnik działa */
-		{
-			if (this->Sub_value[0] == 0) {
-				targetDoorState->setValue(1);
-				currentDoorState->setValue(2);
-			} else
-			{
-				targetDoorState->setValue(0);
-				currentDoorState->setValue(3);
-			}
-		} else { /* przekaźnik nie działa */
-			currentDoorState->setValue(this->Sub_value[0]);
-			targetDoorState->setValue(this->Sub_value[0]);
-		}
+		currentDoorState->setValue(this->Sub_value[0]);
+		targetDoorState->setValue(this->Sub_value[0]);
 
 		characteristics.push_back(targetDoorState->describeValue());
 		characteristics.push_back(currentDoorState->describeValue());
@@ -354,11 +345,12 @@ void client_device_channel::getSubValue(
 
 void client_device_channel::setOnline(bool value) {
 	this->Online = value;
-
-
-
-
 }
+
+void client_device_channel::setFunc(int value) {
+	this->Func = value;
+}
+
 bool client_device_channel::getOnline() {
 	return this->Online;
 }
@@ -398,13 +390,14 @@ client_device_channel* client_device_channels::add_channel(int Id, int Number,
 			channel = NULL;
 		} else {
 
-
+			if (!channel->isHidden())
 			accessories->add_accessory_for_supla_channel(channel,
 						identify_callback_routine_execution,
 						set_value_callback_routine_execution);
 		}
 	} else {
 		channel->setOnline(Online);
+		channel->setFunc(Func);
 	}
 
 	safe_array_unlock(arr);

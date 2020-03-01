@@ -4,6 +4,8 @@
 #include "supla-client-lib/safearray.h"
 #include "homekit_classes.h"
 #include "homekit_configuration.h"
+#include "PHKNetworkIP.h"
+#include "PHKControllerRecord.h"
 #include "client_device.h"
 
 

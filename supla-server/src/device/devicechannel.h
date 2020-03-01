@@ -146,7 +146,6 @@ class supla_device_channel {
   int Id;
   unsigned char Number;
   int Type;
-  int Func;
   int Param1;
   int Param2;
   int Param3;
@@ -157,7 +156,8 @@ class supla_device_channel {
 
   char value[8];
   TSuplaChannelExtendedValue *extendedValue;
-
+ protected:
+  int Func;
  public:
   supla_device_channel(int Id, int Number, int Type, int Func, int Param1,
                        int Param2, int Param3, char *TextParam1,

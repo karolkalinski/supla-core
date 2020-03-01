@@ -220,6 +220,9 @@ void homekit_accessories::add_accessory_for_supla_channel(
 	
 	if (safe_array_count(arr) == count)
 	  delete(info);
+
+	if (hasController())
+		updateConfiguration();
 }
 
 accessory* homekit_accessories::add_accessory_gateway_lock(int accessoryId, service* info) /* elektrozaczep -> switch ? */
@@ -240,6 +243,10 @@ accessory* homekit_accessories::add_accessory_garage_door(accessory* accessory, 
 			permission_read | permission_notify, 0, 4, 1, unit_none, 0);
     current_door_state->setValue(0);
 
+    current_door_state->setValidValue(0);
+    current_door_state->setValidValue(1);
+
+
     uint8Characteristic* target_door_state = new uint8Characteristic(
        		accessory->getId(), accessory->getNextUUID(), charType_targetDoorState,
    			permission_read |  permission_write | permission_notify, 0, 1, 1, unit_none, 0);
@@ -250,6 +257,7 @@ accessory* homekit_accessories::add_accessory_garage_door(accessory* accessory, 
     boolCharacteristic* obstruction_detected = new boolCharacteristic(
     	    accessory->getId(), accessory->getNextUUID(), charType_obstruction,
 			permission_read | permission_notify, false);
+
     obstruction_detected->setValue(false);
 
     garage_door_opener->add_characteristic(current_door_state);

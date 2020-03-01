@@ -54,6 +54,8 @@ class client_device_channel : public supla_device_channel {
   
   bool getOnline();
   void setOnline(bool value);
+  void setFunc(int value);
+
   void setSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]);
   void getSubValue(char sub_value[SUPLA_CHANNELVALUE_SIZE]);
   char* getCaption(void);

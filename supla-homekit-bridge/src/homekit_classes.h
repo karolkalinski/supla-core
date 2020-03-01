@@ -318,9 +318,9 @@ public:
 	   json_characteristic["format"] = "uint8";
 	   valid_values = jsoncons::json::make_array();
 
-	   json_characteristic["minValue"] = minValue;
-	   json_characteristic["maxValue"] = maxValue;
-	   json_characteristic["minStep"] = step;
+	   //json_characteristic["minValue"] = minValue;
+	   //json_characteristic["maxValue"] = maxValue;
+	   //json_characteristic["minStep"] = step;
 	}
 
   void setValidValue(uint8_t value);
