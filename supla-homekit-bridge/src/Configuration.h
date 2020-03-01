@@ -7,8 +7,8 @@
 //
 //
 
-#define HomeKitLog 1
-#define HomeKitReplyHeaderLog 1
+#define HomeKitLog 0
+#define HomeKitReplyHeaderLog 0
 #define PowerOnTest 0
 
 //Device Setting
