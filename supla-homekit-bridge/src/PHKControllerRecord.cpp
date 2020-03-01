@@ -10,6 +10,7 @@
 #include "Configuration.h"
 #include <vector>
 #include <strings.h>
+#include "homekit_configuration.h"
 
 
 #if MCU
@@ -25,7 +26,9 @@ vector<PHKKeyRecord>controllerRecords = readIn();
 
 vector<PHKKeyRecord>readIn() {
     ifstream fs;
-    fs.open(controllerRecordsAddress, std::ifstream::in);
+    fs.open(
+    		Configuration::Instance().getControllerRecordsAddress().c_str(),
+    		std::ifstream::in);
 
     char buffer[70];
     bzero(buffer, 70);
@@ -47,7 +50,8 @@ vector<PHKKeyRecord>readIn() {
 
 void resetControllerRecord() {
     ofstream fs;
-    fs.open(controllerRecordsAddress, std::ofstream::out|std::ofstream::trunc);
+    fs.open(Configuration::Instance().getControllerRecordsAddress().c_str(),
+    		std::ofstream::out|std::ofstream::trunc);
 }
 
 bool hasController() {
@@ -59,7 +63,7 @@ void addControllerKey(PHKKeyRecord record) {
         controllerRecords.push_back(record);
 
         ofstream fs;
-        fs.open(controllerRecordsAddress, std::ofstream::trunc);
+        fs.open(Configuration::Instance().getControllerRecordsAddress().c_str(), std::ofstream::trunc);
 
         for (vector<PHKKeyRecord>::iterator it = controllerRecords.begin(); it != controllerRecords.end(); it++) {
             fs.write(it->controllerID, 36);

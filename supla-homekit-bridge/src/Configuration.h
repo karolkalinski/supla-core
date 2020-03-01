@@ -12,12 +12,12 @@
 #define PowerOnTest 0
 
 //Device Setting
-#define deviceName "Supla HomeKit Bridge"    //Name
-#define deviceIdentity "11:10:34:23:51:12"  //ID
-#define _manufactuerName "ET Chan"   //Manufactuer
-#define devicePassword "123-44-321" //Password
-#define deviceUUID "62F47751-8F26-46BF-9552-8F4238E67D60"   //UUID, for pair verify
-#define controllerRecordsAddress "./PHK_controller" //Where to store the client keys
+//#define deviceName "Supla HomeKit Bridge"    //Name
+
+
+//#define devicePassword "123-44-321" //Password
+
+//Where to store the client keys
 
 //Number of client
 /*

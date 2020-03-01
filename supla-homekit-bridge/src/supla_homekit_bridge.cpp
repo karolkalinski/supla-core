@@ -29,6 +29,10 @@
 #include "supla-client-lib/supla-client.h"
 #include "supla-client-lib/tools.h"
 #include "globals.h"
+#include "PHKNetworkIP.h"
+#include "PHKControllerRecord.h"
+#include "homekit_configuration.h"
+
 
 homekit_accessories* accessories;
 client_device_channels* channels;
@@ -37,7 +41,44 @@ int main(int argc, char *argv[]) {
   void *client_loop_t = NULL;
   void *homekit_loop_t = NULL;
 
-  supla_log(LOG_INFO, "initializing main loop");
+  printf("SUPLA-HOMEKIT-BRIDGE v%s\n", "1.0.0.ALPHA");
+
+  for (int i = 0; i < argc; i++) {
+     if (strcmp("--version", argv[i]) == 0) {
+       return 0;
+     } else if (strcmp("--reset", argv[i]) == 0) {
+       if( remove(Configuration::Instance().getControllerRecordsAddress().c_str()) != 0 )
+         supla_log(LOG_ERR, "Error deleting controller record file\n");
+       else
+       {
+    	 printf("Controller record file successfully deleted.\n");
+    	 printf("You need to remove supla-homekit-bridge from your IOS device now.\n");
+       }
+    	 return 0;
+     }
+  };
+
+  /* code generator */
+
+  srand(time(NULL));
+  Configuration::Instance().setDevicePassword(
+    std::to_string(rand() % 10) +
+  	std::to_string(rand() % 10) +
+  	std::to_string(rand() % 10) + "-" +
+  	std::to_string(rand() % 10) +
+  	std::to_string(rand() % 10) + "-" +
+  	std::to_string(rand() % 10) +
+  	std::to_string(rand() % 10) +
+  	std::to_string(rand() % 10));
+
+  if (!hasController()) {
+	   printf("Your setup code is %s\n", Configuration::Instance().getDevicePassword().c_str());
+	   printf("You need to provide it on accessory adding proces in your IOS device\n");
+  }
+  /*----------------*/
+
+
+  supla_log(LOG_INFO, "Initializing main loop");
 
   if (clientcfg_init(argc, argv) == 0) {
     clientcfg_free();
@@ -52,7 +93,6 @@ int main(int argc, char *argv[]) {
   channels = new client_device_channels();
   accessories = new homekit_accessories();
 
-
   client_loop_t = sthread_simple_run(client_loop, (void *)&sclient, 0);
   homekit_loop_t = sthread_simple_run(homekit_loop, (void*)&sclient, 0);
   
@@ -60,9 +100,14 @@ int main(int argc, char *argv[]) {
     st_mainloop_wait(5000);
   }
 
+  supla_log(LOG_DEBUG, "Closing homekit socket...");
+  close_socket();
+  supla_log(LOG_DEBUG, "Terminating supla client loop");
   sthread_twf(client_loop_t);
+  supla_log(LOG_DEBUG, "Terminating homekit loop");
   sthread_twf(homekit_loop_t);
   
+  supla_log(LOG_DEBUG, "Closing other stuff");
   st_mainloop_free();
   clientcfg_free();
 

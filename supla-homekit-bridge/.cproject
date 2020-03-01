@@ -245,7 +245,7 @@
                                     									
                                     <listOptionValue builtIn="false" value="/opt/local/include"/>
                                     									
-                                    <listOptionValue builtIn="false" value="/json"/>
+                                    <listOptionValue builtIn="false" value="../src/json"/>
                                     								
                                 </option>
                                 								

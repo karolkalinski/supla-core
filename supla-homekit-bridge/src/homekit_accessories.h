@@ -3,6 +3,7 @@
 
 #include "supla-client-lib/safearray.h"
 #include "homekit_classes.h"
+#include "homekit_configuration.h"
 #include "client_device.h"
 
 
@@ -14,7 +15,7 @@ class homekit_accessories {
     accessory* add_accessory_gateway_lock(int accessoryId, service* info); /* elektrozaczep -> switch ? */
 
     accessory* add_accessory_gate(int accessoryId, service* info); /* brama wjazdowa -> garage door opener */
-	accessory* add_accessory_garage_door(int accessoryId, service* info); /* drzwi garażowe -> garage_door_opener */
+	accessory* add_accessory_garage_door(accessory* accessory, set_value_callback_routine callback); /* drzwi garażowe -> garage_door_opener */
 	accessory* add_accessory_thermometer(accessory* accessory); /* temperatur sensor */
 	accessory* add_accessory_humidity(accessory* accessory); /* humidity sensor */
 	accessory* add_accessory_door_lock(int accessoryId, service* info); /* zamek w drzwiach  -> lock mechanizm */
@@ -49,6 +50,8 @@ class homekit_accessories {
 	accessory* getAccessoryById(_supla_int64_t id);
 
 	jsoncons::ojson describe(void);
+	jsoncons::ojson describe_characteristics(void);
+
 };
 
 #endif

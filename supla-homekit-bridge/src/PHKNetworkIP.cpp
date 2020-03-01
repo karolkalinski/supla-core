@@ -62,22 +62,36 @@ using namespace std;
 #define portNumber 0
 
 connectionInfo connection[numberOfClient];
+void *stayAliveThread = NULL;
 
-void *stayAliveTrigger(void *threadInfo) {
+void stayAliveTrigger(void *user_data, void *sthread) {
+
+  struct timeval now;
+  struct timeval last = (struct timeval){0};
+
+  while (sthread_isterminated(sthread) == 0) {
+    gettimeofday(&now, NULL);
+
+    if (now.tv_sec - last.tv_sec < keepAlivePeriod) {
+    	usleep(500);
+    	continue;
+    }
+
+    gettimeofday(&last, NULL);
     
-	while (true) {
-        supla_log(LOG_DEBUG, "keep alive");
-        broadcastInfo *alivePackage = new broadcastInfo;
-        alivePackage->sender = NULL;
-        char *aliveMsg = new char[32];
-        strncpy(aliveMsg, "{\"characteristics\": []}", 32);
-        alivePackage->desc = aliveMsg;
-        announce(alivePackage);
-        sleep(keepAlivePeriod);
+	supla_log(LOG_DEBUG, "keep alive");
+    jsoncons::ojson test;
+    test["characteristics"] = accessories->describe_characteristics();
+    std::string test_str;
+    test.dump(test_str);
+
+    if (test_str.length() == 0) continue;
+    broadcastInfo * info = new broadcastInfo;
+    info->sender = NULL;
+   	info->desc = strdup(test_str.c_str());;
+    announce(info);
     }
 }
-
-pthread_t aliveThread;
 
 const unsigned char modulusStr[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC9, 0x0F, 0xDA, 0xA2, 0x21, 0x68, 0xC2, 0x34, 0xC4, 0xC6, 0x62, 0x8B, 0x80, 0xDC, 0x1C, 0xD1, 0x29, 0x02, 0x4E, 0x08, 0x8A, 0x67, 0xCC, 0x74, 0x02, 0x0B, 0xBE, 0xA6, 0x3B, 0x13, 0x9B, 0x22, 0x51, 0x4A, 0x08, 0x79, 0x8E, 0x34, 0x04, 0xDD, 0xEF, 0x95, 0x19, 0xB3, 0xCD, 0x3A, 0x43, 0x1B, 0x30, 0x2B, 0x0A, 0x6D, 0xF2, 0x5F, 0x14, 0x37, 0x4F, 0xE1, 0x35, 0x6D, 0x6D, 0x51, 0xC2, 0x45, 0xE4, 0x85, 0xB5, 0x76, 0x62, 0x5E, 0x7E, 0xC6, 0xF4, 0x4C, 0x42, 0xE9, 0xA6, 0x37, 0xED, 0x6B, 0x0B, 0xFF, 0x5C, 0xB6, 0xF4, 0x06, 0xB7, 0xED, 0xEE, 0x38, 0x6B, 0xFB, 0x5A, 0x89, 0x9F, 0xA5, 0xAE, 0x9F, 0x24, 0x11, 0x7C, 0x4B, 0x1F, 0xE6, 0x49, 0x28, 0x66, 0x51, 0xEC, 0xE4, 0x5B, 0x3D, 0xC2, 0x00, 0x7C, 0xB8, 0xA1, 0x63, 0xBF, 0x05, 0x98, 0xDA, 0x48, 0x36, 0x1C, 0x55, 0xD3, 0x9A, 0x69, 0x16, 0x3F, 0xA8, 0xFD, 0x24, 0xCF, 0x5F, 0x83, 0x65, 0x5D, 0x23, 0xDC, 0xA3, 0xAD, 0x96, 0x1C, 0x62, 0xF3, 0x56, 0x20, 0x85, 0x52, 0xBB, 0x9E, 0xD5, 0x29, 0x07, 0x70, 0x96, 0x96, 0x6D, 0x67, 0x0C, 0x35, 0x4E, 0x4A, 0xBC, 0x98, 0x04, 0xF1, 0x74, 0x6C, 0x08, 0xCA, 0x18, 0x21, 0x7C, 0x32, 0x90, 0x5E, 0x46, 0x2E, 0x36, 0xCE, 0x3B, 0xE3, 0x9E, 0x77, 0x2C, 0x18, 0x0E, 0x86, 0x03, 0x9B, 0x27, 0x83, 0xA2, 0xEC, 0x07, 0xA2, 0x8F, 0xB5, 0xC5, 0x5D, 0xF0, 0x6F, 0x4C, 0x52, 0xC9, 0xDE, 0x2B, 0xCB, 0xF6, 0x95, 0x58, 0x17, 0x18, 0x39, 0x95, 0x49, 0x7C, 0xEA, 0x95, 0x6A, 0xE5, 0x15, 0xD2, 0x26, 0x18, 0x98, 0xFA, 0x05, 0x10, 0x15, 0x72, 0x8E, 0x5A, 0x8A, 0xAA, 0xC4, 0x2D, 0xAD, 0x33, 0x17, 0x0D, 0x04, 0x50, 0x7A, 0x33, 0xA8, 0x55, 0x21, 0xAB, 0xDF, 0x1C, 0xBA, 0x64, 0xEC, 0xFB, 0x85, 0x04, 0x58, 0xDB, 0xEF, 0x0A, 0x8A, 0xEA, 0x71, 0x57, 0x5D, 0x06, 0x0C, 0x7D, 0xB3, 0x97, 0x0F, 0x85, 0xA6, 0xE1, 0xE4, 0xC7, 0xAB, 0xF5, 0xAE, 0x8C, 0xDB, 0x09, 0x33, 0xD7, 0x1E, 0x8C, 0x94, 0xE0, 0x4A, 0x25, 0x61, 0x9D, 0xCE, 0xE3, 0xD2, 0x26, 0x1A, 0xD2, 0xEE, 0x6B, 0xF1, 0x2F, 0xFA, 0x06, 0xD9, 0x8A, 0x08, 0x64, 0xD8, 0x76, 0x02, 0x73, 0x3E, 0xC8, 0x6A, 0x64, 0x52, 0x1F, 0x2B, 0x18, 0x17, 0x7B, 0x20, 0x0C, 0xBB, 0xE1, 0x17, 0x57, 0x7A, 0x61, 0x5D, 0x6C, 0x77, 0x09, 0x88, 0xC0, 0xBA, 0xD9, 0x46, 0xE2, 0x08, 0xE2, 0x4F, 0xA0, 0x74, 0xE5, 0xAB, 0x31, 0x43, 0xDB, 0x5B, 0xFC, 0xE0, 0xFD, 0x10, 0x8E, 0x4B, 0x82, 0xD1, 0x20, 0xA9, 0x3A, 0xD2, 0xCA, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 const unsigned char curveBasePoint[] = { 0x09, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -88,11 +102,16 @@ char tempStr[3073];
 const unsigned char accessorySecretKey[32] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC9, 0x0F, 0xDA, 0xA2, 0x21, 0x68, 0xC2, 0x34, 0xC4, 0xC6, 0x62, 0x8B, 0x80, 0xDC, 0x1C, 0xD1, 0x29, 0x02, 0x4E, 0x08, 0x8A, 0x67, 0xCC, 0x74};
 
 int _socket_v4, _socket_v6;
+
 DNSServiceRef netServiceV4, netServiceV6;
 
 deviceType currentDeviceType = deviceType_other;
 
 int currentConfigurationNum = 1;
+
+void close_socket() {
+	close(_socket_v4);
+}
 
 int is_big_endian(void)
 {
@@ -114,7 +133,7 @@ int setupSocketV4(unsigned int maximumConnection) {
     setsockopt(_socket, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen);
     
     bind(_socket, (const struct sockaddr *)&addr, sizeof(addr));
-    listen(_socket, maximumConnection);
+    int result = listen(_socket, maximumConnection);
     return _socket;
 }
 
@@ -148,7 +167,7 @@ TXTRecordRef buildTXTRecord() {
 	TXTRecordRef txtRecord;
 	    TXTRecordCreate(&txtRecord, 0, NULL);
 	    TXTRecordSetValue(&txtRecord, "pv", 3, "1.1");  //Version
-	    TXTRecordSetValue(&txtRecord, "id", 17, deviceIdentity);    //Device id
+	    TXTRecordSetValue(&txtRecord, "id", 17, Configuration::Instance().getDeviceIdentity().c_str());    //Device id
 	    char buf[3];
 	    sprintf(buf, "%d", 1);
 	    TXTRecordSetValue(&txtRecord, "c#", 1, buf);    //Configuration Number
@@ -157,7 +176,10 @@ TXTRecordRef buildTXTRecord() {
 	    else buf[0] = '1';
 	    TXTRecordSetValue(&txtRecord, "sf", 1, buf);    //Discoverable: 0 if has been paired
 	    TXTRecordSetValue(&txtRecord, "ff", 1, "0");    //1 for MFI product
-	    TXTRecordSetValue(&txtRecord, "md", strlen(deviceName), deviceName);    //Model Name
+
+	    std::string deviceName = Configuration::Instance().getDeviceName();
+
+	    TXTRecordSetValue(&txtRecord, "md", deviceName.length(), deviceName.c_str());    //Model Name
 	    int len = sprintf(buf, "%d", 2);
 	    TXTRecordSetValue(&txtRecord, "ci", len, buf);    //1 for MFI product
 	    return txtRecord;
@@ -169,6 +191,7 @@ void updatePairable() {
     TXTRecordDeallocate(&txtRecord);
 }
 
+
 void updateConfiguration() {
     currentConfigurationNum++;
     TXTRecordRef txtRecord = buildTXTRecord();
@@ -177,19 +200,41 @@ void updateConfiguration() {
 }
 
 void PHKNetworkIP::setupSocket() {
+
+	if (netServiceV4) {
+	  supla_log(LOG_WARNING, "Already registered a service");
+	  return;
+	}
+
     TXTRecordRef txtRecord = buildTXTRecord();
-    _socket_v4 = setupSocketV4(5);
-    DNSServiceRegister(&netServiceV4, 0, 0, deviceName, PHKNetworkServiceType, "", NULL, htons(getSocketPortNumberV4(_socket_v4)), TXTRecordGetLength(&txtRecord), TXTRecordGetBytesPtr(&txtRecord), NULL, NULL);
+    _socket_v4 = setupSocketV4(numberOfClient);
+
+    auto error = DNSServiceRegister(&netServiceV4, 0, 0,
+    		Configuration::Instance().getDeviceName().c_str(), PHKNetworkServiceType, "", NULL, htons(getSocketPortNumberV4(_socket_v4)), TXTRecordGetLength(&txtRecord), TXTRecordGetBytesPtr(&txtRecord), NULL, NULL);
+
+    if (error != kDNSServiceErr_NoError) {
+    	supla_log(LOG_DEBUG, "DNSServiceRegister error %d", error);
+    } else {
+    	supla_log(LOG_DEBUG, "DNSService registered");
+    }
+
+    if (!netServiceV4) {
+    	supla_log(LOG_DEBUG, "DNSService reference is null!");
+    }
+
     TXTRecordDeallocate(&txtRecord);
 }
 
 PHKNetworkIP::PHKNetworkIP() {
     SRP_initialize_library();
+
     srand((unsigned int)time(NULL));
+
     for (int i = 0; i < numberOfClient; i++) {
         connection[i].subSocket = -1;
     }
-    pthread_create(&aliveThread, NULL, stayAliveTrigger, NULL);
+
+    stayAliveThread = sthread_simple_run(stayAliveTrigger, NULL, 0);
     setupSocket();
 }
 
@@ -299,9 +344,18 @@ void *connectionLoop(void *threadInfo) {
 }
 
 void PHKNetworkIP::handleConnection() const {
-    struct sockaddr_in client_addr; socklen_t clen;
+    struct sockaddr_in client_addr;
+    socklen_t clen;
+
+    clen = sizeof(client_addr);
+
     int subSocket = accept(_socket_v4, (struct sockaddr *)&client_addr, &clen);
     
+    if (subSocket == -1) {
+      supla_log(LOG_ERR, "Connection accept error %i", errno);
+      return;
+    };
+
     //Before anything start, get sniff the host name of the client
     string socketName = "";
     if (clen == sizeof(struct sockaddr_in)) {
@@ -318,14 +372,13 @@ void PHKNetworkIP::handleConnection() const {
             connection[index].hostname = socketName;
             
             pthread_create(&connection[index].thread, NULL, connectionLoop, &connection[index]);
-            
+            pthread_detach(connection[index].thread);
             break;
         }
     }
     
     //Too much connection?
     if (index < 0) close(subSocket);
-    
 }
 
 // 2ByteS(datalen) + data_buf + 16Bytes(Verfied Key)
@@ -386,12 +439,14 @@ void connectionInfo::handlePairSeup() {
     stateRecord.length = 1;
     stateRecord.index = 6;
     PairSetupState_t state = State_M1_SRPStartRequest;
-    SRP *srp;
-    srp = SRP_new(SRP6a_server_method());
+    SRP *srp = SRP_new(SRP6a_server_method());
+
     cstr *secretKey = NULL, *publicKey = NULL, *response = NULL;
     char sessionKey[64];
     char *responseBuffer = 0; int responseLen = 0;
-    
+
+    std::string deviceIdentity = Configuration::Instance().getDeviceIdentity();
+
     do {
         PHKNetworkMessage msg = PHKNetworkMessage(buffer);
         PHKNetworkResponse mResponse(200);
@@ -403,11 +458,7 @@ void connectionInfo::handlePairSeup() {
         case State_M4_SRPVerifyRespond:
         case State_M6_ExchangeRespond:
         case State_M2_SRPStartRespond: break;
-
             case State_M1_SRPStartRequest: {
-#if HomeKitLog == 1
-                printf("%s, %d: State_M1_SRPStartRequest\n", __func__, __LINE__);
-#endif
                 PHKNetworkMessageDataRecord saltRec;
                 PHKNetworkMessageDataRecord publicKeyRec;
                 unsigned char saltChar[16];
@@ -419,7 +470,7 @@ void connectionInfo::handlePairSeup() {
                 SRP_set_username(srp, "Pair-Setup");
                 int modulusSize = sizeof(modulusStr) / sizeof(modulusStr[0]);
                 SRP_set_params(srp, (const unsigned char *)modulusStr, modulusSize, (const unsigned char *)generator, 1, saltChar, 16);
-                SRP_set_auth_password(srp, devicePassword);
+                SRP_set_auth_password(srp, Configuration::Instance().getDevicePassword().c_str());
                 SRP_gen_pub(srp, &publicKey);
                 
                 saltRec.index = 2;
@@ -439,9 +490,6 @@ void connectionInfo::handlePairSeup() {
             }
                 break;
             case State_M3_SRPVerifyRequest: {
-#if HomeKitLog == 1
-                printf("%s, %d: State_M3_SRPVerifyRequest\n", __func__, __LINE__);
-#endif
                 const char *keyStr = 0;
                 int keyLen = 0;
                 const char *proofStr;
@@ -465,9 +513,6 @@ void connectionInfo::handlePairSeup() {
                     responseRecord.index = 7;
                     responseRecord.length = 1;
                     mResponse.data.addRecord(responseRecord);
-#if HomeKitLog == 1
-                    printf("Oops at M3\n");
-#endif
                 } else {
                     SRP_respond(srp, &response);
                     PHKNetworkMessageDataRecord responseRecord;
@@ -477,9 +522,6 @@ void connectionInfo::handlePairSeup() {
                     responseRecord.data = new char[responseRecord.length];
                     bcopy(response->data, responseRecord.data, responseRecord.length);
                     mResponse.data.addRecord(responseRecord);
-#if HomeKitLog == 1
-                    printf("Password Correct\n");
-#endif
                 }
                 
                 const char salt[] = "Pair-Setup-Encrypt-Salt";
@@ -489,10 +531,6 @@ void connectionInfo::handlePairSeup() {
             }
                 break;
             case State_M5_ExchangeRequest: {
-#if HomeKitLog == 1
-                printf("%s, %d: State_M5_ExchangeRequest\n", __func__, __LINE__);
-#endif
-                
                 const char *encryptedPackage = NULL;int packageLen = 0;
                 encryptedPackage = msg.data.dataPtrForIndex(5);
                 packageLen = msg.data.lengthForIndex(5);
@@ -523,24 +561,6 @@ void connectionInfo::handlePairSeup() {
                     responseRecord.index = 7;
                     responseRecord.length = 1;
                     mResponse.data.addRecord(responseRecord);
-                    
-#if HomeKitLog == 1
-                    for(int j = 0; j < packageLen-16; j++)
-                        printf("%X ", decryptedData[j]);
-                    printf("\n");
-                    
-                    printf("verify: ");
-                    for(int j = 0; j < 16; j++)
-                        printf("%X ", verify[j]);
-                    printf("\n");
-                    
-                    printf("mac: ");
-                    for(int j = 0; j < 16; j++)
-                        printf("%X ", mac[j]);
-                    printf("\n");
-                    
-                    printf("Corrupt TLv8 at M5\n");
-#endif
                 } else {
                     /*
                      * HAK Pair Setup M6
@@ -567,13 +587,23 @@ void connectionInfo::handlePairSeup() {
                     int ed25519_err = ed25519_sign_open((const unsigned char*)controllerHash, 100, (const unsigned char*)controllerPublicKey, (const unsigned char*)controllerSignature);
                     delete subTLV8;
                     
-                    if (ed25519_err) return;
+                    if (ed25519_err) {
+                    	if (srp)  SRP_free(srp);
+                    	 delete publicKey;
+                    	    delete response;
+                    	    delete secretKey;
+                    	return;
+                    }
                     else {
                         PHKNetworkMessageData *returnTLV8 = new PHKNetworkMessageData();
-                        
                         {
                             PHKNetworkMessageDataRecord usernameRecord;
-                            usernameRecord.activate = true; usernameRecord.index = 1;    usernameRecord.length = strlen(deviceIdentity); usernameRecord.data = new char[usernameRecord.length]; bcopy(deviceIdentity, usernameRecord.data, usernameRecord.length);
+                            usernameRecord.activate = true;
+                            usernameRecord.index = 1;
+                            usernameRecord.length = deviceIdentity.length();
+                            usernameRecord.data = new char[usernameRecord.length];
+                            bcopy(deviceIdentity.c_str(),
+                              usernameRecord.data, usernameRecord.length);
                             returnTLV8->addRecord(usernameRecord);
                         }
                         
@@ -586,7 +616,7 @@ void connectionInfo::handlePairSeup() {
                             uint8_t output[150];
                             hkdf((const unsigned char*)salt, strlen(salt), (const unsigned char*)secretKey->data, secretKey->length, (const unsigned char*)info, strlen(info), output, 32);
                             
-                            bcopy(deviceIdentity, &output[32], strlen(deviceIdentity));
+                            bcopy(deviceIdentity.c_str(), &output[32], deviceIdentity.length());
                             
                             char *signature = new char[64];
                             ed25519_secret_key edSecret;
@@ -594,8 +624,9 @@ void connectionInfo::handlePairSeup() {
                             ed25519_public_key edPubKey;
                             ed25519_publickey(edSecret, edPubKey);
                             
-                            bcopy(edPubKey, &output[32+strlen(deviceIdentity)], 32);
-                            ed25519_sign(output, 64+strlen(deviceIdentity), (const unsigned char*)edSecret, (const unsigned char*)edPubKey, (unsigned char *)signature);
+                            bcopy(edPubKey, &output[32+deviceIdentity.length()], 32);
+                            ed25519_sign(output, 64+deviceIdentity.length(),
+                            		(const unsigned char*)edSecret, (const unsigned char*)edPubKey, (unsigned char *)signature);
                             PHKNetworkMessageDataRecord signatureRecord;
                             signatureRecord.activate = true; signatureRecord.data = signature;   signatureRecord.index = 10;    signatureRecord.length = 64;
                             returnTLV8->addRecord(signatureRecord);
@@ -647,28 +678,27 @@ void connectionInfo::handlePairSeup() {
                 
                 delete []encryptedData;
                 
+                if (srp) SRP_free(srp);
+                delete publicKey;
+                delete response;
+                delete secretKey;
                 return;
             }
                 break;
         }
         mResponse.data.addRecord(stateRecord);
         mResponse.getBinaryPtr(&responseBuffer, &responseLen);
+
         if (responseBuffer) {
-#if HomeKitLog == 1
-            printf("%s, %d, responseBuffer = %s, responseLen = %d\n", __func__, __LINE__, responseBuffer, responseLen);
-#endif
             int len = write(subSocket, (const void *)responseBuffer, (size_t)responseLen);
             delete [] responseBuffer;
-#if HomeKitLog == 1
-            printf("Pair Setup Transfered length %d\n", len);
-#endif
-        } else {
-#if HomeKitLog == 1
-            printf("Why empty response\n");
-#endif
-        }
+        };
         
     } while (read(subSocket, (void *)buffer, 4096) > 0);
+
+    delete publicKey;
+    delete response;
+    delete secretKey;
     SRP_free(srp);
 }
 
@@ -705,8 +735,11 @@ void connectionInfo::handlePairVerify() {
                 
                 char *temp = new char[100];
                 bcopy(publicKey, temp, 32);
-                bcopy(deviceIdentity, &temp[32], strlen(deviceIdentity));
-                bcopy(controllerPublicKey, &temp[32+strlen(deviceIdentity)], 32);
+
+                std::string deviceIdentity = Configuration::Instance().getDeviceIdentity();
+
+                bcopy(deviceIdentity.c_str(), &temp[32], deviceIdentity.length());
+                bcopy(controllerPublicKey, &temp[32+deviceIdentity.length()], 32);
                 
                 PHKNetworkMessageDataRecord signRecord;
                 signRecord.activate = true; signRecord.data = new char[64]; signRecord.index = 10;  signRecord.length = 64;
@@ -716,13 +749,13 @@ void connectionInfo::handlePairVerify() {
                 ed25519_public_key edPubKey;
                 ed25519_publickey(edSecret, edPubKey);
                 
-                ed25519_sign((const unsigned char *)temp, 64+strlen(deviceIdentity), edSecret, edPubKey, (unsigned char *)signRecord.data);
+                ed25519_sign((const unsigned char *)temp, 64+deviceIdentity.length(), edSecret, edPubKey, (unsigned char *)signRecord.data);
                 delete [] temp;
                 
                 PHKNetworkMessageDataRecord idRecord;
                 idRecord.activate = true;
                 idRecord.data = new char[17];
-                bcopy(deviceIdentity, idRecord.data, 17);
+                bcopy(deviceIdentity.c_str(), idRecord.data, 17);
                 idRecord.index = 1;
                 idRecord.length = (unsigned int)17;
                 
@@ -855,17 +888,9 @@ void connectionInfo::handlePairVerify() {
 
 void connectionInfo::handleAccessoryRequest() {
     
-    //New connection has finish verify, so announce
-    
-
     char *decryptData = new char[2048];
     
     int len;
-    
-#if HomeKitLog == 1
-    printf("Successfully Connect\n");
-#endif
-    
     numberOfMsgRec = 0;
     numberOfMsgSend = 0;
     
@@ -880,19 +905,12 @@ void connectionInfo::handleAccessoryRequest() {
         
         pthread_mutex_lock(&mutex);
         
-        //FIXME make sure buffer len > (2 + msgLen + 16)??
         if (len > 0) {
             uint16_t msgLen = (uint8_t)buffer[1]*256+(uint8_t)*buffer;
             
             chacha20_ctx chacha20;    bzero(&chacha20, sizeof(chacha20));
             
-#if HomeKitLog == 1
-            printf("send: %llx\n", numberOfMsgRec);
-#endif
             if (!is_big_endian()) numberOfMsgRec = bswap_64(numberOfMsgRec);
-#if HomeKitLog == 1
-            printf("send: %llx\n", numberOfMsgRec);
-#endif
             chacha20_setup(&chacha20, (const uint8_t *)controllerToAccessoryKey, 32, (uint8_t *)&numberOfMsgRec);
             if (!is_big_endian()) numberOfMsgRec = bswap_64(numberOfMsgRec);
             numberOfMsgRec++;
@@ -908,36 +926,11 @@ void connectionInfo::handleAccessoryRequest() {
             bzero(decryptData, 2048);
             chacha20_encrypt(&chacha20, (const uint8_t *)&buffer[2], (uint8_t *)decryptData, msgLen);
             
-#if HomeKitReplyHeaderLog == 1
-            printf("Request: %s\nPacketLen: %d\n, MessageLen: %d\n", decryptData, len, (int)strlen(decryptData));
-#endif
             
             if(len >= (2 + msgLen + 16)
                && memcmp((void *)verify, (void *)&buffer[2 + msgLen], 16) == 0) {
-#if HomeKitLog == 1
-                printf("Verify successfully!\n");
-#endif
             }
             else {
-                
-#if HomeKitLog == 1
-                printf("Passed-in data is no-verified!\n");
-                for (int i = 0; i < 16; i++)
-                    printf("%ud ", verify[i]);
-                printf("\n");
-                for (int i = 0; i < 16; i++)
-                    printf("%ud ", buffer[2 + msgLen+i]);
-                printf("\n");
-                
-                unsigned long long numberOfMsgRec_ = numberOfMsgRec-1;
-                chacha20_setup(&chacha20, (const uint8_t *)controllerToAccessoryKey, 32, (uint8_t *)&numberOfMsgRec_);
-                chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
-                Poly1305_GenKey((const unsigned char *)temp, (uint8_t *)buffer, msgLen, Type_Data_With_Length, verify);
-                for (int i = 0; i < 16; i++)
-                    printf("%ud ", verify[i]);
-                printf("\n");
-                
-#endif
                 continue;
             }
             
@@ -974,14 +967,22 @@ void connectionInfo::handleAccessoryRequest() {
     
     pthread_mutex_destroy(&mutex);
     
-    delete [] decryptData;
+    delete[] decryptData;
     connected = false;
-    
 }
 
 //Object Logic
 PHKNetworkIP::~PHKNetworkIP() {
-    DNSServiceRefDeallocate(netServiceV4);
+  supla_log(LOG_DEBUG, "Freeing PHKNetworkIP...");
+  if (netServiceV4) {
+	supla_log(LOG_DEBUG, "Deallocating DNS Service...");
+	DNSServiceRefDeallocate(netServiceV4);
+	netServiceV4 = 0;
+  }
+
+  if (stayAliveThread) {
+	  sthread_twf(stayAliveThread);
+  }
 }
 
 const char *copyLine(const char *rawData, char *destination) {
@@ -1069,8 +1070,9 @@ PHKNetworkMessageData & PHKNetworkMessageData::operator=(const PHKNetworkMessage
     for (int i = 0; i < 10; i++) {
         if (data.records[i].length) {
             records[i] = data.records[i];
-            records[i].data = new char[records[i].length];
-            bcopy(data.records[i].data, records[i].data, data.records[i].length);
+            records[i].data = records[i].length > 0 ? new char[records[i].length] : NULL;
+            if (data.records[i].length > 0)
+              bcopy(data.records[i].data, records[i].data, data.records[i].length);
         }
     }
     return *this;
@@ -1184,13 +1186,17 @@ PHKNetworkMessageDataRecord &PHKNetworkMessageDataRecord::operator=(const PHKNet
     index = r.index;
     activate = r.activate;
     length = r.length;
+
     if (data)
-        delete [] data;
+      delete [] data;
+
     data = new char[length];
     bcopy(r.data, data, length);
     return *this;
 }
 
 PHKNetworkMessageDataRecord::~PHKNetworkMessageDataRecord() {
-    if (length) delete [] data;
+	supla_log(LOG_DEBUG, "deleting data record %d", length);
+    if (length)
+    	delete [] data;
 }

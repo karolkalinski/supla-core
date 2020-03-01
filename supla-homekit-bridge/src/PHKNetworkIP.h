@@ -14,9 +14,12 @@
 #include <cstring>
 #include <string>
 
+#include "supla-client-lib/sthread.h"
 #include "Configuration.h"
 #include "homekit_classes.h"
 #include "supla-client-lib/log.h"
+
+#include "homekit_configuration.h"
 using namespace std;
 
 #define IPv4 1
@@ -163,6 +166,9 @@ public:
 };
 
 void updateConfiguration();
+void removeConfiguration();
+void close_socket();
+
 
 extern void (*newConnection)(connectionInfo* info);
 extern void (*deadConnection)(connectionInfo *info);

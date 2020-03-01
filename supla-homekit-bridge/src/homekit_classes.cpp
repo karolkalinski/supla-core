@@ -40,12 +40,13 @@ double characteristic::showDecimals(const double& x, const int& numDecimals)
 
 void characteristic::initJsonCharacteristic() {
   
-	 json_characteristic["iid"] = iid;
 
-	char temp[8];
-	    snprintf(temp, 8, "%X", this->type);
 
-	    std::string tpt(temp, 2);
+  json_characteristic["iid"] = iid;
+
+  char hexString[4*sizeof(int)+1];
+  sprintf(hexString,"%X", this->type);
+  std::string tpt(hexString);
 
   json_characteristic["type"] =  tpt;
   json_characteristic["format"] = "generic";
@@ -89,9 +90,15 @@ void characteristic::setValue(std::string value) {
 
 jsoncons::ojson characteristic::describeValue(void) {
 	jsoncons::ojson result;
-	result["aid"] = this->aid;
-	result["iid"] = this->iid;
-	result["value"] = (jsoncons::ojson)this->json_characteristic["value"];
+
+	try
+	{
+		result["aid"] = this->aid;
+		result["iid"] = this->iid;
+		result["value"] = (jsoncons::ojson)this->json_characteristic["value"];
+	} catch (std::exception& ) {
+
+	}
 	return result;
 }
 
@@ -113,9 +120,6 @@ bool characteristic::notifiable(void) {
   return (this->permission & permission_notify);
 }
 
- 
-
-
 bool boolCharacteristic::getValue(void) { return this->value; }
 
 void boolCharacteristic::setValue(bool value) {
@@ -136,7 +140,29 @@ void floatCharacteristic::setValue(float value) {
   pthread_mutex_unlock(&mtx);
 }
 
+int intCharacteristic::getValue(void) {
+	return this->value;
+}
+
 void intCharacteristic::setValue(int value) {
+  pthread_mutex_lock(&mtx);
+  this->value = value;
+  if (permission & permission_read) {
+    json_characteristic["value"] = value;
+  }
+  pthread_mutex_unlock(&mtx);
+}
+
+uint8_t uint8Characteristic::getValue(void) {
+	return this->value;
+}
+
+void uint8Characteristic::setValidValue(uint8_t value) {
+	this->valid_values.push_back(value);
+	json_characteristic["valid_values"] = this->valid_values;
+}
+
+void uint8Characteristic::setValue(uint8_t value) {
   pthread_mutex_lock(&mtx);
   this->value = value;
   if (permission & permission_read) {
@@ -221,6 +247,18 @@ void accessory::add_service(service* service) {
 
 int accessory::getNextUUID() { return ++this->currentUUID; }
 
+void accessory::describe_characteristics(jsoncons::ojson& array) {
+
+  for (int a = 0; a < safe_array_count(services); a++) {
+	 service *c =
+	   static_cast<service*>(safe_array_get(services, a));
+
+	   if (c) {
+		 c->describe_characteristics(array);
+	   }
+  };
+}
+
 jsoncons::ojson accessory::describe(void) {
 
   jsoncons::ojson result;
@@ -249,6 +287,11 @@ service::service(uint16_t iid, uint8_t uuid) {
   this->iid = iid;
   this->hidden = false;
   this->primary = false;
+}
+
+
+void service::setPrimary(bool value) {
+	this->primary = value;
 }
 
 char service::characteristics_delcnd(void *ptr) {
@@ -300,6 +343,21 @@ void service::add_characteristic(characteristic* c) {
     }
   }
   
+  safe_array_unlock(characteristics);
+}
+
+void service::describe_characteristics(jsoncons::ojson& array) {
+  safe_array_lock(characteristics);
+
+  for (int a = 0; a < safe_array_count(characteristics); a++) {
+    characteristic *c =
+        static_cast<characteristic*>(safe_array_get(characteristics, a));
+
+	if (c && c->notifiable()) {
+	  array.push_back(c->describeValue());
+	}
+  };
+
   safe_array_unlock(characteristics);
 }
 

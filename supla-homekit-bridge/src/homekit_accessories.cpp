@@ -64,6 +64,23 @@ accessory* homekit_accessories::new_accessory(int accessoryId,
   return result;
 }
 
+jsoncons::ojson homekit_accessories::describe_characteristics(void) {
+	safe_array_lock(arr);
+
+	jsoncons::json characteristics = jsoncons::json::make_array();
+
+	for (int idx = 0; idx < safe_array_count(arr); idx++) {
+		accessory *a = (accessory*)safe_array_get(arr, idx);
+
+		a->describe_characteristics(characteristics);
+	}
+
+	safe_array_unlock(arr);
+
+	return characteristics;
+
+}
+
 jsoncons::ojson homekit_accessories::describe(void) {
 
    safe_array_lock(arr);
@@ -138,26 +155,27 @@ void homekit_accessories::add_accessory_for_supla_channel(
 		} break;
 		case SUPLA_CHANNELFNC_CONTROLLINGTHEGATEWAYLOCK:
 		{
-			add_accessory_to_array(add_accessory_gateway_lock(accessoryId, info));
+	//		add_accessory_to_array(add_accessory_gateway_lock(accessoryId, info));
 			 
 		} break;
 		case SUPLA_CHANNELFNC_CONTROLLINGTHEGATE:
 		{
-			add_accessory_to_array(add_accessory_gate(accessoryId, info));
+			//add_accessory_to_array(add_accessory_gate(accessoryId, info));
 			 
 		} break;
 		case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR:
 		{
-			add_accessory_to_array(add_accessory_garage_door(accessoryId, info));
-			
+			accessory* accessory = new_accessory(accessoryId, info);
+			add_accessory_to_array(add_accessory_garage_door(accessory, value_callback));
+
 		} break;
 		case SUPLA_CHANNELFNC_CONTROLLINGTHEDOORLOCK:
 		{
-			add_accessory_to_array(add_accessory_door_lock(accessoryId, info));
+		//	add_accessory_to_array(add_accessory_door_lock(accessoryId, info));
 		} break;
 		case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER:
 		{
-			add_accessory_to_array(add_accessory_rollershutter(accessoryId, info));
+			//add_accessory_to_array(add_accessory_rollershutter(accessoryId, info));
 		} break;
 		case SUPLA_CHANNELFNC_POWERSWITCH:
 		{
@@ -212,9 +230,43 @@ accessory* homekit_accessories::add_accessory_gate(int accessoryId, service* inf
 {
 	return NULL;
 }
-accessory* homekit_accessories::add_accessory_garage_door(int accessoryId, service* info) /* drzwi garażowe -> garage_door_opener */
+accessory* homekit_accessories::add_accessory_garage_door(accessory* accessory, set_value_callback_routine callback) /* drzwi garażowe -> garage_door_opener */
 {
-	return NULL;
+	service* garage_door_opener = new service(accessory->getNextUUID(), serviceType_garageDoorOpener);
+    garage_door_opener->setPrimary(true);
+
+    uint8Characteristic* current_door_state = new uint8Characteristic(
+    		accessory->getId(), accessory->getNextUUID(), charType_currentDoorState,
+			permission_read | permission_notify, 0, 4, 1, unit_none, 0);
+    current_door_state->setValue(0);
+
+    //current_door_state->setValidValue(0);
+    //current_door_state->setValidValue(1);
+    //current_door_state->setValidValue(2);
+    //current_door_state->setValidValue(3);
+    //current_door_state->setValidValue(4);
+
+    uint8Characteristic* target_door_state = new uint8Characteristic(
+       		accessory->getId(), accessory->getNextUUID(), charType_targetDoorState,
+   			permission_read |  permission_write | permission_notify, 0, 1, 1, unit_none, 0);
+    target_door_state->setValue(0);
+    target_door_state->setCallback(callback);
+
+    //target_door_state->setValidValue(0);
+    //target_door_state->setValidValue(1);
+
+    boolCharacteristic* obstruction_detected = new boolCharacteristic(
+    	    accessory->getId(), accessory->getNextUUID(), charType_obstruction,
+			permission_read | permission_notify, false);
+    obstruction_detected->setValue(false);
+
+    garage_door_opener->add_characteristic(current_door_state);
+    garage_door_opener->add_characteristic(target_door_state);
+    garage_door_opener->add_characteristic(obstruction_detected);
+
+    accessory->add_service(garage_door_opener);
+
+	return accessory;
 }
 accessory* homekit_accessories::add_accessory_thermometer(accessory* accessory) /* temperatur sensor */
 {
@@ -317,7 +369,9 @@ accessory* homekit_accessories::add_accessory_thermostat(int accessoryId, servic
 }
 accessory* homekit_accessories::add_accessory_bridge()
 {
-	service* info = get_accessory_information_service(1, "1.0", "SUPLA.ORG", "BRIDGE", deviceName, "0000000000", NULL);
+	service* info = get_accessory_information_service(
+			1, "1.0", "SUPLA.ORG", "BRIDGE",
+			Configuration::Instance().getDeviceName(), "0000000000", NULL);
 	accessory* accessory = new_accessory(1, info);
 
 	service* protocol = new service(accessory->getNextUUID(), serviceType_protocolInformation);

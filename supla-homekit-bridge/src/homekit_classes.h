@@ -293,10 +293,51 @@ public:
 	}
     
   void setValue(int value);
+  int getValue(void);
   virtual void setValue(std::string str) {
 
      }
 };
+
+class uint8Characteristic: public characteristic {
+private:
+  const int minValue;
+  const int maxValue;
+  const int step;
+  const unitType unit;
+  int value;
+
+  jsoncons::json valid_values;
+
+public:
+  uint8Characteristic(int aid, int iid, charType type, int permission, int minVal,
+	int maxVal, int step, unitType unit, int value)
+	: characteristic(aid, iid, type, permission, unit), minValue(minVal), maxValue(maxVal),
+	step(step), unit(unit), value(value)
+	{
+	   json_characteristic["format"] = "uint8";
+	   valid_values = jsoncons::json::make_array();
+
+	   json_characteristic["minValue"] = minValue;
+	   json_characteristic["maxValue"] = maxValue;
+	   json_characteristic["minStep"] = step;
+	}
+
+  void setValidValue(uint8_t value);
+  void setValue(uint8_t value);
+  uint8_t getValue(void);
+  virtual void setValue(std::string str) {
+	  uint8_t newValue = atoi(str.c_str());
+
+	  if (value != newValue) {
+	    setValue(newValue);
+	    if (set_value_callback)
+	  	  set_value_callback(this, &this->aid);
+	  }
+
+   }
+};
+
 
 class stringCharacteristic: public characteristic {
 private:
@@ -389,9 +430,12 @@ public:
   void add_characteristic(characteristic* c);
   
   jsoncons::ojson describe(void);
+  void describe_characteristics(jsoncons::ojson& array);
 
   uint8_t getType();
   uint16_t getId();
+
+  void setPrimary(bool value);
 };
 
 class accessory {
@@ -414,6 +458,7 @@ public:
   void add_service(service* s);
 
   jsoncons::ojson describe(void);
+  void describe_characteristics(jsoncons::ojson& array);
 
   uint8_t getType();
 

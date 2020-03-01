@@ -73,7 +73,11 @@ class client_device_channel : public supla_device_channel {
 class client_device_channels : public supla_device_channels {
  private:
 	 int current_accessory_id = 0;
+	 bool initialized;
  public:
+   client_device_channels();
+   ~client_device_channels();
+
    client_device_channel *add_channel(
                    int Id, int Number, int Type, int Func, 
                    int Param1,
@@ -85,6 +89,8 @@ class client_device_channels : public supla_device_channels {
 
    client_device_channel *find_channel(int ChannelId);
    jsoncons::json describe(void);
+   bool getInitialized(void);
+   void setInitialized(bool value);
 };
 
 #endif

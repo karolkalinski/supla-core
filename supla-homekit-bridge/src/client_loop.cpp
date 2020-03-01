@@ -52,9 +52,9 @@ void client_loop_channel_update(void *_suplaclient, void *sthread,
 						
 
   if (c != NULL) {
-    c->setHKValue(channel->value.value);
-    c->setSubValue(channel->value.sub_value);
-
+	  c->setOnline(channel->online);
+	  c->setSubValue(channel->value.sub_value);
+	  c->setHKValue(channel->value.value);
   }; 
 }
 
@@ -89,8 +89,8 @@ void client_loop_channel_value_update(void *_suplaclient, void *sthread,
 
   if (channel != NULL) {
 	channel->setOnline(channel_value->online);
-    channel->setHKValue(channel_value->value.value);
-    channel->setSubValue(channel_value->value.sub_value);
+	channel->setSubValue(channel_value->value.sub_value);
+	channel->setHKValue(channel_value->value.value);
 
   }
 }
@@ -121,6 +121,12 @@ void client_on_superuser_authorization_result(void *_suplaclient,
                                               _supla_int_t code) {
   supla_log(LOG_DEBUG, "Super User %s",
             authorized == 1 ? "authorized" : "unauthorized");
+}
+
+void client_on_registered(void *_suplaclient, void *user_data,
+    TSC_SuplaRegisterClientResult_B *result){
+
+	channels->setInitialized(result->result_code == SUPLA_RESULTCODE_TRUE);
 }
 
 void client_on_device_calcfg_result(void *_suplaclient, void *user_data,
@@ -166,6 +172,7 @@ void *client_loop_init(void *sthread, client_config *config) {
   scc.cb_on_superuser_authorization_result =
       &client_on_superuser_authorization_result;
   scc.cb_on_device_calcfg_result = &client_on_device_calcfg_result;
+  scc.cb_on_registered = &client_on_registered;
 
   void *result = supla_client_init(&scc);
 
@@ -183,8 +190,6 @@ void client_loop(void *user_data, void *sthread) {
     st_app_terminate = 1;
     return;
   }
-
-
 
     
   if (user_data) *(void **)user_data = sclient;
@@ -204,7 +209,6 @@ void client_loop(void *user_data, void *sthread) {
   if (user_data) *(void **)user_data = NULL;
 
   supla_client_free(sclient);
-
 
   if (config != NULL) delete config;
 }

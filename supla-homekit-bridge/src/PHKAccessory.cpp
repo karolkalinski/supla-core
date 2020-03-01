@@ -16,22 +16,28 @@ const char pairingTlv8Type[] = "application/pairing+tlv8";
 
 
 void *announce(void *info) {
-    broadcastInfo *_info = (broadcastInfo *)info;
     
+	broadcastInfo *_info = (broadcastInfo *)info;
+
 	void *sender = _info->sender;
-    char *desc = _info->desc;
+
     
-    char *reply = new char[1024];
+    char *reply = new char[4086];
     
-	int len = snprintf(reply, 1024, "EVENT/1.0 200 OK\r\nContent-Type: application/hap+json\r\nContent-Length: %lu\r\n\r\n%s", strlen(desc), desc);
+	int len = snprintf(reply, 4086, "EVENT/1.0 200 OK\r\nContent-Type: application/hap+json\r\nContent-Length: %lu\r\n\r\n%s", strlen(_info->desc), _info->desc);
    
     supla_log(LOG_DEBUG, "event: %s", reply);
     
     broadcastMessage(sender, reply, len);
     
 	delete [] reply;
-    delete [] desc;
-    delete [] info;
+
+	if (_info->desc)
+		free(_info->desc);
+
+    delete info;
+
+    return NULL;
 }
 
 void handleAccessory(const char *request, unsigned int requestLen, char **reply, unsigned int *replyLen, connectionInfo *sender) {
@@ -132,6 +138,14 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
         }
         //Pairing status change, so update
         updatePairable();
+	} else if (strncmp(path, "/prepare", 8 ) == 0) {
+
+		std::string desc = "{ \"status\" : 0 }";
+
+		replyDataLen = desc.length();
+		replyData = new char[replyDataLen + 1 ];
+		bcopy(desc.c_str(), replyData, replyDataLen);
+        statusCode = HTTP_STATUS_OK;
 		
     } else if (strncmp(path, "/characteristics", 16) == 0){
         

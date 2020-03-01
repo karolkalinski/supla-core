@@ -54,6 +54,10 @@ void set_value_callback_routine_execution(void *ptr, void *aid) {
 				supla_client_open(sclient, channel->getId(), 0, 0);
 		}
 			break;
+		case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR:
+		{
+			supla_client_open(sclient, channel->getId(), 0, 1);
+		} break;
 		};
 	}
 
@@ -61,6 +65,10 @@ void set_value_callback_routine_execution(void *ptr, void *aid) {
 }
 
 client_device_channel::~client_device_channel() {
+  if (this->Caption) {
+	  free(this->Caption);
+	  this->Caption = NULL;
+  }
 
 }
 
@@ -245,6 +253,50 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 			wasDescribed = true;
 		}
 			break;
+	case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR:
+	{
+		accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
+		if (!accessory) break;
+
+		service* service = accessory->getServiceByType(serviceType_garageDoorOpener);
+
+		if (!service) break;
+
+		boolCharacteristic* obstruction = (boolCharacteristic*)service->getCharacteristicByType(charType_obstruction);
+
+		if (!obstruction) break;
+		obstruction->setValue(!this->getOnline());
+
+		intCharacteristic* targetDoorState = (intCharacteristic*)service->getCharacteristicByType(charType_targetDoorState);
+		if (!targetDoorState) break;
+
+		intCharacteristic* currentDoorState = (intCharacteristic*)service->getCharacteristicByType(charType_currentDoorState);
+		if (!currentDoorState) break;
+
+		char val[SUPLA_CHANNELVALUE_SIZE];
+
+		this->getValue(val);
+
+		if (val[0] == 1) /* przekaźnik działa */
+		{
+			if (this->Sub_value[0] == 0) {
+				targetDoorState->setValue(1);
+				currentDoorState->setValue(2);
+			} else
+			{
+				targetDoorState->setValue(0);
+				currentDoorState->setValue(3);
+			}
+		} else { /* przekaźnik nie działa */
+			currentDoorState->setValue(this->Sub_value[0]);
+			targetDoorState->setValue(this->Sub_value[0]);
+		}
+
+		characteristics.push_back(targetDoorState->describeValue());
+		characteristics.push_back(currentDoorState->describeValue());
+		characteristics.push_back(obstruction->describeValue());
+		wasDescribed = true;
+	} break;
 	};
 
 	if (wasDescribed) {
@@ -252,14 +304,17 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 		describe["characteristics"] = characteristics;
 		describe.dump(broadcastTemp);
 
-		char* cstr = strdup(broadcastTemp.c_str());
-
 		broadcastInfo * info = new broadcastInfo;
 		info->sender = NULL;
-		info->desc = cstr;
+		info->desc = strdup(broadcastTemp.c_str());;
 
-		pthread_t thread;
-		pthread_create(&thread, NULL, announce, info);
+		pthread_t* thread = (pthread_t*)malloc(sizeof(pthread_t));
+
+		pthread_create(thread, NULL, announce, info);
+		pthread_detach(*thread);
+
+		free(thread);
+
 	}
 }
 
@@ -306,6 +361,22 @@ void client_device_channel::setOnline(bool value) {
 }
 bool client_device_channel::getOnline() {
 	return this->Online;
+}
+
+client_device_channels::~client_device_channels(){
+	lck_free(lck_value);
+	  lck_free(lck);
+}
+
+client_device_channels::client_device_channels() {
+	this->initialized = false;
+}
+
+bool client_device_channels::getInitialized(void) {
+	return this->initialized;
+}
+void client_device_channels::setInitialized(bool value) {
+	this->initialized = value;
 }
 
 client_device_channel* client_device_channels::add_channel(int Id, int Number,
@@ -360,3 +431,5 @@ client_device_channel *client_device_channels::find_channel(int ChannelId) {
 	return (client_device_channel *) safe_array_findcnd(arr, arr_findcmp,
 			&ChannelId);
 }
+
+
