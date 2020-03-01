@@ -234,7 +234,7 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
                     }
                     sender->relay = true;
                 }
-                printf("%d . %d\n",aid, iid);
+
 
                 accessory* accessory = accessories->getAccessoryById(aid);
 
