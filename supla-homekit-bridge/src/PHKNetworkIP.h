@@ -139,7 +139,6 @@ public:
         for (int i = 0; i < numberOfNotifiableValue; i++) {
             if (notificationList[i] == 0) {
                 notificationList[i] = target;
-                printf("Add notify %s to %d.%d\n", identity, aid, iid);
                 return;
             }
         }
