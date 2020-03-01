@@ -43,6 +43,8 @@ unsigned char clientcfg_init(int argc, char *argv[]) {
   char *buffer;
   char GUIDHEX[SUPLA_GUID_HEXSIZE + 1];
 
+  cfg_config_file = "./supla-homekit-bridge.yaml";
+
   for (a = 0; a < argc; a++) {
     if (strcmp("-config", argv[a]) == 0 && a < argc - 1) {
       cfg_config_file = strdup(argv[a + 1]);
@@ -56,7 +58,7 @@ unsigned char clientcfg_init(int argc, char *argv[]) {
 
     buffer = malloc(a);
 
-    if (snprintf(buffer, a, "%s/.supla-mqtt-client", pw->pw_dir) < 1) {
+    if (snprintf(buffer, a, "%s/.supla-homekit-bridge", pw->pw_dir) < 1) {
       free(buffer);
       return 0;
     }
@@ -68,7 +70,7 @@ unsigned char clientcfg_init(int argc, char *argv[]) {
       }
     }
 
-    if (snprintf(buffer, a, "%s/.supla-mqtt-client/id", pw->pw_dir) < 1) {
+    if (snprintf(buffer, a, "%s/.supla-homekit-bridge/id", pw->pw_dir) < 1) {
       free(buffer);
       return 0;
     }

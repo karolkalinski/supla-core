@@ -240,20 +240,12 @@ accessory* homekit_accessories::add_accessory_garage_door(accessory* accessory, 
 			permission_read | permission_notify, 0, 4, 1, unit_none, 0);
     current_door_state->setValue(0);
 
-    //current_door_state->setValidValue(0);
-    //current_door_state->setValidValue(1);
-    //current_door_state->setValidValue(2);
-    //current_door_state->setValidValue(3);
-    //current_door_state->setValidValue(4);
-
     uint8Characteristic* target_door_state = new uint8Characteristic(
        		accessory->getId(), accessory->getNextUUID(), charType_targetDoorState,
    			permission_read |  permission_write | permission_notify, 0, 1, 1, unit_none, 0);
     target_door_state->setValue(0);
     target_door_state->setCallback(callback);
 
-    //target_door_state->setValidValue(0);
-    //target_door_state->setValidValue(1);
 
     boolCharacteristic* obstruction_detected = new boolCharacteristic(
     	    accessory->getId(), accessory->getNextUUID(), charType_obstruction,
