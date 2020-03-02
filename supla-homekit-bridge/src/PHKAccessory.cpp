@@ -14,61 +14,58 @@
 const char hapJsonType[] = "application/hap+json";
 const char pairingTlv8Type[] = "application/pairing+tlv8";
 
-
 void *announce(void *info) {
     
 	broadcastInfo *_info = (broadcastInfo *)info;
 
 	void *sender = _info->sender;
-
     
     char *reply = new char[4086];
     
 	int len = snprintf(reply, 4086, "EVENT/1.0 200 OK\r\nContent-Type: application/hap+json\r\nContent-Length: %lu\r\n\r\n%s", strlen(_info->desc), _info->desc);
    
-    supla_log(LOG_DEBUG, "event: %s", reply);
-    
     broadcastMessage(sender, reply, len);
     
 	delete [] reply;
 
 	if (_info->desc)
-		free(_info->desc);
+	  free(_info->desc);
 
     delete info;
-
     return NULL;
 }
 
-void handleAccessory(const char *request, unsigned int requestLen, char **reply, unsigned int *replyLen, connectionInfo *sender) {
+void handleAccessory(
+  const char *request, unsigned int requestLen, 
+  char **reply, unsigned int *replyLen, connectionInfo *sender) {
 
-    supla_log(LOG_DEBUG, "receive request: %s", request);
-    int index = 5;
+  supla_log(LOG_DEBUG, "Received http request: %s", request);
     
+	int index = 5;
 	char method[5];
-    {
-        //read method
-        method[4] = 0;
-        bcopy(request, method, 4);
-        if (method[3] == ' ') {
-            method[3] = 0;
-            index = 4;
-        }
-    }
-    
+    method[4] = 0;
+    memcpy(method, request, 4);
+		
+    if (method[3] == ' ') {
+        method[3] = 0;
+        index = 4;
+    };
+        
     char path[HTTP_PATH_MAX_LENGTH];
     int i;
     for (i = 0; i < HTTP_PATH_MAX_LENGTH && request[index] != ' '; i++, index++) {
         path[i] = request[index];
     }
-    path[i] = 0;
-    supla_log(LOG_DEBUG, "path: %s", path);
+    
+	path[i] = 0;
+    
+	supla_log(LOG_DEBUG, "Http request path: %s", path);
     
     const char *dataPtr = request;
     
 	while (true) {
-        dataPtr = &dataPtr[1];
-        if (dataPtr[0] == '\r' && dataPtr[1] == '\n' && dataPtr[2] == '\r' && dataPtr[3] == '\n') break;
+      dataPtr = &dataPtr[1];
+      if (dataPtr[0] == '\r' && dataPtr[1] == '\n' && dataPtr[2] == '\r' && dataPtr[3] == '\n') break;
     }
     
     dataPtr += 4;
@@ -82,52 +79,61 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
     const char *returnType = hapJsonType;
     
     if (strcmp(path, "/accessories") == 0) {
-        
-		supla_log(LOG_DEBUG, "ask for accesories info");
-		
-        statusCode = HTTP_STATUS_OK;
-
+     	supla_log(LOG_DEBUG, "Controller asked for accesories list");
+	    
         jsoncons::json acc = accessories->describe();
 		std::string desc;
 		acc.dump(desc);
 
-		supla_log(LOG_DEBUG, "accessories: %s", desc.c_str());
-		
 		replyDataLen = desc.length();
         replyData = new char[replyDataLen + 1 ];
-        bcopy(desc.c_str(), replyData, replyDataLen);
         
+		memcpy(replyData, desc.c_str(), replyDataLen);
+		
 		replyData[replyDataLen] = 0;
+		
+		statusCode = HTTP_STATUS_OK;
     } 
 	else if (strcmp(path, "/pairings") == 0) {
         
 		PHKNetworkMessage msg(request);
-        statusCode = HTTP_STATUS_OK;
-
-        supla_log(LOG_DEBUG, "/pairings %d", *msg.data.dataPtrForIndex(0));
+        
+        supla_log(LOG_DEBUG, "Controller asked for pairings list %d", *msg.data.dataPtrForIndex(0));
     
         if (*msg.data.dataPtrForIndex(0) == 3) {
             supla_log(LOG_DEBUG, "pairings: add new user"); 
             PHKKeyRecord controllerRec;
-            bcopy(msg.data.dataPtrForIndex(3), controllerRec.publicKey, 32);
-            bcopy(msg.data.dataPtrForIndex(1), controllerRec.controllerID, 36);
-            addControllerKey(controllerRec);
-            PHKNetworkMessageDataRecord drec;
-            drec.activate = true; drec.data = new char[1]; *drec.data = 2;
-            drec.index = 6; drec.length = 1;
-            PHKNetworkMessageData data;
+            
+			memcpy(controllerRec.publicKey, msg.data.dataPtrForIndex(3), 32);
+			memcpy(controllerRec.controllerID, msg.data.dataPtrForIndex(1), 36);
+		    
+			/* addinh new controller key */
+			addControllerKey(controllerRec);
+        
+     		PHKNetworkMessageDataRecord drec;
+            drec.activate = true; 
+			drec.data = new char[1]; 
+			*drec.data = 2;
+            drec.index = 6; 
+			drec.length = 1;
+            
+			PHKNetworkMessageData data;
             data.addRecord(drec);
             data.rawData((const char **)&replyData, &replyDataLen);
             returnType = pairingTlv8Type;
             statusCode = HTTP_STATUS_OK;
+			
         } else {
             
-			supla_log(LOG_DEBUG, "/pairings: delete user");
+			supla_log(LOG_DEBUG, "pairings: delete user");
 
             PHKKeyRecord controllerRec;
-            bcopy(msg.data.dataPtrForIndex(1), controllerRec.controllerID, 36);
-            removeControllerKey(controllerRec);
-            PHKNetworkMessageDataRecord drec;
+			memcpy(controllerRec.controllerID, msg.data.dataPtrForIndex(1), 36);
+			
+            /* removing conntroller key */
+			removeControllerKey(controllerRec);
+            
+			PHKNetworkMessageDataRecord drec;
             drec.activate = true; drec.data = new char[1]; *drec.data = 2;
             drec.index = 6; drec.length = 1;
             PHKNetworkMessageData data;
@@ -137,19 +143,23 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
             statusCode = HTTP_STATUS_OK;
         }
         //Pairing status change, so update
-        updatePairable();
+        statusCode = HTTP_STATUS_OK;
+		updatePairable();
 	} else if (strncmp(path, "/prepare", 8 ) == 0) {
 
+		supla_log(LOG_DEBUG, "Controller sends an characteristic prepare write message");
+		
+		/* we allways response with true */
 		std::string desc = "{ \"status\" : 0 }";
 
 		replyDataLen = desc.length();
-		replyData = new char[replyDataLen + 1 ];
-		bcopy(desc.c_str(), replyData, replyDataLen);
-        statusCode = HTTP_STATUS_OK;
+		replyData = new char[replyDataLen + 1];
+		memcpy(replyData, desc.c_str(), replyDataLen);
+		statusCode = HTTP_STATUS_OK;
 		
     } else if (strncmp(path, "/characteristics", 16) == 0){
         
-		supla_log(LOG_DEBUG, "/characteristics");
+		supla_log(LOG_DEBUG, "Controller sends characteristics message ");
         
 		if (strncmp(method, "GET", 3) == 0) {
             //Read characteristics
@@ -204,13 +214,14 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
             replyDataLen = result.length();
             replyData = new char[replyDataLen+1];
             replyData[replyDataLen] = 0;
-            bcopy(result.c_str(), replyData, replyDataLen);
+			
+			memcpy(replyData, result.c_str(), replyDataLen);
             statusCode = HTTP_STATUS_OK;
             
         } else if (strncmp(method, "PUT", 3) == 0) {
             //Change characteristics
             supla_log(LOG_DEBUG, "PUT characteristics");
-			/* ToDo - parse characteristics json */
+			/* TODO lbek parse characteristics json */
             char characteristicsBuffer[1000];
             sscanf(dataPtr, "{\"characteristics\":[{%[^]]s}", characteristicsBuffer);
             
@@ -237,12 +248,10 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
 
 
                 accessory* accessory = accessories->getAccessoryById(aid);
-
 				
                 if (accessory==NULL) {
                     statusCode = HTTP_STATUS_BAD_REQUEST;
                 } else {
-
 
                     characteristic *c = accessory->getCharacteristicById(iid);
                     
@@ -283,21 +292,21 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
                 }
             }
         } else {
+			delete[] replyData;
             return;
         }
          
     } else {
         //error
-        supla_log(LOG_DEBUG, "asked for something I don't know\n");
-		supla_log(LOG_DEBUG, "request: %s", request);
-		supla_log(LOG_DEBUG, "path: %s", path);
-
+        supla_log(LOG_ERR, "asked for something I don't know\n");
+		supla_log(LOG_ERR, "request: %s", request);
+		supla_log(LOG_ERR, "path: %s", path);
         statusCode = HTTP_STATUS_NOT_FOUND;
     }
     
     //Calculate the length of header
     char * tmp = new char[256];
-    bzero(tmp, 256);
+    memset(tmp, 0, 256);
     int len = snprintf(tmp, 256, "%s %d OK\r\nContent-Type: %s\r\nContent-Length: %u\r\n\r\n", protocol, statusCode, returnType, replyDataLen);
     delete [] tmp;
     
@@ -305,13 +314,16 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
     (*replyLen) = len+replyDataLen;
     //reply should add '\0', or the printf is incorrect
     *reply = new char[*replyLen + 1];
-    bzero(*reply, *replyLen + 1);
-    snprintf(*reply, len + 1, "%s %d OK\r\nContent-Type: %s\r\nContent-Length: %u\r\n\r\n", protocol, statusCode, returnType, replyDataLen);
+    memset(*reply, 0, *replyLen + 1);
+	
+	/* writing header data */
+	snprintf(*reply, len + 1, "%s %d OK\r\nContent-Type: %s\r\nContent-Length: %u\r\n\r\n", protocol, statusCode, returnType, replyDataLen);
     
     if (replyData) {
-        bcopy(replyData, &(*reply)[len], replyDataLen);
-        delete [] replyData;
+       memcpy(&(*reply)[len], replyData, replyDataLen);
+       delete [] replyData;
     }
     
-    supla_log(LOG_DEBUG, "reply: %s", *reply);
+	/* Here we have full http response */
+    supla_log(LOG_DEBUG, "Prepared http response: %s", *reply);
 } 

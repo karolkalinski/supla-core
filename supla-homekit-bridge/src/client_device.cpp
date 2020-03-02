@@ -22,7 +22,7 @@
 
 void* lck = lck_init();
 void* lck_value = lck_init();
-
+/* callback homekit->supla notify */
 void identify_callback_routine_execution(void *ptr, void *aid) {
 	lck_lock(lck);
 
@@ -36,31 +36,50 @@ void identify_callback_routine_execution(void *ptr, void *aid) {
 	lck_unlock(lck);
 }
 
+/* callback homekit->supla change value*/
 void set_value_callback_routine_execution(void *ptr, void *aid) {
 
+    /* one change on time */
 	lck_lock(lck_value);
-
+	
 	client_device_channel* channel = channels->find_channel(*((_supla_int64_t *) aid)-1);
 
 	if (channel) {
 		switch (channel->getFunc()) {
-		case SUPLA_CHANNELFNC_POWERSWITCH:
-		case SUPLA_CHANNELFNC_LIGHTSWITCH: {
-			boolCharacteristic* c = ((boolCharacteristic *) ptr);
+			case SUPLA_CHANNELFNC_POWERSWITCH:
+			case SUPLA_CHANNELFNC_LIGHTSWITCH: {
+				boolCharacteristic* c = ((boolCharacteristic *) ptr);
 
-			if (c->getValue())
-				supla_client_open(sclient, channel->getId(), 0, 1);
-			else
-				supla_client_open(sclient, channel->getId(), 0, 0);
-		}
+				if (c->getValue())
+					supla_client_open(sclient, channel->getId(), 0, 1);
+				else
+					supla_client_open(sclient, channel->getId(), 0, 0);
+			}
 			break;
-		case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR:
-		{
-			supla_client_open(sclient, channel->getId(), 0, 1);
-		} break;
+			case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR:
+			{
+				/* is not really mather that homekit sends open/close. in supla there is an relay to run*/
+				supla_client_open(sclient, channel->getId(), 0, 1);
+			} break;
+			case SUPLA_CHANNELFNC_CONTROLLINGTHEDOORLOCK:
+			{
+				uint8Characteristic* c = ((uint8Characteristic*) ptr);
+				supla_client_open(sclient, channel->getId(), 0, c->getValue());
+					
+			} break;
+			case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER:
+			{
+				characteristic* c = ((characteristic*) ptr);
+				
+				if (c->getType() == charType_holdPosition) {
+				  supla_client_open(sclient, channel->getId(), 0, 0);
+				} else if (c->getType() == charType_targetPosition) {
+				  supla_client_open(sclient, channel->getId(), 0, ((uint8Characteristic*)c)->getValue() + 10);	
+				}
+			} break;
 		};
 	}
-
+	
 	lck_unlock(lck_value);
 }
 
@@ -69,7 +88,6 @@ client_device_channel::~client_device_channel() {
 	  free(this->Caption);
 	  this->Caption = NULL;
   }
-
 }
 
 client_device_channel::client_device_channel(int Id, int Number, int Type,
@@ -79,57 +97,94 @@ client_device_channel::client_device_channel(int Id, int Number, int Type,
 		supla_device_channel(Id, Number, Type, Func, Param1, Param2, Param3,
 				TextParam1, TextParam2, TextParam3, Hidden) {
 	this->Online = Online;
+	
 	this->Caption =
 			Caption ? strndup(Caption, SUPLA_CHANNEL_CAPTION_MAXSIZE) : NULL;
+	
 	this->isHK = true;
 
 	memset(this->Sub_value, 0, SUPLA_CHANNELVALUE_SIZE);
 
+    /* TODO lbek  read those data from channel info ... */
 	this->firmware_revision = "1.0";
 	this->manufacturer = "unknown";
 	this->model = "unknown";
 	this->name = std::string(Caption);
 	this->serial_number = "0000000000";
-
-	//if (this->getFunc() == SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR)
-//		this->isHK = true;
-
+	 
 }
 
 
-
+/* bridge has 0 id so to avoid duplicate it's added 1 */
 int client_device_channel::getAccessoryId(void) { return this->getId() + 1; }
-
-
 int client_device_channel::getId(void) { return supla_device_channel::getId(); }
 
-void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
+void client_device_channel::setHKValue(
+    char value[SUPLA_CHANNELVALUE_SIZE], char sub_value[SUPLA_CHANNELVALUE_SIZE],
+	bool online) {
+	
+	/* check change type */
+    int positionState = 0;
+	char current_value[SUPLA_CHANNELVALUE_SIZE];
+	this->getValue(current_value);
+		
+	switch (this->getFunc()) {
+	  case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR:
+	  {
+		 if (current_value[0] == 0 && value[0] == 1) /* zatrzymanie -> start */
+		 {
+			if (this->sub_value[0] == 0) /* zamykanie */
+			   positionState = 3;
+			 else if (this->sub_value[0] == 1) /* otwieranie */
+			   positionState = 2;
+		 } else if (current_value[0] == 1 && value[0] == 0) /* ruch -> stop */	 
+		 {
+			if (this->sub_value[0] == 0) /* otwarte */
+			  positionState = 3;
+			else if (this->sub_value[0] == 1) /* zamkniete */ 
+			  positionState = 2;
+		 } else if (current_value[0] ==  0 && value[0] == 0) /* zmiana wartosci czujnika*/
+		 {
+			if (this->sub_value[0] == 0) /* otwarte */
+			  positionState = 0;
+			else if (this->sub_value[0] == 1) /* zamkniete */ 
+			  positionState = 1;
+		 }
+	  } break;
+	  case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER:
+	  {
+		  if (value[0] > current_value[0])
+			positionState = 1;
+		  else if (values[0] < current_value[0])
+			positionState = 0;
+		  else positionState = 2;
+	  }
+	}
+	
 	this->setValue(value);
+    this->setSubValue(sub_value);
+	this->setOnline(online);
+
+    accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
+	if (!accessory) return;
 
 	jsoncons::json describe;
 	jsoncons::json characteristics = jsoncons::json::make_array();
 	bool wasDescribed = false;
 
 	switch (this->getFunc()) {
-	case SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE: {
-
-		accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
-
-		if (!accessory)
-			break;
-
+		case SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE: {
+		
 		service* service = accessory->getServiceByType(
-				serviceType_temperatureSensor);
+		  serviceType_temperatureSensor);
 
-		if (!service)
-			break;
+		if (!service) return;
 
 		floatCharacteristic* temperature =
 				(floatCharacteristic*) service->getCharacteristicByType(
 						charType_currentTemperature);
 
-		if (!temperature)
-			break;
+		if (!temperature) return;
 
 		boolCharacteristic* active = (boolCharacteristic*)service->getCharacteristicByType(charType_sensorActive);
 
@@ -141,8 +196,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 
 		service = accessory->getServiceByType(serviceType_humiditySensor);
 
-		if (!service)
-					break;
+		if (!service) return;
 
 		floatCharacteristic* humidity =
 				(floatCharacteristic*)service->getCharacteristicByType(charType_currentHumidity);
@@ -155,41 +209,35 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 			characteristics.push_back(active->describeValue());
 		}
 
-		if (!humidity)
-			break;
+		if (!humidity) return;
 
 		supla_channel_temphum* tempHum = this->getTempHum();
+		
 		if (tempHum) {
 		  double temp = tempHum->getTemperature();
 		  double hum = tempHum->getHumidity();
 		  delete tempHum;
 
 		  temperature->setValue(temp);
-          characteristics.push_back(temperature->describeValue());
           humidity->setValue(hum);
+          
+		  characteristics.push_back(temperature->describeValue());
           characteristics.push_back(humidity->describeValue());
 		  wasDescribed = true;
         }
 
 	} break;
 	case SUPLA_CHANNELFNC_THERMOMETER: {
-		accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
-
-		if (!accessory)
-			break;
-
 		service* service = accessory->getServiceByType(
 				serviceType_temperatureSensor);
 
-		if (!service)
-			break;
+		if (!service) return;
 
 		floatCharacteristic* temperature =
 				(floatCharacteristic*) service->getCharacteristicByType(
 						charType_currentTemperature);
 
-		if (!temperature)
-			break;
+		if (!temperature) return;
 
 		boolCharacteristic* active = (boolCharacteristic*)service->getCharacteristicByType(charType_sensorActive);
 
@@ -203,65 +251,101 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 		double temp;
 		this->getDouble(&temp);
 		temperature->setValue(temp);
-
 		characteristics.push_back(temperature->describeValue());
-
 		wasDescribed = true;
 	}
 		break;
-	case SUPLA_CHANNELFNC_LIGHTSWITCH: {
-		accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
-		if (!accessory)
-			break;
-
-		service* service = accessory->getServiceByType(serviceType_lightBulb);
-		if (!service)
-			break;
-
+	case SUPLA_CHANNELFNC_LIGHTSWITCH:
+    case SUPLA_CHANNELFNC_POWERSWITCH:
+	{
+		service* = NULL;
+		
+		if (this->getFunc() == SUPLA_CHANNELFNC_LIGHTSWITCH)
+		  service = accessory->getServiceByType(serviceType_lightBulb);
+		else 
+		  service = accessory->getServiceByType(serviceType_switch);
+	  
+		if (!service) return;
+		
 		boolCharacteristic* on =
 				(boolCharacteristic*) service->getCharacteristicByType(
 						charType_on);
 
-		if (!on)
-			break;
+		if (!on) return;
 
 		char value;
 		this->getChar(&value);
+		
 		on->setValue(value > 0);
 
 		characteristics.push_back(on->describeValue());
 		wasDescribed = true;
-	}
-		break;
-	case SUPLA_CHANNELFNC_POWERSWITCH: {
-			accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
-			if (!accessory)
-				break;
+	}	break;
+    case SUPLA_CHANNELFNC_CONTROLLINGTHEDOORLOCK:
+	{
+		service* service = accessory->getServiceByType(serviceType_lockMechanism);
+		if (!service) return;
+		
+		uint8Characteristic* targetLockState = (uint8Characteristic*)service->getCharacteristicByType(charType_targetDoorState);
+		if (!targetDoorState) break;
 
-			service* service = accessory->getServiceByType(serviceType_switch);
-			if (!service)
-				break;
+		uint8Characteristic* currentLockState = (uint8Characteristic*)service->getCharacteristicByType(charType_currentDoorState);
+		if (!currentDoorState) break;
+		
+		char val[SUPLA_CHANNELVALUE_SIZE];
+		this->getValue(val);
+		
+		currentLockState->setValue(this->sub_value[0]);
+		targetDoorState->setValue(val[0]);
+		
+		characteristics.push_back(targetLockState->describeValue());
+		characteristics.push_back(currentLockState->describeValue());
+		wasDescribed = true;
+	} break;
+	case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER:
+	{
+		service* service = accessory->getServiceByType(serviceType_windowCovering);
+		if (!service) return;
+		
+		boolCharacteristic* obstruction = (boolCharacteristic*)service->getCharacteristicByType(charType_obstruction);
 
-			boolCharacteristic* on =
-					(boolCharacteristic*) service->getCharacteristicByType(
-							charType_on);
-
-			if (!on)
-				break;
-
-			char value;
-			this->getChar(&value);
-			on->setValue(value > 0);
-
-			characteristics.push_back(on->describeValue());
-			wasDescribed = true;
-		}
-			break;
+		if (!obstruction) return;
+		obstruction->setValue(!this->getOnline());
+		
+		uint8Characteristic* currentPosition = (uint8Characteristic*)service->getCharacteristicByType(charType_currentPosition);
+		
+		if (!currentPosition) return;
+		
+		char cv[SUPLA_CHANNELVALUE_SIZE];
+        this->getChar(cv);
+        char sub_value[SUPLA_CHANNELVALUE_SIZE];
+        this->getSubValue(sub_value);
+        char shut = cv[0];
+				
+		currentPosition->setValue(100 - shut);
+		
+		uint8Characteristic* targetPosition = (uint8Characteristic*)service->getCharacteristicByType(charType_targetosition);
+		
+		if (!targetPosition) return;
+		
+		targetPosition->setValue(100 - shut);
+		
+		uint8Characteristic* ps = (uint8Characteristic*)service->getCharacteristicByType(charType_positionState);
+		
+		if (!ps) return;
+		
+		ps->setValue(positionState);
+		
+		characteristics->push_back(currentPosition);
+		characteristics->push_back(targetPosition);
+		characteristics->push_back(positionState);
+		characteristics->push_back(obstruction);
+		wasDescribed = true;
+		
+	} break;
 	case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR:
 	{
-		accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
-		if (!accessory) break;
-
+		
 		service* service = accessory->getServiceByType(serviceType_garageDoorOpener);
 
 		if (!service) break;
@@ -271,16 +355,16 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 		if (!obstruction) break;
 		obstruction->setValue(!this->getOnline());
 
-		intCharacteristic* targetDoorState = (intCharacteristic*)service->getCharacteristicByType(charType_targetDoorState);
+		uint8Characteristic* targetDoorState = (uint8Characteristic*)service->getCharacteristicByType(charType_targetDoorState);
 		if (!targetDoorState) break;
 
-		intCharacteristic* currentDoorState = (intCharacteristic*)service->getCharacteristicByType(charType_currentDoorState);
+		uint8Characteristic* currentDoorState = (uint8Characteristic*)service->getCharacteristicByType(charType_currentDoorState);
 		if (!currentDoorState) break;
 
 		/* ustawiamy stan na podstawie wartości czujnika otwarcia/zamknięcia */
 		/* ToDo lukbek obsłużyć stany otwieranie/zamykanie (działanie przekaźnika?) */
 
-		currentDoorState->setValue(this->Sub_value[0]);
+		currentDoorState->setValue(positionState);
 		targetDoorState->setValue(this->Sub_value[0]);
 
 		characteristics.push_back(targetDoorState->describeValue());
@@ -297,7 +381,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 
 		broadcastInfo * info = new broadcastInfo;
 		info->sender = NULL;
-		info->desc = strdup(broadcastTemp.c_str());;
+		info->desc = strdup(broadcastTemp.c_str());
 
 		pthread_t* thread = (pthread_t*)malloc(sizeof(pthread_t));
 
@@ -305,7 +389,6 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE]) {
 		pthread_detach(*thread);
 
 		free(thread);
-
 	}
 }
 

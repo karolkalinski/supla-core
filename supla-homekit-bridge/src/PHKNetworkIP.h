@@ -24,6 +24,7 @@ using namespace std;
 
 #define IPv4 1
 #define IPv6 0
+#define MAXBUFFERSIZE 8196
 
 extern deviceType currentDeviceType;
 
@@ -125,7 +126,7 @@ public:
     unsigned long long numberOfMsgRec = 0;
     unsigned long long numberOfMsgSend = 0;
     int subSocket = -1;
-    char buffer[8192];
+    char buffer[MAXBUFFERSIZE];
 
     void *notificationList[numberOfNotifiableValue];
 

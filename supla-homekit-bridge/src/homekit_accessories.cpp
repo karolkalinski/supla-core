@@ -171,10 +171,13 @@ void homekit_accessories::add_accessory_for_supla_channel(
 		} break;
 		case SUPLA_CHANNELFNC_CONTROLLINGTHEDOORLOCK:
 		{
-		//	add_accessory_to_array(add_accessory_door_lock(accessoryId, info));
+			accessory* accessory = new_accessory(accessoryId, info);
+			add_accessory_to_array(add_accessory_door_lock(accessory, value_callback));
 		} break;
 		case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER:
 		{
+			accessory* accessory = new_accessory(accessoryId, info);
+			add_accessory_to_array(add_accessory_rollershutter(accessory, value_callback));
 			//add_accessory_to_array(add_accessory_rollershutter(accessoryId, info));
 		} break;
 		case SUPLA_CHANNELFNC_POWERSWITCH:
@@ -307,13 +310,77 @@ accessory* homekit_accessories::add_accessory_humidity(accessory* accessory) /* 
 	
 	return accessory;
 }
-accessory* homekit_accessories::add_accessory_door_lock(int accessoryId, service* info) /* zamek w drzwiach  -> lock mechanizm */
+accessory* homekit_accessories::add_accessory_door_lock(accessory* accessory, set_value_callback_routine callback) /* zamek w drzwiach  -> lock mechanizm */
 {
-	return NULL;
+	service* lock_mechanizm = new service(accessory->getNextUUID(), serviceType_lockMechanism);
+	
+	uint8Characteristic* current_door_state = new uint8Characteristic(
+    		accessory->getId(), accessory->getNextUUID(), charType_lockCurrentState,
+			permission_read | permission_notify, 0, 3, 1, unit_none, 4);
+    
+	current_door_state->setValue(4);
+
+    current_door_state->setValidValue(0);
+    current_door_state->setValidValue(1);
+	current_door_state->setValidValue(2);
+	current_door_state->setValidValue(3);
+
+    uint8Characteristic* target_door_state = new uint8Characteristic(
+       		accessory->getId(), accessory->getNextUUID(), charType_lockTargetState,
+   			permission_read |  permission_write | permission_notify, 0, 1, 1, unit_none, 0);
+    target_door_state->setValue(0);
+    
+	target_door_state->setCallback(callback);
+	
+	lock_mechanizm->add_characteristic(current_door_state);
+	lock_mechanizm->add_characteristic(target_door_state);
+	accessory->add_service(lock_mechanizm);
 }
-accessory* homekit_accessories::add_accessory_rollershutter(int accessoryId, service* info) /* window covering */
+
+accessory* homekit_accessories::add_accessory_rollershutter(accessory* accessory, set_value_callback_routine callback) /* window covering */
 {
-	return NULL;
+	service* window_covering = new service(accessory->getNextUUID(), serviceType_windowCover);
+	
+	uint8Characteristic* target_position = new uint8Characteristic(
+	  accessory->getId(), accessory->getNextUUID(), charType_targetPosition, 
+	  permission_read | permission_write | permission_notify, 0, 100, 1, unit_percentage, 0);
+	  target_position->setValue(0);
+	  
+	target_position->setCallback(callback);
+	
+	uint8Characteristic* current_position = new uint8Characteristic(
+	  accessory->getId(), accessory->getNextUUID(), charType_targetPosition, 
+	  permission_read  | permission_notify, 0, 100, 1, unit_percentage, 0);
+	current_position->setValue(0);
+	
+	uint8Characteristic* position_state = new uint8Characteristic(
+	  accessory->getId(), accessory->getNextUUID(), charType_positionState, 
+	  permission_read  | permission_notify, 0, 2, 1, unit_none, 0);
+	
+	position_state->setValidValue(100);
+	position_state->setValidValue(0);
+	position_state->setValidValue(50);
+	
+	position_state->setValue(0);
+	
+	boolCharacteristic* hold_position = new boolCharacteristic(accessory->getId(),
+	  accessory->getNextUUID(), charType_holdPosition, permission_write, false);
+	 hold_position->setCallback(callback);
+	 
+	boolCharacteristic* obstruction_detected = new boolCharacteristic(
+    	    accessory->getId(), accessory->getNextUUID(), charType_obstruction,
+			permission_read | permission_notify, false);
+
+    obstruction_detected->setValue(false);
+	
+	window_covering->add_characteristic(target_position);
+	window_covering->add_characteristic(current_position);
+	window_covering->add_characteristic(position_state);
+	window_covering->add_characteristic(hold_position);
+	window_covering->add_characteristic(obstruction_detected);
+	
+	accessory->add_service(window_covering);
+	
 }
 accessory* homekit_accessories::add_accessory_power_switch(accessory* accessory, set_value_callback_routine callback) /* switch */
 {
