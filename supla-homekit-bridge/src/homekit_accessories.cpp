@@ -339,6 +339,8 @@ accessory* homekit_accessories::add_accessory_door_lock(
   lock_mechanizm->add_characteristic(current_door_state);
   lock_mechanizm->add_characteristic(target_door_state);
   accessory->add_service(lock_mechanizm);
+
+  return accessory;
 }
 
 accessory* homekit_accessories::add_accessory_rollershutter(
@@ -389,6 +391,8 @@ accessory* homekit_accessories::add_accessory_rollershutter(
   window_covering->add_characteristic(obstruction_detected);
 
   accessory->add_service(window_covering);
+
+  return accessory;
 }
 accessory* homekit_accessories::add_accessory_power_switch(
     accessory* accessory, set_value_callback_routine callback) /* switch */

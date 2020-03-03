@@ -23,7 +23,7 @@ void *announce(void *info) {
 
   int len = snprintf(reply, 4086,
                      "EVENT/1.0 200 OK\r\nContent-Type: "
-                     "application/hap+json\r\nContent-Length: %lu\r\n\r\n%s",
+                     "application/hap+json\r\nContent-Length: %u\r\n\r\n%s",
                      strlen(_info->desc), _info->desc);
 
   broadcastMessage(sender, reply, len);
