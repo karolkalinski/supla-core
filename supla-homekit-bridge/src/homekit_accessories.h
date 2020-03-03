@@ -29,8 +29,8 @@ class homekit_accessories {
       accessory* accessory,
       set_value_callback_routine
           callback); /* zamek w drzwiach  -> lock mechanizm */
-  accessory* add_accessory_rollershutter(int accessoryId,
-                                         service* info); /* window covering */
+  accessory* add_accessory_rollershutter(accessory* accessory, 
+    set_value_callback_routine callback); /* window covering */
   accessory* add_accessory_power_switch(
       accessory* accessory, set_value_callback_routine callback); /* switch */
   accessory* add_accessory_light_switch(
