@@ -995,7 +995,7 @@ void connectionInfo::handlePairVerify() {
 	
 	supla_log(LOG_DEBUG, "Writing %d bytes to controller", repLen);
 	supla_log(LOG_DEBUG, "-------------------------------");
-	print_buf("Response", repBuffer, repLen);
+	print_buf("Response", reinterpret_cast<const unsigned char *>repBuffer, repLen);
 	supla_log(LOG_DEBUG, "-------------------------------");
 	
     if (repBuffer) {
