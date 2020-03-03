@@ -782,6 +782,9 @@ void connectionInfo::handlePairVerify() {
   curved25519_key secretKey;
   curved25519_key publicKey;
   curved25519_key controllerPublicKey;
+  curved25519_key controllerPublicKeyEx;
+  
+  
   curved25519_key sharedKey;
 
   uint8_t enKey[32];
@@ -793,11 +796,15 @@ void connectionInfo::handlePairVerify() {
     switch (state) {
       case State_Pair_Verify_M1: {
 		supla_log(LOG_DEBUG, "Pair-Verify M1 - Start");
-        memcpy(controllerPublicKey, msg.data.dataPtrForIndex(3), 32);
-		
-		if (memcmp(controllerPublicKey, msg.data.dataPtrForIndex(3), 32) != 0)
+        
+		memcpy(controllerPublicKey, msg.data.dataPtrForIndex(3), 32);
+	     
+		bcopy(msg.data.dataPtrForIndex(3), controllerPublicKeyEx, 32);
+
+		if (memcmp(controllerPublicKey, controllerPublicKeyEx, 32) != 0)
 		  supla_log(LOG_DEBUG, "Memory comparision (1) failed");
-	  
+		
+	    
 
         for (unsigned short i = 0; i < sizeof(secretKey); i++) {
           secretKey[i] = rand();
@@ -809,23 +816,29 @@ void connectionInfo::handlePairVerify() {
         curve25519_donna(sharedKey, secretKey, controllerPublicKey);
 
         char *temp = new char[100];
-        
-		memcpy(temp, publicKey, 32);
+        char* tempEx = new char[100];
 		
-		if (memcmp(temp, publicKey, 32) != 0)
+		memcpy(temp, publicKey, 32);
+		bcopy(publicKey, tempEx, 32);
+		
+		if (memcmp(temp, tempEx, 32) != 0)
 		  supla_log(LOG_DEBUG, "Memory comparision (2) failed");
 	  
 
         std::string deviceIdentity =
             Configuration::Instance().getDeviceIdentity();
-
+         
         memcpy(&temp[32], deviceIdentity.c_str(), deviceIdentity.length());
-        memcpy(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32);
+        bcopy(deviceIdentity.c_str(), &tempEx[32], deviceIdentity.length());
+		
+		memcpy(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32);
+        bcopy(controllerPublicKey, &tempEx[32 + deviceIdentity.length()], 32);
+		
 
-        if (memcmp(&temp[32], deviceIdentity.c_str(), deviceIdentity.length()) != 0)
+        if (memcmp(&temp[32], &tempEx[32], deviceIdentity.length()) != 0)
 		  supla_log(LOG_DEBUG, "Memory comparision (3) failed");
 	  
-	    if (memcmp(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32) != 0)
+	    if (memcmp(&temp[32 + deviceIdentity.length()], &tempEx[32 + deviceIdentity.length()], 32) != 0)
 		  supla_log(LOG_DEBUG, "Memory comparision (4) failed");
 	  
 
@@ -847,17 +860,23 @@ void connectionInfo::handlePairVerify() {
 
         PHKNetworkMessageDataRecord idRecord;
         idRecord.activate = true;
-        idRecord.data = new char[17];
-        memcpy(idRecord.data, deviceIdentity.c_str(), 17);
+        idRecord.data = new char[deviceIdentity.length()];
+        memcpy(idRecord.data, deviceIdentity.c_str(), deviceIdentity.length());
         idRecord.index = 1;
-        idRecord.length = (unsigned int)17;
+        idRecord.length = (unsigned int)deviceIdentity.length();
 
         PHKNetworkMessageDataRecord pubKeyRecord;
         pubKeyRecord.activate = true;
         pubKeyRecord.data = new char[32];
-
+   
+        char* t = new char[32];
+   
         memcpy(pubKeyRecord.data, publicKey, 32);
-		if (memcmp(pubKeyRecord.data, publicKey, 32) != 0)
+          	
+		bcopy(publicKey, t, 32);
+		
+	
+		if (memcmp(pubKeyRecord.data, t, 32) != 0)
 		  supla_log(LOG_DEBUG, "Memory comparision (5) failed");
 
         pubKeyRecord.index = 3;
