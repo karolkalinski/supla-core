@@ -727,8 +727,9 @@ void connectionInfo::handlePairVerify() {
     do {
         PHKNetworkMessage msg(buffer);
         PHKNetworkResponse response = PHKNetworkResponse(200);
-        bcopy(msg.data.dataPtrForIndex(6), &state, 1);
-        switch (state) {
+        memcpy(&state, msg.data.dataPtrForIndex(6), 1);
+        
+		switch (state) {
             case State_Pair_Verify_M1: {
 				
 				supla_log(LOG_DEBUG, "Pair-Verify M1");
@@ -1094,7 +1095,7 @@ PHKNetworkMessageData & PHKNetworkMessageData::operator=(const PHKNetworkMessage
             records[i] = data.records[i];
             records[i].data = records[i].length > 0 ? new char[records[i].length] : NULL;
             if (data.records[i].length > 0)
-              bcopy(data.records[i].data, records[i].data, data.records[i].length);
+              memcpy(records[i].data, data.records[i].data, data.records[i].length);
         }
     }
     return *this;
@@ -1109,15 +1110,15 @@ PHKNetworkMessageData::PHKNetworkMessageData(const char *rawData, unsigned short
             records[count].length = (unsigned char)(rawData)[delta+1];
             records[count].data = new char[records[count].length];
             records[count].activate = true;
-            bcopy(&rawData[delta+2], records[count].data, records[count].length);
+			memcpy(records[count].data, &rawData[delta+2], records[count].length);
             delta += (records[count].length+2);
             count++;
         } else {
             int newLen = ((unsigned char*)(rawData))[delta+1];
             newLen += records[index].length;
             char *ptr = new char[newLen];
-            bcopy(records[index].data, ptr, records[index].length);
-            bcopy(&rawData[delta+2], &ptr[records[index].length], newLen-records[index].length);
+			memcpy(ptr, records[index].data, records[index].length);
+			memcpy(&ptr[records[index].length], &rawData[delta+2], newLen-records[index].length);
             delete [] records[index].data;
             records[index].data = ptr;
             
@@ -1143,7 +1144,7 @@ void PHKNetworkMessageData::rawData(const char **dataPtr, unsigned short *len) {
     }
     *len = buffer.length();
     *dataPtr = new char[*len];
-    bcopy(buffer.c_str(), (void *)*dataPtr, *len);
+	memcpy((void *)*dataPtr, buffer.c_str(), *len);
 }
 
 int PHKNetworkMessageData::recordIndex(unsigned char index) {
@@ -1184,9 +1185,11 @@ void PHKNetworkResponse::getBinaryPtr(char **buffer, int *contentLength) {
     temp += tempCstr;
     temp += "\r\n\r\n";
     *buffer = new char[temp.length()+dataLen];
-    bcopy(temp.c_str(), *buffer, temp.length());
-    bcopy(dataPtr, &((*buffer)[temp.length()]), dataLen);
-    *contentLength = temp.length()+dataLen;
+	memcpy(*buffer, temp.c_str(), temp.length());
+	
+    memcpy(&((*buffer)[temp.length()]), dataPtr, dataLen);
+	
+	*contentLength = temp.length()+dataLen;
     delete [] dataPtr;
 }
 
@@ -1213,7 +1216,7 @@ PHKNetworkMessageDataRecord &PHKNetworkMessageDataRecord::operator=(const PHKNet
       delete [] data;
 
     data = new char[length];
-    bcopy(r.data, data, length);
+	memcpy(data, r.data, length);
     return *this;
 }
 
