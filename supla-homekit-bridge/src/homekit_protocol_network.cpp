@@ -712,50 +712,40 @@ void connectionInfo::handlePairVerify() {
     curved25519_key sharedKey;
     
     uint8_t enKey[32];
-#if HomeKitLog == 1
-    printf("Start Pair Verify\n");
-#endif
-    
+	
+	supla_log(LOG_DEBUG, "Pair-Verify Start");
+
     do {
         PHKNetworkMessage msg(buffer);
         PHKNetworkResponse response = PHKNetworkResponse(200);
         bcopy(msg.data.dataPtrForIndex(6), &state, 1);
         switch (state) {
             case State_Pair_Verify_M1: {
-#if HomeKitLog == 1
-                printf("Pair Verify M1\n");
-#endif
-                //bcopy(msg.data.dataPtrForIndex(3), controllerPublicKey, 32);
+				
+				supla_log(LOG_DEBUG, "Pair-Verify M1");
+				
                 memcpy(controllerPublicKey, msg.data.dataPtrForIndex(3), 32);
 				
 				for (unsigned short i = 0; i < sizeof(secretKey); i++) {
                     secretKey[i] = rand();
                 }
                 curve25519_donna((u8*)publicKey, (const u8 *)secretKey, (const u8 *)curveBasePoint);
-                
                 curve25519_donna(sharedKey, secretKey, controllerPublicKey);
                 
                 char *temp = new char[100];
                 memcpy(temp, publicKey, 32);
-				//bcopy(publicKey, temp, 32);
-
+				
                 std::string deviceIdentity = Configuration::Instance().getDeviceIdentity();
 
 				memcpy(&temp[32], deviceIdentity.c_str(),  deviceIdentity.length());
-				
-                //bcopy(deviceIdentity.c_str(), &temp[32], deviceIdentity.length());
-                
 				memcpy(&temp[32+deviceIdentity.length()], controllerPublicKey, 32);
-				//bcopy(controllerPublicKey, &temp[32+deviceIdentity.length()], 32);
-                
+				
                 PHKNetworkMessageDataRecord signRecord;
                 signRecord.activate = true; signRecord.data = new char[64]; signRecord.index = 10;  signRecord.length = 64;
                 
                 ed25519_secret_key edSecret;
 				memcpy(edSecret, accessorySecretKey, sizeof(edSecret));
-				
-                //bcopy(accessorySecretKey, edSecret, sizeof(edSecret));
-                
+				 
 				ed25519_public_key edPubKey;
                 ed25519_publickey(edSecret, edPubKey);
                 
@@ -767,8 +757,7 @@ void connectionInfo::handlePairVerify() {
                 idRecord.data = new char[17];
                 
 				memcpy(idRecord.data, deviceIdentity.c_str(), 17);
-				//bcopy(deviceIdentity.c_str(), idRecord.data, 17);
-                
+				
 				idRecord.index = 1;
                 idRecord.length = (unsigned int)17;
                 
@@ -776,8 +765,7 @@ void connectionInfo::handlePairVerify() {
                 pubKeyRecord.activate = true;
                 pubKeyRecord.data = new char[32];
                 
-				//bcopy(publicKey, pubKeyRecord.data, 32);
-                memcpy(pubKeyRecord.data, publicKey, 32);
+				memcpy(pubKeyRecord.data, publicKey, 32);
 				
 				pubKeyRecord.index = 3;
                 pubKeyRecord.length = 32;
@@ -798,11 +786,9 @@ void connectionInfo::handlePairVerify() {
                 char *polyKey = new char[64];   
 				memset(polyKey, 0, 64);
 				
-				//bzero(polyKey, 64);
-                
+				
                 char zero[64];  
-				//bzero(zero, 64);
-                
+				
                 chacha20_ctx chacha;
                 chacha20_setup(&chacha, enKey, 32, (uint8_t *)"PV-Msg02");
                 chacha20_encrypt(&chacha, (uint8_t *)zero, (uint8_t *)polyKey, 64);
@@ -823,8 +809,7 @@ void connectionInfo::handlePairVerify() {
                 
 				memcpy(encryptRecord.data, encryptMsg, encryptRecord.length);
 				
-				//bcopy(encryptMsg, encryptRecord.data, encryptRecord.length);
-                
+				
 				response.data.addRecord(encryptRecord);
                 
                 delete [] encryptMsg;
@@ -832,23 +817,25 @@ void connectionInfo::handlePairVerify() {
             }
                 break;
             case State_Pair_Verify_M3: {
-#if HomeKitLog == 1
-                printf("Pair Verify M3\n");
-#endif
+
+				supla_log(LOG_DEBUG, "Pair-Verify M3");
+				
                 char *encryptedData = msg.data.dataPtrForIndex(5);
                 short packageLen = msg.data.lengthForIndex(5);
                 
-                chacha20_ctx chacha20;    bzero(&chacha20, sizeof(chacha20));
+                chacha20_ctx chacha20;    
+				memset(&chacha20,0, sizeof(chacha20));
                 chacha20_setup(&chacha20, (const uint8_t *)enKey, 32, (uint8_t *)"PV-Msg03");
                 
                 //Ploy1305 key
-                char temp[64];  bzero(temp, 64); char temp2[64];  bzero(temp2, 64);
+                char temp[64];  char temp2[64]; 
                 chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
                 
-                char verify[16];    bzero(verify, 16);
+                char verify[16]; 
+				
                 Poly1305_GenKey((const unsigned char *)temp2, (uint8_t *)encryptedData, packageLen - 16, Type_Data_Without_Length, verify);
                 
-                if (!bcmp(verify, &encryptedData[packageLen-16], 16)) {
+                if (!memcmp(verify, &encryptedData[packageLen-16], 16)) {
                     char *decryptData = new char[packageLen-16];
                     chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData, (uint8_t *)decryptData, packageLen-16);
                     PHKNetworkMessageData data = PHKNetworkMessageData(decryptData, packageLen-16);
@@ -856,23 +843,20 @@ void connectionInfo::handlePairVerify() {
                     PHKKeyRecord rec = getControllerKey(data.dataPtrForIndex(1));
                     
                     char tempMsg[100];
-                    bcopy(controllerPublicKey, tempMsg, 32);
-                    bcopy(data.dataPtrForIndex(1), &tempMsg[32], 36);
-                    bcopy(data.dataPtrForIndex(1), identity, 36);
-                    bcopy(publicKey, &tempMsg[68], 32);
-                    
+                    memcpy(tempMsg, controllerPublicKey, 32);
+					memcpy(&tempMsg[32], data.dataPtrForIndex(1), 36);
+					memcpy(identity, data.dataPtrForIndex(1), 36);
+					memcpy(&tempMsg[68], publicKey, 32);
+					
                     int err = ed25519_sign_open((const unsigned char *)tempMsg, 100, (const unsigned char *)rec.publicKey, (const unsigned char *)data.dataPtrForIndex(10));
                     
-                    //char *repBuffer = 0;
-                    //int repLen = 0;
                     if (err == 0) {
                         end = true;
                         
                         hkdf((uint8_t *)"Control-Salt", 12, sharedKey, 32, (uint8_t *)"Control-Read-Encryption-Key", 27, accessoryToControllerKey, 32);
                         hkdf((uint8_t *)"Control-Salt", 12, sharedKey, 32, (uint8_t *)"Control-Write-Encryption-Key", 28, controllerToAccessoryKey, 32);
-#if HomeKitLog == 1
-                        printf("Verify success\n");
-#endif
+
+						supla_log(LOG_DEBUG, "Pair-Verify Success!");
                         
                     } else {
                         PHKNetworkMessageDataRecord error;
@@ -882,9 +866,8 @@ void connectionInfo::handlePairVerify() {
                         error.index = 7;
                         error.length = 1;
                         response.data.addRecord(error);
-#if HomeKitLog == 1
-                        printf("Verify failed\n");
-#endif
+
+						supla_log(LOG_DEBUG, "Pair-Verify Failure");
                     }
                     
                     delete [] decryptData;
@@ -908,6 +891,8 @@ void connectionInfo::handlePairVerify() {
             delete [] repBuffer;
         }
     } while (!end && read(subSocket, buffer, 4096) > 0);
+	supla_log(LOG_DEBUG, "Pair-Verify End");
+	
 }
 
 void connectionInfo::handleAccessoryRequest() {
