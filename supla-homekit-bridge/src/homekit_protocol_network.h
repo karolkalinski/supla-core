@@ -127,7 +127,7 @@ class connectionInfo {
   unsigned long long numberOfMsgRec = 0;
   unsigned long long numberOfMsgSend = 0;
   int subSocket = -1;
-  char buffer[4096];
+  char buffer[8192];
 
   void *notificationList[numberOfNotifiableValue];
 
