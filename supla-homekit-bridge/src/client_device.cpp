@@ -18,8 +18,8 @@
 
 #include "client_device.h"
 
-#include "PHKAccessory.h"
 #include "globals.h"
+#include "homekit_protocol_accessory.h"
 
 void* lck = lck_init();
 void* lck_value = lck_init();

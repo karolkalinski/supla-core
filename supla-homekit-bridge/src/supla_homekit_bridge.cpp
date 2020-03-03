@@ -21,13 +21,13 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "PHKControllerRecord.h"
-#include "PHKNetworkIP.h"
 #include "client_loop.h"
 #include "clientcfg.h"
 #include "globals.h"
 #include "homekit_configuration.h"
+#include "homekit_controller_record.h"
 #include "homekit_loop.h"
+#include "homekit_protocol_network.h"
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/sthread.h"
 #include "supla-client-lib/supla-client.h"

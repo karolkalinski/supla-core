@@ -3,8 +3,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "PHKNetworkIP.h"
 #include "globals.h"
+#include "homekit_protocol_network.h"
 #include "supla-client-lib/log.h"
 
 void homekit_loop(void *user_data, void *sthread) {

@@ -1,11 +1,11 @@
 #ifndef HOMEKIT_ACCESSORIES_H
 #define HOMEKIT_ACCESSORIES_H
 
-#include "PHKControllerRecord.h"
-#include "PHKNetworkIP.h"
 #include "client_device.h"
 #include "homekit_classes.h"
 #include "homekit_configuration.h"
+#include "homekit_controller_record.h"
+#include "homekit_procotol_network.h"
 #include "supla-client-lib/safearray.h"
 
 class homekit_accessories {
@@ -29,8 +29,9 @@ class homekit_accessories {
       accessory* accessory,
       set_value_callback_routine
           callback); /* zamek w drzwiach  -> lock mechanizm */
-  accessory* add_accessory_rollershutter(accessory* accessory, 
-    set_value_callback_routine callback); /* window covering */
+  accessory* add_accessory_rollershutter(
+      accessory* accessory,
+      set_value_callback_routine callback); /* window covering */
   accessory* add_accessory_power_switch(
       accessory* accessory, set_value_callback_routine callback); /* switch */
   accessory* add_accessory_light_switch(

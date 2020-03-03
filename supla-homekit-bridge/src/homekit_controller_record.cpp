@@ -6,7 +6,7 @@
 //
 //
 
-#include "PHKControllerRecord.h"
+#include "homekit_controller_record.h"
 
 #include <strings.h>
 
