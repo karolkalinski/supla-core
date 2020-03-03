@@ -1021,7 +1021,7 @@ class ParseImp {
       PostProcessLines();
       // Print();
       ParseRoot(root);
-    } catch (Exception e) {
+    } catch (Exception& e) {
       root.Clear();
       throw;
     }
@@ -1760,7 +1760,7 @@ void Parse(Node &root, std::iostream &stream) {
     pImp = new ParseImp;
     pImp->Parse(root, stream);
     delete pImp;
-  } catch (const Exception e) {
+  } catch (Exception& e) {
     delete pImp;
     throw;
   }
