@@ -898,7 +898,7 @@ void connectionInfo::handlePairVerify() {
         delete[] encryptMsg;
         delete[] polyKey;
 		
-		supla_log("Pair-Verify M1 - End");
+		supla_log(LOG_DEBUG, "Pair-Verify M1 - End");
 		
       } break;
       case State_Pair_Verify_M3: {
