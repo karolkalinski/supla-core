@@ -335,37 +335,38 @@ void broadcastMessage(void *sender, char *resultData, size_t resultLen) {
 }
 void *connectionLoop(void *threadInfo) {
   connectionInfo *info = (connectionInfo *)threadInfo;
-  int subSocket = info->subSocket;
-  ssize_t len;
-  if (subSocket >= 0) {
-    supla_log(LOG_DEBUG, "start connect: %d", subSocket);
+    int subSocket = info->subSocket;    ssize_t len;
+    if (subSocket >= 0) {
+		supla_log(LOG_DEBUG, "start connect: %d", subSocket);
+        
+        do {
+            len = read(subSocket, info->buffer, 4096);
 
-    do {
-      len = read(subSocket, info->buffer, MAXBUFFERSIZE);
-
-      supla_log(LOG_DEBUG, "return len %d for socket %d\n", len, subSocket);
-      supla_log(LOG_DEBUG, "message: %s\n", info->buffer);
-
-      PHKNetworkMessage msg(info->buffer);
-      if (len > 0) {
-        if (!strcmp(msg.directory, "pair-setup")) {
-          info->handlePairSeup();
-          updateConfiguration();
-        } else if (!strcmp(msg.directory, "pair-verify")) {
-          info->handlePairVerify();
-          info->handleAccessoryRequest();
-        } else if (!strcmp(msg.directory, "identify")) {
-          close(subSocket);
-        }
-      }
-
-    } while (len > 0);
-
-    close(subSocket);
-    supla_log(LOG_DEBUG, "stop connect %d", subSocket);
-    info->subSocket = -1;
-  }
-  return NULL;
+			supla_log(LOG_DEBUG, "return len %d for socket %d\n", len, subSocket);
+            supla_log(LOG_DEBUG, "message: %s\n", info->buffer);
+            
+            PHKNetworkMessage msg(info->buffer);
+            if (len > 0) {
+                if (!strcmp(msg.directory, "pair-setup")){
+                    info->handlePairSeup();
+                    updateConfiguration();
+                }
+                else if (!strcmp(msg.directory, "pair-verify")){
+                    info->handlePairVerify();
+                    info->handleAccessoryRequest();
+                }
+                else if (!strcmp(msg.directory, "identify")){
+                    close(subSocket);
+                }
+            }
+            
+        } while (len > 0);
+        
+        close(subSocket);
+        supla_log(LOG_DEBUG, "stop connect %d", subSocket);
+        info->subSocket = -1;
+    }
+    return NULL;
 }
 
 void PHKNetworkIP::handleConnection() const {
