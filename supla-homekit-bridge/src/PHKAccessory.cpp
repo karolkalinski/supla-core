@@ -32,7 +32,7 @@ void *announce(void *info) {
 
   if (_info->desc) free(_info->desc);
 
-  delete info;
+  delete _info;
   return NULL;
 }
 
