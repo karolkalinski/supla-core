@@ -189,7 +189,6 @@ void homekit_accessories::add_accessory_for_supla_channel(
 		{
 			accessory* accessory = new_accessory(accessoryId, info);
 			add_accessory_to_array(add_accessory_light_switch(accessory, value_callback));
-
 		} break;
 		case SUPLA_CHANNELFNC_DIMMER:
 		{

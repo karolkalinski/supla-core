@@ -20,7 +20,7 @@ class homekit_accessories {
 	accessory* add_accessory_garage_door(accessory* accessory, set_value_callback_routine callback); /* drzwi garażowe -> garage_door_opener */
 	accessory* add_accessory_thermometer(accessory* accessory); /* temperatur sensor */
 	accessory* add_accessory_humidity(accessory* accessory); /* humidity sensor */
-	accessory* add_accessory_door_lock(accessory* accessory, set_value_callback_routine callback) /* zamek w drzwiach  -> lock mechanizm */
+	accessory* add_accessory_door_lock(accessory* accessory, set_value_callback_routine callback); /* zamek w drzwiach  -> lock mechanizm */
 	accessory* add_accessory_rollershutter(int accessoryId, service* info); /* window covering */
 	accessory* add_accessory_power_switch(accessory* accessory, set_value_callback_routine callback); /* switch */
 	accessory* add_accessory_light_switch(accessory* accessory, set_value_callback_routine callback); /* lightswitch */

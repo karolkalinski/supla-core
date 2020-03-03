@@ -361,9 +361,7 @@ void client_device_channel::setHKValue(
 		uint8Characteristic* currentDoorState = (uint8Characteristic*)service->getCharacteristicByType(charType_currentDoorState);
 		if (!currentDoorState) break;
 
-		/* ustawiamy stan na podstawie wartości czujnika otwarcia/zamknięcia */
-		/* ToDo lukbek obsłużyć stany otwieranie/zamykanie (działanie przekaźnika?) */
-
+	
 		currentDoorState->setValue(positionState);
 		targetDoorState->setValue(this->Sub_value[0]);
 
