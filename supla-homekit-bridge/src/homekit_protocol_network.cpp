@@ -834,10 +834,11 @@ void connectionInfo::handlePairVerify() {
                 chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
                 supla_log(LOG_DEBUG, "Pair-Verify M3 1");
                 char verify[16]; 
-				
+				bzero(verify, 16);
                 Poly1305_GenKey((const unsigned char *)temp2, (uint8_t *)encryptedData, packageLen - 16, Type_Data_Without_Length, verify);
-                
-                if (!bcmp(verify, &encryptedData[packageLen-16], 16)) {
+                supla_log(LOG_DEBUG, "Pair-Verify M3 1.5");
+				
+                if (!memcmp(verify, &encryptedData[packageLen-16], 16)) {
                     char *decryptData = new char[packageLen-16];
                     chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData, (uint8_t *)decryptData, packageLen-16);
                     PHKNetworkMessageData data = PHKNetworkMessageData(decryptData, packageLen-16);
