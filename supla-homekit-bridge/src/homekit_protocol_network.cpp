@@ -774,27 +774,25 @@ void connectionInfo::handlePairSeup() {
 }
 
 void connectionInfo::handlePairVerify() {
-  
-  supla_log(LOG_DEBUG, "Entering Pair-Verify");
-  bool end = false;
-  char state = State_Pair_Verify_M1;
-
-  curved25519_key secretKey;
-  curved25519_key publicKey;
-  curved25519_key controllerPublicKey;
-  
-  
-  
-  curved25519_key sharedKey;
-
-  uint8_t enKey[32];
-
-  do {
-    PHKNetworkMessage msg(buffer);
-    PHKNetworkResponse response = PHKNetworkResponse(200);
-    memcpy(&state, msg.data.dataPtrForIndex(6), 1);
-    switch (state) {
-      case State_Pair_Verify_M1: {
+    bool end = false;
+    char state = State_Pair_Verify_M1;
+    
+    curved25519_key secretKey;
+    curved25519_key publicKey;
+    curved25519_key controllerPublicKey;
+    curved25519_key sharedKey;
+    
+    uint8_t enKey[32];
+#if HomeKitLog == 1
+    printf("Start Pair Verify\n");
+#endif
+    
+    do {
+        PHKNetworkMessage msg(buffer);
+        PHKNetworkResponse response = PHKNetworkResponse(200);
+        bcopy(msg.data.dataPtrForIndex(6), &state, 1);
+        switch (state) {
+            case State_Pair_Verify_M1: {
 #if HomeKitLog == 1
                 printf("Pair Verify M1\n");
 #endif
@@ -881,99 +879,83 @@ void connectionInfo::handlePairVerify() {
                 delete [] polyKey;
             }
                 break;
-      case State_Pair_Verify_M3: {
-		supla_log(LOG_DEBUG, "Pair-Verify M3");
-        char *encryptedData = msg.data.dataPtrForIndex(5);
-        short packageLen = msg.data.lengthForIndex(5);
-
-        chacha20_ctx chacha20;
-        memset(&chacha20, 0, sizeof(chacha20));
-        chacha20_setup(&chacha20, (const uint8_t *)enKey, 32,
-                       (uint8_t *)"PV-Msg03");
-
-        // Ploy1305 key
-        char temp[64];
-        char temp2[64];
-        chacha20_encrypt(&chacha20, (const uint8_t *)temp, (uint8_t *)temp2,
-                         64);
-
-        char verify[16];
-        Poly1305_GenKey((const unsigned char *)temp2, (uint8_t *)encryptedData,
-                        packageLen - 16, Type_Data_Without_Length, verify);
-
-        if (!bcmp(verify, &encryptedData[packageLen - 16], 16)) {
-          char *decryptData = new char[packageLen - 16];
-          chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData,
-                           (uint8_t *)decryptData, packageLen - 16);
-          PHKNetworkMessageData data =
-              PHKNetworkMessageData(decryptData, packageLen - 16);
-
-          PHKKeyRecord rec = getControllerKey(data.dataPtrForIndex(1));
-
-          char tempMsg[100];
-
-          memcpy(tempMsg, controllerPublicKey, 32);
-          memcpy(&tempMsg[32], data.dataPtrForIndex(1), 36);
-          memcpy(identity, data.dataPtrForIndex(1), 36);
-          memcpy(&tempMsg[68], publicKey, 32);
-
-          int err = ed25519_sign_open(
-              (const unsigned char *)tempMsg, 100,
-              (const unsigned char *)rec.publicKey,
-              (const unsigned char *)data.dataPtrForIndex(10));
-
-           if (err == 0) {
-            end = true;
-
-            hkdf((uint8_t *)"Control-Salt", 12, sharedKey, 32,
-                 (uint8_t *)"Control-Read-Encryption-Key", 27,
-                 accessoryToControllerKey, 32);
-            hkdf((uint8_t *)"Control-Salt", 12, sharedKey, 32,
-                 (uint8_t *)"Control-Write-Encryption-Key", 28,
-                 controllerToAccessoryKey, 32);
-				 
-			supla_log(LOG_DEBUG, "Pair-Verify success!");
-
-          } else {
-            PHKNetworkMessageDataRecord error;
-            error.activate = true;
-            error.data = new char[1];
-            error.data[0] = 2;
-            error.index = 7;
-            error.length = 1;
-            response.data.addRecord(error);
-
-			supla_log(LOG_DEBUG, "Pair-Verify failure!");
-          }
-
-          delete[] decryptData;
+            case State_Pair_Verify_M3: {
+#if HomeKitLog == 1
+                printf("Pair Verify M3\n");
+#endif
+                char *encryptedData = msg.data.dataPtrForIndex(5);
+                short packageLen = msg.data.lengthForIndex(5);
+                
+                chacha20_ctx chacha20;    bzero(&chacha20, sizeof(chacha20));
+                chacha20_setup(&chacha20, (const uint8_t *)enKey, 32, (uint8_t *)"PV-Msg03");
+                
+                //Ploy1305 key
+                char temp[64];  bzero(temp, 64); char temp2[64];  bzero(temp2, 64);
+                chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
+                
+                char verify[16];    bzero(verify, 16);
+                Poly1305_GenKey((const unsigned char *)temp2, (uint8_t *)encryptedData, packageLen - 16, Type_Data_Without_Length, verify);
+                
+                if (!bcmp(verify, &encryptedData[packageLen-16], 16)) {
+                    char *decryptData = new char[packageLen-16];
+                    chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData, (uint8_t *)decryptData, packageLen-16);
+                    PHKNetworkMessageData data = PHKNetworkMessageData(decryptData, packageLen-16);
+                    
+                    PHKKeyRecord rec = getControllerKey(data.dataPtrForIndex(1));
+                    
+                    char tempMsg[100];
+                    bcopy(controllerPublicKey, tempMsg, 32);
+                    bcopy(data.dataPtrForIndex(1), &tempMsg[32], 36);
+                    bcopy(data.dataPtrForIndex(1), identity, 36);
+                    bcopy(publicKey, &tempMsg[68], 32);
+                    
+                    int err = ed25519_sign_open((const unsigned char *)tempMsg, 100, (const unsigned char *)rec.publicKey, (const unsigned char *)data.dataPtrForIndex(10));
+                    
+                    //char *repBuffer = 0;
+                    //int repLen = 0;
+                    if (err == 0) {
+                        end = true;
+                        
+                        hkdf((uint8_t *)"Control-Salt", 12, sharedKey, 32, (uint8_t *)"Control-Read-Encryption-Key", 27, accessoryToControllerKey, 32);
+                        hkdf((uint8_t *)"Control-Salt", 12, sharedKey, 32, (uint8_t *)"Control-Write-Encryption-Key", 28, controllerToAccessoryKey, 32);
+#if HomeKitLog == 1
+                        printf("Verify success\n");
+#endif
+                        
+                    } else {
+                        PHKNetworkMessageDataRecord error;
+                        error.activate = true;
+                        error.data = new char[1];
+                        error.data[0] = 2;
+                        error.index = 7;
+                        error.length = 1;
+                        response.data.addRecord(error);
+#if HomeKitLog == 1
+                        printf("Verify failed\n");
+#endif
+                    }
+                    
+                    delete [] decryptData;
+                }
+                
+            }
         }
-      }
-    }
-
-    PHKNetworkMessageDataRecord stage;
-    stage.activate = true;
-    stage.data = new char;
-    stage.data[0] = (char)state + 1;
-    stage.index = 6;
-    stage.length = 1;
-    response.data.addRecord(stage);
-
-    char *repBuffer = 0;
-    int repLen = 0;
-    response.getBinaryPtr(&repBuffer, &repLen);
-	
-	supla_log(LOG_DEBUG, "Writing %d bytes to controller", repLen);
-	supla_log(LOG_DEBUG, "-------------------------------");
-	print_buf("Response", reinterpret_cast<const unsigned char *>(repBuffer), repLen);
-	supla_log(LOG_DEBUG, "-------------------------------");
-	
-    if (repBuffer) {
-      write(subSocket, repBuffer, repLen);
-      delete[] repBuffer;
-    }
-  } while (!end && read(subSocket, buffer, 4096) > 0);
-}
+        
+        PHKNetworkMessageDataRecord stage;
+        stage.activate = true;
+        stage.data = new char;
+        stage.data[0] = (char)state+1;
+        stage.index = 6;
+        stage.length = 1;
+        response.data.addRecord(stage);
+        
+        char *repBuffer = 0;  int repLen = 0;
+        response.getBinaryPtr(&repBuffer, &repLen);
+        if (repBuffer) {
+            write(subSocket, repBuffer, repLen);
+            delete [] repBuffer;
+        }
+    } while (!end && read(subSocket, buffer, 4096) > 0);
 
 void connectionInfo::handleAccessoryRequest() {
   char decryptData[2048];
