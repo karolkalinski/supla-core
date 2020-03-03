@@ -149,7 +149,7 @@ void homekit_accessories::add_accessory_for_supla_channel(
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEGATEWAYLOCK: {
       //		add_accessory_to_array(add_accessory_gateway_lock(accessoryId,
-      //info));
+      // info));
 
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEGATE: {

@@ -130,29 +130,29 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
     case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR: {
       if (current_value[0] == 0 && value[0] == 1) /* zatrzymanie -> start */
       {
-        if (this->sub_value[0] == 0) /* zamykanie */
+        if (sub_value[0] == 0) /* zamykanie */
           positionState = 3;
-        else if (this->sub_value[0] == 1) /* otwieranie */
+        else if (sub_value[0] == 1) /* otwieranie */
           positionState = 2;
       } else if (current_value[0] == 1 && value[0] == 0) /* ruch -> stop */
       {
-        if (this->sub_value[0] == 0) /* otwarte */
+        if (sub_value[0] == 0) /* otwarte */
           positionState = 3;
-        else if (this->sub_value[0] == 1) /* zamkniete */
+        else if (sub_value[0] == 1) /* zamkniete */
           positionState = 2;
       } else if (current_value[0] == 0 &&
                  value[0] == 0) /* zmiana wartosci czujnika*/
       {
-        if (this->sub_value[0] == 0) /* otwarte */
+        if (sub_value[0] == 0) /* otwarte */
           positionState = 0;
-        else if (this->sub_value[0] == 1) /* zamkniete */
+        else if (sub_value[0] == 1) /* zamkniete */
           positionState = 1;
       }
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER: {
       if (value[0] > current_value[0])
         positionState = 1;
-      else if (values[0] < current_value[0])
+      else if (value[0] < current_value[0])
         positionState = 0;
       else
         positionState = 2;
@@ -255,7 +255,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
     } break;
     case SUPLA_CHANNELFNC_LIGHTSWITCH:
     case SUPLA_CHANNELFNC_POWERSWITCH: {
-      service* = NULL;
+      service* service = NULL;
 
       if (this->getFunc() == SUPLA_CHANNELFNC_LIGHTSWITCH)
         service = accessory->getServiceByType(serviceType_lightBulb);
@@ -284,18 +284,18 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
       uint8Characteristic* targetLockState =
           (uint8Characteristic*)service->getCharacteristicByType(
               charType_targetDoorState);
-      if (!targetDoorState) break;
+      if (!targetLockState) break;
 
       uint8Characteristic* currentLockState =
           (uint8Characteristic*)service->getCharacteristicByType(
               charType_currentDoorState);
-      if (!currentDoorState) break;
+      if (!currentLockState) break;
 
       char val[SUPLA_CHANNELVALUE_SIZE];
       this->getValue(val);
 
-      currentLockState->setValue(this->sub_value[0]);
-      targetDoorState->setValue(val[0]);
+      currentLockState->setValue(this->Sub_value[0]);
+      targetLockState->setValue(val[0]);
 
       characteristics.push_back(targetLockState->describeValue());
       characteristics.push_back(currentLockState->describeValue());
@@ -329,7 +329,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
 
       uint8Characteristic* targetPosition =
           (uint8Characteristic*)service->getCharacteristicByType(
-              charType_targetosition);
+              charType_targetPosition);
 
       if (!targetPosition) return;
 
@@ -343,10 +343,10 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
 
       ps->setValue(positionState);
 
-      characteristics->push_back(currentPosition);
-      characteristics->push_back(targetPosition);
-      characteristics->push_back(positionState);
-      characteristics->push_back(obstruction);
+      characteristics.push_back(currentPosition->describeValue());
+      characteristics.push_back(targetPosition->describeValue());
+      characteristics.push_back(positionState->describeValue());
+      characteristics.push_back(obstruction->describeValue());
       wasDescribed = true;
 
     } break;
