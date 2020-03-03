@@ -387,6 +387,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
     describe["characteristics"] = characteristics;
     describe.dump(broadcastTemp);
 
+	/* ToDo lbek -> send events only for registered characteristics */
     broadcastInfo* info = new broadcastInfo;
     info->sender = NULL;
     info->desc = strdup(broadcastTemp.c_str());
@@ -395,8 +396,8 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
 
     pthread_create(thread, NULL, announce, info);
     pthread_detach(*thread);
-
-    free(thread);
+    
+	free(thread);
   }
 }
 
