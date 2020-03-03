@@ -726,7 +726,6 @@ void connectionInfo::handlePairVerify() {
                 printf("Pair Verify M1\n");
 #endif
                 bcopy(msg.data.dataPtrForIndex(3), controllerPublicKey, 32);
-				
                 for (unsigned short i = 0; i < sizeof(secretKey); i++) {
                     secretKey[i] = rand();
                 }
@@ -884,7 +883,6 @@ void connectionInfo::handlePairVerify() {
             write(subSocket, repBuffer, repLen);
             delete [] repBuffer;
         }
-		int bytes 
     } while (!end && read(subSocket, buffer, 4096) > 0);
 }
 
@@ -1163,10 +1161,8 @@ void PHKNetworkResponse::getBinaryPtr(char **buffer, int *contentLength) {
     temp += tempCstr;
     temp += "\r\n\r\n";
     *buffer = new char[temp.length()+dataLen];
-	
     bcopy(temp.c_str(), *buffer, temp.length());
     bcopy(dataPtr, &((*buffer)[temp.length()]), dataLen);
-	
     *contentLength = temp.length()+dataLen;
     delete [] dataPtr;
 }
