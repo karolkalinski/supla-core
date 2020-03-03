@@ -124,7 +124,7 @@ int is_big_endian(void)
 int setupSocketV4(unsigned int maximumConnection) {
     int _socket = socket(PF_INET, SOCK_STREAM, 0);
     sockaddr_in addr;   
-	memset(&addr, 0, sizoef(addr);
+	memset(&addr, 0, sizeof(addr));
     addr.sin_addr.s_addr = htonl(INADDR_ANY);   addr.sin_family = PF_INET;    addr.sin_port = htons(portNumber);
     
     int optval = 1;	socklen_t optlen = sizeof(optval);
@@ -523,7 +523,7 @@ void connectionInfo::handlePairSeup() {
                 Poly1305_GenKey((const unsigned char*)temp2, (unsigned char *)encryptedData, packageLen - 16, Type_Data_Without_Length, verify);
                 
                 char *decryptedData = new char[packageLen-16];
-				memset(decryptedData, packageLen-16);
+				memset(decryptedData, packageLen-16));
                 chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData, (uint8_t *)decryptedData, packageLen-16);
                 
                 if (bcmp(verify, mac, 16)) {
@@ -724,7 +724,7 @@ void connectionInfo::handlePairVerify() {
                 signRecord.activate = true; signRecord.data = new char[64]; signRecord.index = 10;  signRecord.length = 64;
                 
                 ed25519_secret_key edSecret;
-                memcpy(edSecret, accessorySecretKey, sizoef(edSecret));
+                memcpy(edSecret, accessorySecretKey, sizeof(edSecret));
                 ed25519_public_key edPubKey;
                 ed25519_publickey(edSecret, edPubKey);
                 
@@ -817,8 +817,8 @@ void connectionInfo::handlePairVerify() {
                     char tempMsg[100];
 					
 					memcpy(tempMsg, controllerPublicKey, 32);
-					memcpy(&tempMsg[32], data.dataPtrForIndex[1], 36);
-					memcpy(identity, data.dataPtrForIndex[1], 36);
+					memcpy(&tempMsg[32], data.dataPtrForIndex(1), 36);
+					memcpy(identity, data.dataPtrForIndex(1), 36);
 					memcpy(&tempMsg[68], publicKey, 32);
                     
                     int err = ed25519_sign_open((const unsigned char *)tempMsg, 100, (const unsigned char *)rec.publicKey, (const unsigned char *)data.dataPtrForIndex(10));
@@ -895,7 +895,7 @@ void connectionInfo::handleAccessoryRequest() {
 			uint16_t msgLen = (uint8_t)buffer[1] * 256 + (uint8_t)*buffer;
             
             chacha20_ctx chacha20;    
-			memset(&chacha20, 0, sizeof(chacha20);
+			memset(&chacha20, 0, sizeof(chacha20));
             
             if (!is_big_endian())
 			  numberOfMsgRec = bswap_64(numberOfMsgRec);
@@ -931,7 +931,7 @@ void connectionInfo::handleAccessoryRequest() {
             char *resultData = 0; 
 			unsigned int resultLen = 0;
             
-			handleAccessory(&decryptData, msgLen, &resultData, &resultLen, this);
+			handleAccessory(decryptData, msgLen, &resultData, &resultLen, this);
             
             //18 = 2(resultLen) + 16(poly1305 verify key)
             char *reply = new char[resultLen+18];
