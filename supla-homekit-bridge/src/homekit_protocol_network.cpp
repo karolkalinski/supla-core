@@ -956,6 +956,7 @@ void connectionInfo::handlePairVerify() {
             delete [] repBuffer;
         }
     } while (!end && read(subSocket, buffer, 4096) > 0);
+}
 
 void connectionInfo::handleAccessoryRequest() {
   char decryptData[2048];
