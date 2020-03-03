@@ -787,7 +787,7 @@ void connectionInfo::handlePairVerify() {
 #if HomeKitLog == 1
     printf("Start Pair Verify\n");
 #endif
-    
+    int bytes_read = 0;
     do {
         PHKNetworkMessage msg(buffer);
         PHKNetworkResponse response = PHKNetworkResponse(200);
@@ -956,7 +956,8 @@ void connectionInfo::handlePairVerify() {
             write(subSocket, repBuffer, repLen);
             delete [] repBuffer;
         }
-	  int bytes_read = read(subSocker, buffer, 4096);
+		
+	  bytes_read = read(subSocker, buffer, 4096);
 	  supla_log(LOG_DEBUG, "readed: %d", bytes_read);
 	  
     } while (!end && bytes_read > 0);
