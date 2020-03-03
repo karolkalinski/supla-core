@@ -883,9 +883,9 @@ void connectionInfo::handlePairVerify() {
         chacha20_encrypt(&chacha, (uint8_t *)plainMsg, (uint8_t *)encryptMsg,
                          msgLen);
 
-		supla_log(LOG_DEBUG, "Writing plain %d bytes to controller", repLen);
+		supla_log(LOG_DEBUG, "Writing plain %d bytes to controller", msgLen);
 	supla_log(LOG_DEBUG, "-------------------------------");
-	print_buf("Response", reinterpret_cast<const unsigned char *>(plainMsg), repLen);
+	print_buf("Response", reinterpret_cast<const unsigned char *>(plainMsg), msgLen);
 	supla_log(LOG_DEBUG, "-------------------------------");
 
         delete[] plainMsg;
