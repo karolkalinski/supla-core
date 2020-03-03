@@ -266,10 +266,13 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
             } else {
               if (c->notifiable()) {
                 if (strncmp(value, "1", 1) == 0 ||
-                    strncmp(value, "true", 4) == 0)
+                    strncmp(value, "true", 4) == 0) {
                   sender->addNotify(c, aid, iid);
-                else
+                  c->set_notify_registered(true);
+                } else {
                   sender->removeNotify(c);
+                  c->set_notify_registered(false);
+                }
 
                 statusCode = HTTP_STATUS_NO_CONTENT;
               } else {

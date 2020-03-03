@@ -28,6 +28,13 @@ void characteristic::notifySupla(void) {
   }
 }
 
+bool characteristic::notify_registered(void) {
+  return this->notify_registered_;
+}
+void characteristic::set_notify_registered(bool value) {
+  this->notify_registered_ = value;
+}
+
 double characteristic::showDecimals(const double &x, const int &numDecimals) {
   int y = x;
   double z = x - y;

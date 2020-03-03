@@ -220,14 +220,23 @@ class characteristic {
 
   set_value_callback_routine set_value_callback;
 
+  bool notify_registered_;
+
  public:
   characteristic(_supla_int64_t aid, int iid, charType type, int permission,
                  unitType unit)
-      : aid(aid), iid(iid), type(type), permission(permission), unit(unit) {
+      : aid(aid),
+        iid(iid),
+        type(type),
+        permission(permission),
+        unit(unit),
+        notify_registered_(false) {
     pthread_mutex_init(&mtx, NULL);
     initJsonCharacteristic();
   }
   virtual ~characteristic() { pthread_mutex_destroy(&mtx); }
+  bool notify_registered(void);
+  void set_notify_registered(bool value);
 
   bool writable(void);
   bool notifiable(void);

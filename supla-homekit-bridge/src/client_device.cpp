@@ -205,7 +205,8 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
 
       if (active) {
         active->setValue(this->Online);
-        characteristics.push_back(active->describeValue());
+        if (active->notify_registered())
+          characteristics.push_back(active->describeValue());
       }
 
       if (!humidity) return;
@@ -220,8 +221,11 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
         temperature->setValue(temp);
         humidity->setValue(hum);
 
-        characteristics.push_back(temperature->describeValue());
-        characteristics.push_back(humidity->describeValue());
+        if (temperature->notify_registered())
+          characteristics.push_back(temperature->describeValue());
+
+        if (humidity->notify_registered())
+          characteristics.push_back(humidity->describeValue());
         wasDescribed = true;
       }
 
@@ -244,13 +248,15 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
 
       if (active) {
         active->setValue(this->Online);
-        characteristics.push_back(active->describeValue());
+        if (active->notify_registered())
+          characteristics.push_back(active->describeValue());
       }
 
       double temp;
       this->getDouble(&temp);
       temperature->setValue(temp);
-      characteristics.push_back(temperature->describeValue());
+      if (temperature->notify_registered())
+        characteristics.push_back(temperature->describeValue());
       wasDescribed = true;
     } break;
     case SUPLA_CHANNELFNC_LIGHTSWITCH:
@@ -273,8 +279,8 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
       this->getChar(&value);
 
       on->setValue(value > 0);
-
-      characteristics.push_back(on->describeValue());
+      if (on->notify_registered())
+        characteristics.push_back(on->describeValue());
       wasDescribed = true;
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEDOORLOCK: {
@@ -296,9 +302,10 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
 
       currentLockState->setValue(this->Sub_value[0]);
       targetLockState->setValue(val[0]);
-
-      characteristics.push_back(targetLockState->describeValue());
-      characteristics.push_back(currentLockState->describeValue());
+      if (targetLockState->notify_registered())
+        characteristics.push_back(targetLockState->describeValue());
+      if (currentLockState->notify_registered())
+        characteristics.push_back(currentLockState->describeValue());
       wasDescribed = true;
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER: {
@@ -341,11 +348,14 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
       if (!ps) return;
 
       ps->setValue(positionState);
-
-      characteristics.push_back(currentPosition->describeValue());
-      characteristics.push_back(targetPosition->describeValue());
-      characteristics.push_back(ps->describeValue());
-      characteristics.push_back(obstruction->describeValue());
+      if (currentPosition->notify_registered())
+        characteristics.push_back(currentPosition->describeValue());
+      if (targetPosition->notify_registered())
+        characteristics.push_back(targetPosition->describeValue());
+      if (ps->notify_registered())
+        characteristics.push_back(ps->describeValue());
+      if (obstruction->notify_registered())
+        characteristics.push_back(obstruction->describeValue());
       wasDescribed = true;
 
     } break;
@@ -375,9 +385,12 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
       currentDoorState->setValue(positionState);
       targetDoorState->setValue(this->Sub_value[0]);
 
-      characteristics.push_back(targetDoorState->describeValue());
-      characteristics.push_back(currentDoorState->describeValue());
-      characteristics.push_back(obstruction->describeValue());
+      if (targetDoorState->notify_registered())
+        characteristics.push_back(targetDoorState->describeValue());
+      if (currentDoorState->notify_registered())
+        characteristics.push_back(currentDoorState->describeValue());
+      if (obstruction->notify_registered())
+        characteristics.push_back(obstruction->describeValue());
       wasDescribed = true;
     } break;
   };
@@ -387,7 +400,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
     describe["characteristics"] = characteristics;
     describe.dump(broadcastTemp);
 
-	/* ToDo lbek -> send events only for registered characteristics */
+    /* ToDo lbek -> send events only for registered characteristics */
     broadcastInfo* info = new broadcastInfo;
     info->sender = NULL;
     info->desc = strdup(broadcastTemp.c_str());
@@ -396,8 +409,8 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
 
     pthread_create(thread, NULL, announce, info);
     pthread_detach(*thread);
-    
-	free(thread);
+
+    free(thread);
   }
 }
 
