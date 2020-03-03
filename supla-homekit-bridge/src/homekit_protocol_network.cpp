@@ -818,7 +818,7 @@ void connectionInfo::handlePairVerify() {
         memcpy(&temp[32], deviceIdentity.c_str(), deviceIdentity.length());
         memcpy(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32);
 		
-		print_buf("Temp", reinterpret_cast<const unsigned char *>(signRecord.data), signRecord.length);
+		print_buf("Temp", reinterpret_cast<const unsigned char *>(temp), 100);
 
         PHKNetworkMessageDataRecord signRecord;
         signRecord.activate = true;
