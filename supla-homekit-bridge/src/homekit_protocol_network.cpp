@@ -168,7 +168,7 @@ int setupSocketV4(unsigned int maximumConnection) {
   setsockopt(_socket, SOL_SOCKET, SO_KEEPALIVE, &optval, optlen);
 
   bind(_socket, (const struct sockaddr *)&addr, sizeof(addr));
-  int result = listen(_socket, maximumConnection);
+  listen(_socket, maximumConnection);
   return _socket;
 }
 
@@ -752,8 +752,7 @@ void connectionInfo::handlePairSeup() {
     mResponse.getBinaryPtr(&responseBuffer, &responseLen);
 
     if (responseBuffer) {
-      int len =
-          write(subSocket, (const void *)responseBuffer, (size_t)responseLen);
+      write(subSocket, (const void *)responseBuffer, (size_t)responseLen);
       delete[] responseBuffer;
     };
 
