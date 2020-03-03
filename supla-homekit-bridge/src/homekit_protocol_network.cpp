@@ -984,6 +984,9 @@ void connectionInfo::handlePairVerify() {
     response.getBinaryPtr(&repBuffer, &repLen);
 	
 	supla_log(LOG_DEBUG, "Writing %d bytes to controller", repLen);
+	supla_log(LOG_DEBUG, "-------------------------------");
+	supla_log(LOG_DEBUG, "%s", repBuffer);
+	supla_log(LOG_DEBUG, "-------------------------------");
 	
     if (repBuffer) {
       write(subSocket, repBuffer, repLen);
