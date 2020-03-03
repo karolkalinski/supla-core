@@ -829,8 +829,7 @@ void connectionInfo::handlePairVerify() {
 				chacha20_setup(&chacha20, (const uint8_t *)enKey, 32, (uint8_t *)"PV-Msg03");
                 
                 //Ploy1305 key
-                char temp[64];  
-				char temp2[64]; 
+                char temp[64];  bzero(temp, 64); char temp2[64];  bzero(temp2, 64);
                 chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
                 supla_log(LOG_DEBUG, "Pair-Verify M3 1");
                 char verify[16]; 
