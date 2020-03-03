@@ -7,9 +7,9 @@ C_SRCS += \
 ../src/clientcfg.c 
 
 CPP_SRCS += \
-../src/PHKAccessory.cpp \
-../src/PHKControllerRecord.cpp \
-../src/PHKNetworkIP.cpp \
+../src/homekit_protocol_accessory.cpp \
+../src/homekit_controller_record.cpp \
+../src/homekit_protocol_network.cpp \
 ../src/client_config.cpp \
 ../src/client_device.cpp \
 ../src/client_loop.cpp \
@@ -21,9 +21,9 @@ CPP_SRCS += \
 ../src/suplaclientvaluedispatcher.cpp 
 
 OBJS += \
-./src/PHKAccessory.o \
-./src/PHKControllerRecord.o \
-./src/PHKNetworkIP.o \
+./src/homekit_protocol_accessory.o \
+./src/homekit_controller_record.o \
+./src/homekit_protocol_network.o \
 ./src/client_config.o \
 ./src/client_device.o \
 ./src/client_loop.o \
@@ -39,9 +39,9 @@ C_DEPS += \
 ./src/clientcfg.d 
 
 CPP_DEPS += \
-./src/PHKAccessory.d \
-./src/PHKControllerRecord.d \
-./src/PHKNetworkIP.d \
+./src/homekit_protocol_accessory.d \
+./src/homekit_controller_record.d \
+./src/homekit_protocol_network.d \
 ./src/client_config.d \
 ./src/client_device.d \
 ./src/client_loop.d \
