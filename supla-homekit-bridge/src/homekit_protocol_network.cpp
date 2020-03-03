@@ -838,7 +838,8 @@ void connectionInfo::handlePairVerify() {
                 Poly1305_GenKey((const unsigned char *)temp2, (uint8_t *)encryptedData, packageLen - 16, Type_Data_Without_Length, verify);
                 supla_log(LOG_DEBUG, "Pair-Verify M3 1.5");
 				
-                if (!memcmp(verify, &encryptedData[packageLen-16], 16)) {
+                if (!bcmp(verify, &encryptedData[packageLen-16], 16)) {
+					supla_log(LOG_DEBUG, "Pair-Verify M3 1.6");
                     char *decryptData = new char[packageLen-16];
                     chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData, (uint8_t *)decryptData, packageLen-16);
                     PHKNetworkMessageData data = PHKNetworkMessageData(decryptData, packageLen-16);
