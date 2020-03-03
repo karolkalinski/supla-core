@@ -812,10 +812,10 @@ void connectionInfo::handlePairVerify() {
         memcpy(&temp[32], deviceIdentity.c_str(), deviceIdentity.length());
         memcpy(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32);
 
-        if (memcmp(&temp[32], deviceIdentity.c_str, deviceIdentity.length() ) != 0)
+        if (memcmp(&temp[32], deviceIdentity.c_str(), deviceIdentity.length()) != 0)
 		  supla_log(LOG_DEBUG, "Memory comparision (3) failed");
 	  
-	    if (memcmp(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32 ) != 0)
+	    if (memcmp(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32) != 0)
 		  supla_log(LOG_DEBUG, "Memory comparision (4) failed");
 	  
 
