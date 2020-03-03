@@ -725,8 +725,10 @@ void connectionInfo::handlePairVerify() {
 #if HomeKitLog == 1
                 printf("Pair Verify M1\n");
 #endif
-                bcopy(msg.data.dataPtrForIndex(3), controllerPublicKey, 32);
-                for (unsigned short i = 0; i < sizeof(secretKey); i++) {
+                //bcopy(msg.data.dataPtrForIndex(3), controllerPublicKey, 32);
+                memcpy(controllerPublicKey, msg.data.dataPtrForIndex(3), 32);
+				
+				for (unsigned short i = 0; i < sizeof(secretKey); i++) {
                     secretKey[i] = rand();
                 }
                 curve25519_donna((u8*)publicKey, (const u8 *)secretKey, (const u8 *)curveBasePoint);
@@ -734,19 +736,27 @@ void connectionInfo::handlePairVerify() {
                 curve25519_donna(sharedKey, secretKey, controllerPublicKey);
                 
                 char *temp = new char[100];
-                bcopy(publicKey, temp, 32);
+                memcpy(temp, publicKey, 32);
+				//bcopy(publicKey, temp, 32);
 
                 std::string deviceIdentity = Configuration::Instance().getDeviceIdentity();
 
-                bcopy(deviceIdentity.c_str(), &temp[32], deviceIdentity.length());
-                bcopy(controllerPublicKey, &temp[32+deviceIdentity.length()], 32);
+				memcpy(&temp[32], deviceIdentity.c_str(),  deviceIdentity.length());
+				
+                //bcopy(deviceIdentity.c_str(), &temp[32], deviceIdentity.length());
+                
+				memcpy(&temp[32+deviceIdentity.length()], controllerPublicKey, 32);
+				//bcopy(controllerPublicKey, &temp[32+deviceIdentity.length()], 32);
                 
                 PHKNetworkMessageDataRecord signRecord;
                 signRecord.activate = true; signRecord.data = new char[64]; signRecord.index = 10;  signRecord.length = 64;
                 
                 ed25519_secret_key edSecret;
-                bcopy(accessorySecretKey, edSecret, sizeof(edSecret));
-                ed25519_public_key edPubKey;
+				memcpy(edSecret, accessorySecretKey, sizeof(edSecret));
+				
+                //bcopy(accessorySecretKey, edSecret, sizeof(edSecret));
+                
+				ed25519_public_key edPubKey;
                 ed25519_publickey(edSecret, edPubKey);
                 
                 ed25519_sign((const unsigned char *)temp, 64+deviceIdentity.length(), edSecret, edPubKey, (unsigned char *)signRecord.data);
@@ -755,15 +765,21 @@ void connectionInfo::handlePairVerify() {
                 PHKNetworkMessageDataRecord idRecord;
                 idRecord.activate = true;
                 idRecord.data = new char[17];
-                bcopy(deviceIdentity.c_str(), idRecord.data, 17);
-                idRecord.index = 1;
+                
+				memcpy(idRecord.data, deviceIdentity.c_str(), 17);
+				//bcopy(deviceIdentity.c_str(), idRecord.data, 17);
+                
+				idRecord.index = 1;
                 idRecord.length = (unsigned int)17;
                 
                 PHKNetworkMessageDataRecord pubKeyRecord;
                 pubKeyRecord.activate = true;
                 pubKeyRecord.data = new char[32];
-                bcopy(publicKey, pubKeyRecord.data, 32);
-                pubKeyRecord.index = 3;
+                
+				//bcopy(publicKey, pubKeyRecord.data, 32);
+                memcpy(pubKeyRecord.data, publicKey, 32);
+				
+				pubKeyRecord.index = 3;
                 pubKeyRecord.length = 32;
                 
                 PHKNetworkMessageData data;
@@ -779,9 +795,13 @@ void connectionInfo::handlePairVerify() {
                 data.rawData(&plainMsg, &msgLen);
                 
                 char *encryptMsg = new char[msgLen+16];
-                char *polyKey = new char[64];   bzero(polyKey, 64);
+                char *polyKey = new char[64];   
+				memset(polyKey, 0, 64);
+				
+				//bzero(polyKey, 64);
                 
-                char zero[64];  bzero(zero, 64);
+                char zero[64];  
+				//bzero(zero, 64);
                 
                 chacha20_ctx chacha;
                 chacha20_setup(&chacha, enKey, 32, (uint8_t *)"PV-Msg02");
@@ -800,8 +820,12 @@ void connectionInfo::handlePairVerify() {
                 encryptRecord.index = 5;
                 encryptRecord.length = msgLen+16;
                 encryptRecord.data = new char[encryptRecord.length];
-                bcopy(encryptMsg, encryptRecord.data, encryptRecord.length);
-                response.data.addRecord(encryptRecord);
+                
+				memcpy(encryptRecord.data, encryptMsg, encryptRecord.length);
+				
+				//bcopy(encryptMsg, encryptRecord.data, encryptRecord.length);
+                
+				response.data.addRecord(encryptRecord);
                 
                 delete [] encryptMsg;
                 delete [] polyKey;
