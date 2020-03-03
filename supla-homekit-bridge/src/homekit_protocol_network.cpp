@@ -782,8 +782,12 @@ void connectionInfo::handlePairVerify() {
     memcpy(&state, msg.data.dataPtrForIndex(6), 1);
     switch (state) {
       case State_Pair_Verify_M1: {
-		supla_log(LOG_DEBUG, "Pair-Verify M1");
+		supla_log(LOG_DEBUG, "Pair-Verify M1 - Start");
         memcpy(controllerPublicKey, msg.data.dataPtrForIndex(3), 32);
+		
+		if (memcmp(controllerPublicKey, msg.data.dataPtrForIndex(3), 32) != 0)
+		  supla_log(LOG_DEBUG, "Memory comparision (1) failed");
+	  
 
         for (unsigned short i = 0; i < sizeof(secretKey); i++) {
           secretKey[i] = rand();
@@ -795,13 +799,25 @@ void connectionInfo::handlePairVerify() {
         curve25519_donna(sharedKey, secretKey, controllerPublicKey);
 
         char *temp = new char[100];
-        memcpy(temp, publicKey, 32);
+        
+		memcpy(temp, publicKey, 32);
+		
+		if (memcmp(temp, publicKey, 32) != 0)
+		  supla_log(LOG_DEBUG, "Memory comparision (2) failed");
+	  
 
         std::string deviceIdentity =
             Configuration::Instance().getDeviceIdentity();
 
         memcpy(&temp[32], deviceIdentity.c_str(), deviceIdentity.length());
         memcpy(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32);
+
+        if (memcmp(&temp[32], deviceIdentity.c_str, deviceIdentity.length() ) != 0)
+		  supla_log(LOG_DEBUG, "Memory comparision (3) failed");
+	  
+	    if (memcmp(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32 ) != 0)
+		  supla_log(LOG_DEBUG, "Memory comparision (4) failed");
+	  
 
         PHKNetworkMessageDataRecord signRecord;
         signRecord.activate = true;
@@ -816,6 +832,7 @@ void connectionInfo::handlePairVerify() {
 
         ed25519_sign((const unsigned char *)temp, 64 + deviceIdentity.length(),
                      edSecret, edPubKey, (unsigned char *)signRecord.data);
+					 
         delete[] temp;
 
         PHKNetworkMessageDataRecord idRecord;
@@ -830,6 +847,8 @@ void connectionInfo::handlePairVerify() {
         pubKeyRecord.data = new char[32];
 
         memcpy(pubKeyRecord.data, publicKey, 32);
+		if (memcmp(pubKeyRecord.data, publicKey, 32) != 0)
+		  supla_log(LOG_DEBUG, "Memory comparision (5) failed");
 
         pubKeyRecord.index = 3;
         pubKeyRecord.length = 32;
@@ -862,7 +881,8 @@ void connectionInfo::handlePairVerify() {
 
         char verify[16];
         memset(verify, 0, 16);
-        Poly1305_GenKey((const unsigned char *)polyKey, (uint8_t *)encryptMsg,
+        
+		Poly1305_GenKey((const unsigned char *)polyKey, (uint8_t *)encryptMsg,
                         msgLen, Type_Data_Without_Length, verify);
         memcpy((unsigned char *)&encryptMsg[msgLen], verify, 16);
 
@@ -877,6 +897,9 @@ void connectionInfo::handlePairVerify() {
 
         delete[] encryptMsg;
         delete[] polyKey;
+		
+		supla_log("Pair-Verify M1 - End");
+		
       } break;
       case State_Pair_Verify_M3: {
 		supla_log(LOG_DEBUG, "Pair-Verify M3");
