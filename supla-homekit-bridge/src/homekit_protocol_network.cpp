@@ -829,30 +829,28 @@ void connectionInfo::handlePairVerify() {
 				chacha20_setup(&chacha20, (const uint8_t *)enKey, 32, (uint8_t *)"PV-Msg03");
                 
                 //Ploy1305 key
-                char temp[64];  bzero(temp, 64); char temp2[64];  bzero(temp2, 64);
-                chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
-                supla_log(LOG_DEBUG, "Pair-Verify M3 1");
-                char verify[16]; 
-				bzero(verify, 16);
-                Poly1305_GenKey((const unsigned char *)temp2, (uint8_t *)encryptedData, packageLen - 16, Type_Data_Without_Length, verify);
-                supla_log(LOG_DEBUG, "Pair-Verify M3 1.5");
+                char temp[64] = {0};  
+				char temp2[64] = {0};
 				
+                chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
+                char verify[16] = {0}; 
+				
+				Poly1305_GenKey((const unsigned char *)temp2, (uint8_t *)encryptedData, packageLen - 16, Type_Data_Without_Length, verify);
+                
                 if (!bcmp(verify, &encryptedData[packageLen-16], 16)) {
-					supla_log(LOG_DEBUG, "Pair-Verify M3 1.6");
-                    char *decryptData = new char[packageLen-16];
+				    char *decryptData = new char[packageLen-16];
                     chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData, (uint8_t *)decryptData, packageLen-16);
                     PHKNetworkMessageData data = PHKNetworkMessageData(decryptData, packageLen-16);
-                    supla_log(LOG_DEBUG, "Pair-Verify M3 2");
                     PHKKeyRecord rec = getControllerKey(data.dataPtrForIndex(1));
                     
-                    char tempMsg[100];
+                    char tempMsg[100] = {0};
                     memcpy(tempMsg, controllerPublicKey, 32);
 					memcpy(&tempMsg[32], data.dataPtrForIndex(1), 36);
 					memcpy(identity, data.dataPtrForIndex(1), 36);
 					memcpy(&tempMsg[68], publicKey, 32);
 					
                     int err = ed25519_sign_open((const unsigned char *)tempMsg, 100, (const unsigned char *)rec.publicKey, (const unsigned char *)data.dataPtrForIndex(10));
-                    supla_log(LOG_DEBUG, "Pair-Verify M3 3");
+                   
                     if (err == 0) {
                         end = true;
                         
