@@ -881,6 +881,8 @@ void connectionInfo::handlePairVerify() {
         memset(polyKey, 0, 64);
 
         char zero[64];
+		memset(zero, 0, 64);
+		
         chacha20_ctx chacha;
         chacha20_setup(&chacha, enKey, 32, (uint8_t *)"PV-Msg02");
         chacha20_encrypt(&chacha, (uint8_t *)zero, (uint8_t *)polyKey, 64);
