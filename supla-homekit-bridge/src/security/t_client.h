@@ -32,6 +32,7 @@
 
 #include "t_sha.h"
 #include "cstr.h"
+#include <stdlib.h>
 
 #define ALEN 32
 #define MIN_MOD_BYTES 64	/* 512 bits */

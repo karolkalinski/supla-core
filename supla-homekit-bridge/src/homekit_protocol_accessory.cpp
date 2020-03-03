@@ -1,11 +1,3 @@
-//
-//  PHKAccessory.c
-//  Workbench
-//
-//  Created by Wai Man Chan on 9/27/14.
-//
-//
-
 #include "homekit_protocol_accessory.h"
 
 #include "Configuration.h"

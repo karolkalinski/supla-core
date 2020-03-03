@@ -1,6 +1,7 @@
 /*
 	conversions
 */
+#include <string.h>
 
 DONNA_INLINE static void
 ge25519_p1p1_to_partial(ge25519 *r, const ge25519_p1p1 *p) {
