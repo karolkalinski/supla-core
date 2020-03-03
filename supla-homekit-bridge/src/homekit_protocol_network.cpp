@@ -875,6 +875,8 @@ void connectionInfo::handlePairVerify() {
         const char *plainMsg = 0;
         unsigned short msgLen = 0;
         data.rawData(&plainMsg, &msgLen);
+		
+		supla_log(LOG_DEBUG, "%s", plainMsg);
 
         char *encryptMsg = new char[msgLen + 16];
         char *polyKey = new char[64];
