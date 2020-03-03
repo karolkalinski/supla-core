@@ -232,7 +232,6 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
 
       char *buffer2 = characteristicsBuffer;
       while (strlen(buffer2) && statusCode != HTTP_STATUS_BAD_REQUEST) {
-        bool reachLast = false;
         bool updateNotify = false;
         char *buffer1;
         buffer1 = strtok_r(buffer2, "}", &buffer2);
