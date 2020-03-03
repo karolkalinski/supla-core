@@ -956,7 +956,10 @@ void connectionInfo::handlePairVerify() {
             write(subSocket, repBuffer, repLen);
             delete [] repBuffer;
         }
-    } while (!end && read(subSocket, buffer, 4096) > 0);
+	  int bytes_read = read(subSocker, buffer, 4096);
+	  supla_log(LOG_DEBUG, "readed: %d", bytes_read);
+	  
+    } while (!end && bytes_read > 0);
 }
 
 void connectionInfo::handleAccessoryRequest() {
