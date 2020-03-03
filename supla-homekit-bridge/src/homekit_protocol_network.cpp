@@ -63,6 +63,16 @@ using namespace std;
 connectionInfo connection[numberOfClient];
 void *stayAliveThread = NULL;
 
+static void print_buf(const char *title, const unsigned char *buf, size_t buf_len)
+{
+    size_t i = 0;
+    fprintf(stdout, "%s\n", title);
+    for(i = 0; i < buf_len; ++i)
+    fprintf(stdout, "%02X%s", buf[i],
+             ( i + 1 ) % 16 == 0 ? "\r\n" : " " );
+
+}
+
 void stayAliveTrigger(void *user_data, void *sthread) {
   struct timeval now;
   struct timeval last = (struct timeval){0};
@@ -985,7 +995,7 @@ void connectionInfo::handlePairVerify() {
 	
 	supla_log(LOG_DEBUG, "Writing %d bytes to controller", repLen);
 	supla_log(LOG_DEBUG, "-------------------------------");
-	supla_log(LOG_DEBUG, "%s", repBuffer);
+	print_buf("Response", repBuffer, repLen);
 	supla_log(LOG_DEBUG, "-------------------------------");
 	
     if (repBuffer) {
