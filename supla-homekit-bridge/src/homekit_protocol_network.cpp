@@ -519,12 +519,11 @@ void connectionInfo::handlePairSeup() {
         keyStr = msg.data.dataPtrForIndex(3);
         keyLen = msg.data.lengthForIndex(3);
         char *temp = msg.data.dataPtrForIndex(4);
-        if (temp != NULL) {
-          proofStr = temp;
-          proofLen = msg.data.lengthForIndex(4);
-        }
-
-        SRP_RESULT result = SRP_compute_key(
+        proofStr = temp;
+        proofLen = msg.data.lengthForIndex(4);
+        
+        
+		SRP_RESULT result = SRP_compute_key(
             srp, &secretKey, (const unsigned char *)keyStr, keyLen);
         result = SRP_verify(srp, (const unsigned char *)proofStr, proofLen);
 
@@ -765,6 +764,8 @@ void connectionInfo::handlePairSeup() {
 }
 
 void connectionInfo::handlePairVerify() {
+  
+  supla_log(LOG_DEBUG, "Entering Pair-Verify");
   bool end = false;
   char state = State_Pair_Verify_M1;
 
@@ -781,15 +782,14 @@ void connectionInfo::handlePairVerify() {
     memcpy(&state, msg.data.dataPtrForIndex(6), 1);
     switch (state) {
       case State_Pair_Verify_M1: {
-#if HomeKitLog == 1
-        printf("Pair Verify M1\n");
-#endif
+		supla_log(LOG_DEBUG, "Pair-Verify M1");
         memcpy(controllerPublicKey, msg.data.dataPtrForIndex(3), 32);
 
         for (unsigned short i = 0; i < sizeof(secretKey); i++) {
           secretKey[i] = rand();
         }
-        curve25519_donna((u8 *)publicKey, (const u8 *)secretKey,
+        
+		curve25519_donna((u8 *)publicKey, (const u8 *)secretKey,
                          (const u8 *)curveBasePoint);
 
         curve25519_donna(sharedKey, secretKey, controllerPublicKey);
@@ -879,9 +879,7 @@ void connectionInfo::handlePairVerify() {
         delete[] polyKey;
       } break;
       case State_Pair_Verify_M3: {
-#if HomeKitLog == 1
-        printf("Pair Verify M3\n");
-#endif
+		supla_log(LOG_DEBUG, "Pair-Verify M3");
         char *encryptedData = msg.data.dataPtrForIndex(5);
         short packageLen = msg.data.lengthForIndex(5);
 
@@ -921,9 +919,7 @@ void connectionInfo::handlePairVerify() {
               (const unsigned char *)rec.publicKey,
               (const unsigned char *)data.dataPtrForIndex(10));
 
-          // char *repBuffer = 0;
-          // int repLen = 0;
-          if (err == 0) {
+           if (err == 0) {
             end = true;
 
             hkdf((uint8_t *)"Control-Salt", 12, sharedKey, 32,
@@ -932,9 +928,8 @@ void connectionInfo::handlePairVerify() {
             hkdf((uint8_t *)"Control-Salt", 12, sharedKey, 32,
                  (uint8_t *)"Control-Write-Encryption-Key", 28,
                  controllerToAccessoryKey, 32);
-#if HomeKitLog == 1
-            printf("Verify success\n");
-#endif
+				 
+			supla_log(LOG_DEBUG, "Pair-Verify success!");
 
           } else {
             PHKNetworkMessageDataRecord error;
@@ -944,9 +939,8 @@ void connectionInfo::handlePairVerify() {
             error.index = 7;
             error.length = 1;
             response.data.addRecord(error);
-#if HomeKitLog == 1
-            printf("Verify failed\n");
-#endif
+
+			supla_log(LOG_DEBUG, "Pair-Verify failure!");
           }
 
           delete[] decryptData;
@@ -1309,6 +1303,5 @@ PHKNetworkMessageDataRecord &PHKNetworkMessageDataRecord::operator=(
 }
 
 PHKNetworkMessageDataRecord::~PHKNetworkMessageDataRecord() {
-  supla_log(LOG_DEBUG, "deleting data record %d", length);
   if (length) delete[] data;
 }
