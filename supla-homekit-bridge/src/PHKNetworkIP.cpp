@@ -523,7 +523,7 @@ void connectionInfo::handlePairSeup() {
                 Poly1305_GenKey((const unsigned char*)temp2, (unsigned char *)encryptedData, packageLen - 16, Type_Data_Without_Length, verify);
                 
                 char *decryptedData = new char[packageLen-16];
-				memset(decryptedData, 0, packageLen-16));
+				memset(decryptedData, 0, packageLen-16);
                 chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData, (uint8_t *)decryptedData, packageLen-16);
                 
                 if (bcmp(verify, mac, 16)) {
