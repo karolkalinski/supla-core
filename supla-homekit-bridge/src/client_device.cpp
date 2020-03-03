@@ -302,8 +302,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
       wasDescribed = true;
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER: {
-      service* service =
-          accessory->getServiceByType(serviceType_windowCovering);
+      service* service = accessory->getServiceByType(serviceType_windowCover);
       if (!service) return;
 
       boolCharacteristic* obstruction =
@@ -345,7 +344,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
 
       characteristics.push_back(currentPosition->describeValue());
       characteristics.push_back(targetPosition->describeValue());
-      characteristics.push_back(positionState->describeValue());
+      characteristics.push_back(ps->describeValue());
       characteristics.push_back(obstruction->describeValue());
       wasDescribed = true;
 
