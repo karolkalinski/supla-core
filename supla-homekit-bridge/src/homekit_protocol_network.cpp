@@ -795,129 +795,92 @@ void connectionInfo::handlePairVerify() {
     memcpy(&state, msg.data.dataPtrForIndex(6), 1);
     switch (state) {
       case State_Pair_Verify_M1: {
-		supla_log(LOG_DEBUG, "Pair-Verify M1 - Start");
-        
-		memcpy(controllerPublicKey, msg.data.dataPtrForIndex(3), 32);
-	    
-        for (unsigned short i = 0; i < sizeof(secretKey); i++) {
-          secretKey[i] = 5;
-        }
-        
-		curve25519_donna((u8 *)publicKey, (const u8 *)secretKey,
-                         (const u8 *)curveBasePoint);
+#if HomeKitLog == 1
+                printf("Pair Verify M1\n");
+#endif
+                bcopy(msg.data.dataPtrForIndex(3), controllerPublicKey, 32);
+				
+                for (unsigned short i = 0; i < sizeof(secretKey); i++) {
+                    secretKey[i] = rand();
+                }
+                curve25519_donna((u8*)publicKey, (const u8 *)secretKey, (const u8 *)curveBasePoint);
+                
+                curve25519_donna(sharedKey, secretKey, controllerPublicKey);
+                
+                char *temp = new char[100];
+                bcopy(publicKey, temp, 32);
 
-        curve25519_donna(sharedKey, secretKey, controllerPublicKey);
+                std::string deviceIdentity = Configuration::Instance().getDeviceIdentity();
 
-        char *temp = new char[100];
-        
-		memcpy(temp, publicKey, 32);
-		
-        std::string deviceIdentity =
-            Configuration::Instance().getDeviceIdentity();
-         
-        memcpy(&temp[32], deviceIdentity.c_str(), deviceIdentity.length());
-        memcpy(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32);
-		
-		print_buf("Temp", reinterpret_cast<const unsigned char *>(temp), 100);
-
-        PHKNetworkMessageDataRecord signRecord;
-        signRecord.activate = true;
-        signRecord.data = new char[64];
-        signRecord.index = 10;
-        signRecord.length = 64;
-
-        ed25519_secret_key edSecret;
-        memcpy(edSecret, accessorySecretKey, sizeof(edSecret));
-        ed25519_public_key edPubKey;
-        ed25519_publickey(edSecret, edPubKey);
-
-        ed25519_sign((const unsigned char *)temp, 64 + deviceIdentity.length(),
-                     edSecret, edPubKey, (unsigned char *)signRecord.data);
-		
-		/* print signrecord data */
-		print_buf("SignRecord", reinterpret_cast<const unsigned char *>(signRecord.data), signRecord.length);
-		
-        delete[] temp;
-
-        PHKNetworkMessageDataRecord idRecord;
-        idRecord.activate = true;
-        idRecord.data = new char[deviceIdentity.length()];
-        memcpy(idRecord.data, deviceIdentity.c_str(), deviceIdentity.length());
-        idRecord.index = 1;
-        idRecord.length = (unsigned int)deviceIdentity.length();
-
-		/* print signrecord data */
-		print_buf("IdRecord", reinterpret_cast<const unsigned char *>(idRecord.data), idRecord.length);
-
-
-        PHKNetworkMessageDataRecord pubKeyRecord;
-        pubKeyRecord.activate = true;
-        pubKeyRecord.data = new char[32];
-      
-        memcpy(pubKeyRecord.data, publicKey, 32);
-   
-        pubKeyRecord.index = 3;
-        pubKeyRecord.length = 32;
-
-		/* print signrecord data */
-		print_buf("PubKeyRecord", reinterpret_cast<const unsigned char *>(pubKeyRecord.data), pubKeyRecord.length);
-
-
-        PHKNetworkMessageData data;
-        response.data.addRecord(pubKeyRecord);
-        data.addRecord(signRecord);
-        data.addRecord(idRecord);
-
-        unsigned char salt[] = "Pair-Verify-Encrypt-Salt";
-        unsigned char info[] = "Pair-Verify-Encrypt-Info";
-
-        hkdf(salt, 24, sharedKey, 32, info, 24, enKey, 32);
-        const char *plainMsg = 0;
-        unsigned short msgLen = 0;
-        data.rawData(&plainMsg, &msgLen);
-
-        char *encryptMsg = new char[msgLen + 16];
-        char *polyKey = new char[64];
-        memset(polyKey, 0, 64);
-
-        char zero[64];
-		memset(zero, 0, 64);
-		
-        chacha20_ctx chacha;
-        chacha20_setup(&chacha, enKey, 32, (uint8_t *)"PV-Msg02");
-        chacha20_encrypt(&chacha, (uint8_t *)zero, (uint8_t *)polyKey, 64);
-        chacha20_encrypt(&chacha, (uint8_t *)plainMsg, (uint8_t *)encryptMsg,
-                         msgLen);
-
-	  
-
-        delete[] plainMsg;
-
-        char verify[16];
-        memset(verify, 0, 16);
-        
-		Poly1305_GenKey((const unsigned char *)polyKey, (uint8_t *)encryptMsg,
-                        msgLen, Type_Data_Without_Length, verify);
-						
-        memcpy((unsigned char *)&encryptMsg[msgLen], verify, 16);
-
-        PHKNetworkMessageDataRecord encryptRecord;
-        encryptRecord.activate = true;
-        encryptRecord.index = 5;
-        encryptRecord.length = msgLen + 16;
-        encryptRecord.data = new char[encryptRecord.length];
-         
-        memcpy(encryptRecord.data, encryptMsg, encryptRecord.length);
-        response.data.addRecord(encryptRecord);
-   
-        print_buf("EncryptRecord", reinterpret_cast<const unsigned char *>(encryptRecord.data), encryptRecord.length);      
-
-        delete[] encryptMsg;
-        delete[] polyKey;
-		
-		supla_log(LOG_DEBUG, "Pair-Verify M1 - End");
-		
-      } break;
+                bcopy(deviceIdentity.c_str(), &temp[32], deviceIdentity.length());
+                bcopy(controllerPublicKey, &temp[32+deviceIdentity.length()], 32);
+                
+                PHKNetworkMessageDataRecord signRecord;
+                signRecord.activate = true; signRecord.data = new char[64]; signRecord.index = 10;  signRecord.length = 64;
+                
+                ed25519_secret_key edSecret;
+                bcopy(accessorySecretKey, edSecret, sizeof(edSecret));
+                ed25519_public_key edPubKey;
+                ed25519_publickey(edSecret, edPubKey);
+                
+                ed25519_sign((const unsigned char *)temp, 64+deviceIdentity.length(), edSecret, edPubKey, (unsigned char *)signRecord.data);
+                delete [] temp;
+                
+                PHKNetworkMessageDataRecord idRecord;
+                idRecord.activate = true;
+                idRecord.data = new char[17];
+                bcopy(deviceIdentity.c_str(), idRecord.data, 17);
+                idRecord.index = 1;
+                idRecord.length = (unsigned int)17;
+                
+                PHKNetworkMessageDataRecord pubKeyRecord;
+                pubKeyRecord.activate = true;
+                pubKeyRecord.data = new char[32];
+                bcopy(publicKey, pubKeyRecord.data, 32);
+                pubKeyRecord.index = 3;
+                pubKeyRecord.length = 32;
+                
+                PHKNetworkMessageData data;
+                response.data.addRecord(pubKeyRecord);
+                data.addRecord(signRecord);
+                data.addRecord(idRecord);
+                
+                unsigned char salt[] = "Pair-Verify-Encrypt-Salt";
+                unsigned char info[] = "Pair-Verify-Encrypt-Info";
+                
+                hkdf(salt, 24, sharedKey, 32, info, 24, enKey, 32);
+                const char *plainMsg = 0;   unsigned short msgLen = 0;
+                data.rawData(&plainMsg, &msgLen);
+                
+                char *encryptMsg = new char[msgLen+16];
+                char *polyKey = new char[64];   bzero(polyKey, 64);
+                
+                char zero[64];  bzero(zero, 64);
+                
+                chacha20_ctx chacha;
+                chacha20_setup(&chacha, enKey, 32, (uint8_t *)"PV-Msg02");
+                chacha20_encrypt(&chacha, (uint8_t *)zero, (uint8_t *)polyKey, 64);
+                chacha20_encrypt(&chacha, (uint8_t *)plainMsg, (uint8_t *)encryptMsg, msgLen);
+                
+                delete [] plainMsg;
+                
+                char verify[16];
+                memset(verify, 0, 16);
+                Poly1305_GenKey((const unsigned char *)polyKey, (uint8_t *)encryptMsg, msgLen, Type_Data_Without_Length, verify);
+                memcpy((unsigned char *)&encryptMsg[msgLen], verify, 16);
+                
+                PHKNetworkMessageDataRecord encryptRecord;
+                encryptRecord.activate = true;
+                encryptRecord.index = 5;
+                encryptRecord.length = msgLen+16;
+                encryptRecord.data = new char[encryptRecord.length];
+                bcopy(encryptMsg, encryptRecord.data, encryptRecord.length);
+                response.data.addRecord(encryptRecord);
+                
+                delete [] encryptMsg;
+                delete [] polyKey;
+            }
+                break;
       case State_Pair_Verify_M3: {
 		supla_log(LOG_DEBUG, "Pair-Verify M3");
         char *encryptedData = msg.data.dataPtrForIndex(5);
