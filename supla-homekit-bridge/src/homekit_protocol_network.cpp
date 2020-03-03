@@ -800,9 +800,9 @@ void connectionInfo::handlePairVerify() {
 		memcpy(controllerPublicKey, msg.data.dataPtrForIndex(3), 32);
 	    
         for (unsigned short i = 0; i < sizeof(secretKey); i++) {
-          secretKey[i] = 5;
+          //secretKey[i] = 5;
 		  
-		  //secretKey[i] = rand();
+		  secretKey[i] = rand();
         }
         
 		curve25519_donna((u8 *)publicKey, (const u8 *)secretKey,
@@ -883,6 +883,11 @@ void connectionInfo::handlePairVerify() {
         chacha20_encrypt(&chacha, (uint8_t *)plainMsg, (uint8_t *)encryptMsg,
                          msgLen);
 
+		supla_log(LOG_DEBUG, "Writing plain %d bytes to controller", repLen);
+	supla_log(LOG_DEBUG, "-------------------------------");
+	print_buf("Response", reinterpret_cast<const unsigned char *>(plainMsg), repLen);
+	supla_log(LOG_DEBUG, "-------------------------------");
+
         delete[] plainMsg;
 
         char verify[16];
@@ -890,6 +895,7 @@ void connectionInfo::handlePairVerify() {
         
 		Poly1305_GenKey((const unsigned char *)polyKey, (uint8_t *)encryptMsg,
                         msgLen, Type_Data_Without_Length, verify);
+						
         memcpy((unsigned char *)&encryptMsg[msgLen], verify, 16);
 
         PHKNetworkMessageDataRecord encryptRecord;
