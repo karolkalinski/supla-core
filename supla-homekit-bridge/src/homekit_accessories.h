@@ -5,7 +5,7 @@
 #include "homekit_classes.h"
 #include "homekit_configuration.h"
 #include "homekit_controller_record.h"
-#include "homekit_procotol_network.h"
+#include "homekit_protocol_network.h"
 #include "supla-client-lib/safearray.h"
 
 class homekit_accessories {
