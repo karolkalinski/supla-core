@@ -787,7 +787,7 @@ void connectionInfo::handlePairVerify() {
 #if HomeKitLog == 1
     printf("Start Pair Verify\n");
 #endif
-    int bytes_read = 0;
+    
     do {
         PHKNetworkMessage msg(buffer);
         PHKNetworkResponse response = PHKNetworkResponse(200);
@@ -956,10 +956,8 @@ void connectionInfo::handlePairVerify() {
             write(subSocket, repBuffer, repLen);
             delete [] repBuffer;
         }
-		
-	  bytes_read = read(subSocker, buffer, 4096);
-	  supla_log(LOG_DEBUG, "readed: %d", bytes_read);
-	  
+	  int bytes_read = read(subSocker, buffer, 4096);
+	   
     } while (!end && bytes_read > 0);
 }
 
@@ -1146,19 +1144,15 @@ PHKNetworkMessage::PHKNetworkMessage(const char *rawData) {
 }
 
 void PHKNetworkMessage::getBinaryPtr(char **buffer, int *contentLength) {
-  const char *_data;
-  unsigned short dataSize;
-  data.rawData(&_data, &dataSize);
-  (*buffer) = new char[1024];
-  (*contentLength) = snprintf(
-      (*buffer), 1024,
-      "%s /%s HTTP/1.1\r\nContent-Length: %hu\r\nContent-Type: %s\r\n\r\n",
-      method, directory, dataSize, type);
-  for (int i = 0; i < dataSize; i++) {
-    (*buffer)[*contentLength + i] = _data[i];
-  }
-  (*contentLength) += dataSize;
-  (*buffer)[*contentLength] = 0;
+    const char *_data; unsigned short dataSize;
+    data.rawData(&_data, &dataSize);
+    (*buffer) = new char[1024];
+    (*contentLength) = snprintf((*buffer), 1024, "%s /%s HTTP/1.1\r\nContent-Length: %hu\r\nContent-Type: %s\r\n\r\n", method, directory, dataSize, type);
+    for (int i = 0; i < dataSize; i++) {
+        (*buffer)[*contentLength+i] = _data[i];
+    }
+    (*contentLength)+=dataSize;
+    (*buffer)[*contentLength] = 0;
 }
 
 PHKNetworkMessageData &PHKNetworkMessageData::operator=(
@@ -1176,53 +1170,50 @@ PHKNetworkMessageData &PHKNetworkMessageData::operator=(
   return *this;
 }
 
-PHKNetworkMessageData::PHKNetworkMessageData(const char *rawData,
-                                             unsigned short len) {
-  unsigned short delta = 0;
-  while (delta < len) {
-    int index = recordIndex(rawData[delta + 0]);
-    if (index < 0) {
-      records[count].index = (rawData)[delta + 0];
-      records[count].length = (unsigned char)(rawData)[delta + 1];
-      records[count].data = new char[records[count].length];
-      records[count].activate = true;
-
-      memcpy(records[count].data, &rawData[delta + 2], records[count].length);
-      delta += (records[count].length + 2);
-      count++;
-    } else {
-      int newLen = ((unsigned char *)(rawData))[delta + 1];
-      newLen += records[index].length;
-      char *ptr = new char[newLen];
-
-      memcpy(ptr, records[index].data, records[index].length);
-      memcpy(&ptr[records[index].length], &rawData[delta + 2],
-             newLen - records[index].length);
-      delete[] records[index].data;
-      records[index].data = ptr;
-      delta += (newLen - records[index].length + 2);
-      records[index].length = newLen;
+PHKNetworkMessageData::PHKNetworkMessageData(const char *rawData, unsigned short len) {
+    unsigned short delta = 0;
+    while (delta < len) {
+        int index = recordIndex(rawData[delta+0]);
+        if (index < 0) {
+            records[count].index = (rawData)[delta+0];
+            records[count].length = (unsigned char)(rawData)[delta+1];
+            records[count].data = new char[records[count].length];
+            records[count].activate = true;
+            bcopy(&rawData[delta+2], records[count].data, records[count].length);
+            delta += (records[count].length+2);
+            count++;
+        } else {
+            int newLen = ((unsigned char*)(rawData))[delta+1];
+            newLen += records[index].length;
+            char *ptr = new char[newLen];
+            bcopy(records[index].data, ptr, records[index].length);
+            bcopy(&rawData[delta+2], &ptr[records[index].length], newLen-records[index].length);
+            delete [] records[index].data;
+            records[index].data = ptr;
+            
+            delta += (newLen-records[index].length+2);
+            records[index].length = newLen;
+            
+        }
     }
-  }
 }
 
 void PHKNetworkMessageData::rawData(const char **dataPtr, unsigned short *len) {
-  string buffer = "";
-  for (int i = 0; i < 10; i++) {
-    if (records[i].activate) {
-      for (unsigned int j = 0; j != records[i].length;) {
-        unsigned char len =
-            records[i].length - j > 255 ? 255 : records[i].length - j;
-        string temp(&records[i].data[j], len);
-        temp = (char)records[i].index + ((char)len + temp);
-        buffer += temp;
-        j += (unsigned int)len;
-      }
+    string buffer = "";
+    for (int i = 0; i < 10; i++) {
+        if (records[i].activate) {
+            for (unsigned int j = 0; j != records[i].length;) {
+                unsigned char len = records[i].length-j>255?255:records[i].length-j;
+                string temp(&records[i].data[j], len);
+                temp = (char)records[i].index+((char)len+temp);
+                buffer += temp;
+                j += (unsigned int)len;
+            }
+        }
     }
-  }
-  *len = buffer.length();
-  *dataPtr = new char[*len];
-  memcpy((void *)*dataPtr, buffer.c_str(), *len);
+    *len = buffer.length();
+    *dataPtr = new char[*len];
+    bcopy(buffer.c_str(), (void *)*dataPtr, *len);
 }
 
 int PHKNetworkMessageData::recordIndex(unsigned char index) {
@@ -1253,25 +1244,22 @@ string PHKNetworkResponse::responseType() {
 inline void int2str(int i, char *s) { sprintf(s, "%d", i); }
 
 void PHKNetworkResponse::getBinaryPtr(char **buffer, int *contentLength) {
-  char tempCstr[5];
-  int2str(responseCode, tempCstr);
-  string temp = "HTTP/1.1 ";
-  temp += tempCstr + (" " + responseType());
-  temp += "\r\nContent-Type: application/pairing+tlv8\r\nContent-Length: ";
-  const char *dataPtr;
-  unsigned short dataLen;
-  data.rawData(&dataPtr, &dataLen);
-  int2str(dataLen, tempCstr);
-  temp += tempCstr;
-  temp += "\r\n\r\n";
-  *buffer = new char[temp.length() + dataLen];
-
-  memcpy(*buffer, temp.c_str(), temp.length());
-
-  memcpy(&((*buffer)[temp.length()]), dataPtr, dataLen);
-
-  *contentLength = temp.length() + dataLen;
-  delete[] dataPtr;
+    char tempCstr[5];   int2str(responseCode, tempCstr);
+    string temp = "HTTP/1.1 ";
+    temp += tempCstr+(" "+responseType());
+    temp += "\r\nContent-Type: application/pairing+tlv8\r\nContent-Length: ";
+    const char *dataPtr;    unsigned short dataLen;
+    data.rawData(&dataPtr, &dataLen);
+    int2str(dataLen, tempCstr);
+    temp += tempCstr;
+    temp += "\r\n\r\n";
+    *buffer = new char[temp.length()+dataLen];
+	
+    bcopy(temp.c_str(), *buffer, temp.length());
+    bcopy(dataPtr, &((*buffer)[temp.length()]), dataLen);
+	
+    *contentLength = temp.length()+dataLen;
+    delete [] dataPtr;
 }
 
 char *PHKNetworkMessageData::dataPtrForIndex(unsigned char index) {
