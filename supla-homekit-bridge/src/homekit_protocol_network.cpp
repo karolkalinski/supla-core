@@ -800,9 +800,7 @@ void connectionInfo::handlePairVerify() {
 		memcpy(controllerPublicKey, msg.data.dataPtrForIndex(3), 32);
 	    
         for (unsigned short i = 0; i < sizeof(secretKey); i++) {
-          //secretKey[i] = 5;
-		  
-		  secretKey[i] = rand();
+          secretKey[i] = 5;
         }
         
 		curve25519_donna((u8 *)publicKey, (const u8 *)secretKey,
@@ -814,14 +812,11 @@ void connectionInfo::handlePairVerify() {
         
 		memcpy(temp, publicKey, 32);
 		
-		
-
         std::string deviceIdentity =
             Configuration::Instance().getDeviceIdentity();
          
         memcpy(&temp[32], deviceIdentity.c_str(), deviceIdentity.length());
-        
-		memcpy(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32);
+        memcpy(&temp[32 + deviceIdentity.length()], controllerPublicKey, 32);
 
         PHKNetworkMessageDataRecord signRecord;
         signRecord.activate = true;
@@ -836,7 +831,10 @@ void connectionInfo::handlePairVerify() {
 
         ed25519_sign((const unsigned char *)temp, 64 + deviceIdentity.length(),
                      edSecret, edPubKey, (unsigned char *)signRecord.data);
-					 
+		
+		/* print signrecord data */
+		print_buf("SignRecord", reinterpret_cast<const unsigned char *>(signRecord.data), signRecord.length);
+		
         delete[] temp;
 
         PHKNetworkMessageDataRecord idRecord;
@@ -846,18 +844,22 @@ void connectionInfo::handlePairVerify() {
         idRecord.index = 1;
         idRecord.length = (unsigned int)deviceIdentity.length();
 
+		/* print signrecord data */
+		print_buf("IdRecord", reinterpret_cast<const unsigned char *>(idRecord.data), idRecord.length);
+
+
         PHKNetworkMessageDataRecord pubKeyRecord;
         pubKeyRecord.activate = true;
         pubKeyRecord.data = new char[32];
-   
-   
+      
         memcpy(pubKeyRecord.data, publicKey, 32);
-          	
-		
-	
-
+   
         pubKeyRecord.index = 3;
         pubKeyRecord.length = 32;
+
+		/* print signrecord data */
+		print_buf("PubKeyRecord", reinterpret_cast<const unsigned char *>(pubKeyRecord.data), pubKeyRecord.length);
+
 
         PHKNetworkMessageData data;
         response.data.addRecord(pubKeyRecord);
@@ -883,10 +885,7 @@ void connectionInfo::handlePairVerify() {
         chacha20_encrypt(&chacha, (uint8_t *)plainMsg, (uint8_t *)encryptMsg,
                          msgLen);
 
-		supla_log(LOG_DEBUG, "Writing plain %d bytes to controller", msgLen);
-	supla_log(LOG_DEBUG, "-------------------------------");
-	print_buf("Response", reinterpret_cast<const unsigned char *>(plainMsg), msgLen);
-	supla_log(LOG_DEBUG, "-------------------------------");
+	  
 
         delete[] plainMsg;
 
@@ -903,9 +902,11 @@ void connectionInfo::handlePairVerify() {
         encryptRecord.index = 5;
         encryptRecord.length = msgLen + 16;
         encryptRecord.data = new char[encryptRecord.length];
-
+         
         memcpy(encryptRecord.data, encryptMsg, encryptRecord.length);
         response.data.addRecord(encryptRecord);
+   
+        print_buf("EncryptRecord", reinterpret_cast<const unsigned char *>(encryptRecord.data), encryptRecord.length);      
 
         delete[] encryptMsg;
         delete[] polyKey;
