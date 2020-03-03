@@ -11,38 +11,37 @@
 #define HomeKitReplyHeaderLog 0
 #define PowerOnTest 0
 
-//Device Setting
+// Device Setting
 //#define deviceName "Supla HomeKit Bridge"    //Name
-
 
 //#define devicePassword "123-44-321" //Password
 
-//Where to store the client keys
+// Where to store the client keys
 
-//Number of client
+// Number of client
 /*
  * BEWARE: Never set the number of client to 1
- * iOS HomeKit pair setup socket will not release until the pair verify stage start
- * So you will never got the pair corrected, as it is incomplete (The error require manually reset HomeKit setting
+ * iOS HomeKit pair setup socket will not release until the pair verify stage
+ * start So you will never got the pair corrected, as it is incomplete (The
+ * error require manually reset HomeKit setting
  */
 #define numberOfClient 20
-//Number of notifiable value
+// Number of notifiable value
 /*
  * Count how many notifiable value exist in your set
- * For dynamic add/drop model, please estimate the maximum number (Too few->Buffer overflow)
+ * For dynamic add/drop model, please estimate the maximum number (Too
+ * few->Buffer overflow)
  */
 #define numberOfNotifiableValue 20
 
 #define keepAlivePeriod 60
 
-//If you compiling this to microcontroller, set it to 1
+// If you compiling this to microcontroller, set it to 1
 #define MCU 0
 
 #include <openssl/sha.h>
 #include <stdint.h>
 #include <unistd.h>
-
-
 
 typedef SHA512_CTX SHACTX;
 #define SHAInit SHA512_Init

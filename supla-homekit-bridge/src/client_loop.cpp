@@ -17,9 +17,9 @@
  */
 
 #include "client_loop.h"
+
 #include <string>
 #include <vector>
-
 
 client_config *config;
 void *sclient;
@@ -42,20 +42,16 @@ void client_loop_location_update(void *_suplaclient, void *sthread,
 
 void client_loop_channel_update(void *_suplaclient, void *sthread,
                                 TSC_SuplaChannel_C *channel) {
-  
   supla_log(LOG_DEBUG, "Channel Update %d %d", channel->Id, channel->online);
 
-  client_device_channel *c =
-    channels->add_channel(channel->Id, 0, channel->Type, channel->Func, 0, 0, 0,
-                        NULL, NULL, NULL, false, channel->online == 1,
-                        channel->Caption);
-						
+  client_device_channel *c = channels->add_channel(
+      channel->Id, 0, channel->Type, channel->Func, 0, 0, 0, NULL, NULL, NULL,
+      false, channel->online == 1, channel->Caption);
 
   if (c != NULL) {
-	  c->setOnline(channel->online);
-	  c->setSubValue(channel->value.sub_value);
-	  c->setHKValue(channel->value.value);
-  }; 
+    c->setHKValue(channel->value.value, channel->value.sub_value,
+                  channel->online);
+  };
 }
 
 void client_loop_channelgroup_update(void *_suplaclient, void *sthread,
@@ -68,7 +64,6 @@ void client_loop_channelgroup_update(void *_suplaclient, void *sthread,
 void client_loop_channelgroup_relation_update(
     void *_suplaclient, void *sthread,
     TSC_SuplaChannelGroupRelation *channelgroup_realtion) {
-  
   supla_log(LOG_DEBUG,
             "ChannelGroupRelation GroupId: %i ChannelId: %i, EOL: %i",
             channelgroup_realtion->ChannelGroupID,
@@ -84,27 +79,21 @@ void client_loop_on_event(void *_suplaclient, void *user_data,
 void client_loop_channel_value_update(void *_suplaclient, void *sthread,
                                       TSC_SuplaChannelValue *channel_value) {
   client_device_channel *channel = channels->find_channel(channel_value->Id);
-  
-
 
   if (channel != NULL) {
-	channel->setOnline(channel_value->online);
-	channel->setSubValue(channel_value->value.sub_value);
-	channel->setHKValue(channel_value->value.value);
-
+    channel->setHKValue(channel_value->value.value,
+                        channel_value->value.sub_value, channel_value->online);
   }
 }
 
 void client_loop_channel_extendedalue_update(
     void *_suplaclient, void *sthread,
     TSC_SuplaChannelExtendedValue *channel_extendedvalue) {
-									  
-  client_device_channel *channel = channels->find_channel(channel_extendedvalue->Id);
-  
+  client_device_channel *channel =
+      channels->find_channel(channel_extendedvalue->Id);
+
   if (channel != NULL) {
-	channel->setExtendedValue( &channel_extendedvalue->value );
-
-
+    channel->setExtendedValue(&channel_extendedvalue->value);
   };
 }
 
@@ -124,9 +113,8 @@ void client_on_superuser_authorization_result(void *_suplaclient,
 }
 
 void client_on_registered(void *_suplaclient, void *user_data,
-    TSC_SuplaRegisterClientResult_B *result){
-
-	channels->setInitialized(result->result_code == SUPLA_RESULTCODE_TRUE);
+                          TSC_SuplaRegisterClientResult_B *result) {
+  channels->setInitialized(result->result_code == SUPLA_RESULTCODE_TRUE);
 }
 
 void client_on_device_calcfg_result(void *_suplaclient, void *user_data,
@@ -191,7 +179,6 @@ void client_loop(void *user_data, void *sthread) {
     return;
   }
 
-    
   if (user_data) *(void **)user_data = sclient;
 
   while (sthread_isterminated(sthread) == 0) {

@@ -21,8 +21,10 @@
 
 #include <stdio.h>
 #include <string.h>
+
 #include <string>
 #include <vector>
+
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/tools.h"
 #include "yaml/yaml.h"
@@ -46,8 +48,6 @@ class client_config {
   std::string supla_email;
   uint16_t supla_protocol_version;
 
-
-
  public:
   client_config();
   virtual ~client_config();
@@ -69,8 +69,6 @@ class client_config {
   const uint32_t getSuplaLocationId();
   std::string getSuplaEmail();
   const uint16_t getSuplaProtocolVersion();
-
-
 };
 
 #endif /* CLIENT_CONFIG_H_ */

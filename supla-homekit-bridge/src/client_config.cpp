@@ -17,6 +17,7 @@
  */
 
 #include "client_config.h"
+
 #include <string>
 
 client_config::client_config() {
@@ -38,11 +39,7 @@ client_config::client_config() {
   this->supla_protocol_version = 10;
 }
 
-client_config::~client_config() {
-
-
-
-}
+client_config::~client_config() {}
 
 bool client_config::load(const char* config_file) {
   try {
@@ -82,7 +79,6 @@ bool client_config::load(const char* config_file) {
           root["supla"]["protocol_version"].As<uint16_t>(10);
     }
 
-
     return true;
   } catch (std::exception& exception) {
     std::cout << exception.what() << std::endl;
@@ -90,15 +86,11 @@ bool client_config::load(const char* config_file) {
   }
 }
 
-
-
 bool client_config::getMqttPublishEvents() { return this->mqtt_publish_events; }
 
 std::string client_config::getMqttCommands() { return this->mqtt_commands; }
 
 std::string client_config::getMqttStates() { return this->mqtt_states; }
-
-
 
 std::string client_config::getMqttClientName() {
   return this->mqtt_client_name;

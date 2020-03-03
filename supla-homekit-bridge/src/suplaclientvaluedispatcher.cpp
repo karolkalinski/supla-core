@@ -7,6 +7,3 @@
 
 #include "client_device.h"
 #include "supla-client-lib/log.h"
-
-
-

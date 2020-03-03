@@ -8,12 +8,13 @@
 //
 
 #include <stdio.h>
+
 #include <vector>
 using namespace std;
 
 struct PHKKeyRecord {
-    char controllerID[36];
-    char publicKey[32];
+  char controllerID[36];
+  char publicKey[32];
 };
 
 void resetControllerRecord();

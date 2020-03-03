@@ -1,8 +1,8 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-#include "homekit_accessories.h"
 #include "client_device.h"
+#include "homekit_accessories.h"
 #include "homekit_configuration.h"
 
 extern homekit_accessories* accessories;

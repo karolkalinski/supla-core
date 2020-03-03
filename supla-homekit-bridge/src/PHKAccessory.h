@@ -17,14 +17,14 @@ extern "C" {
 #include <stdlib.h>
 }
 
-#include "PHKNetworkIP.h"
-#include "PHKControllerRecord.h"
-
+#include <pthread.h>
 
 #include <vector>
-#include <pthread.h>
-#include "supla-client-lib/log.h"
+
+#include "PHKControllerRecord.h"
+#include "PHKNetworkIP.h"
 #include "globals.h"
+#include "supla-client-lib/log.h"
 
 #define HTTP_PATH_MAX_LENGTH 1024
 #define HTTP_PROTOCOL_1_1 "HTTP/1.1"
@@ -34,12 +34,12 @@ extern "C" {
 #define HTTP_STATUS_NO_CONTENT 204
 
 struct broadcastInfo {
-    void *sender;
-    char *desc;
+  void *sender;
+  char *desc;
 };
 
-
-void handleAccessory(const char *request, unsigned int requestLen, char **reply, unsigned int *replyLen, connectionInfo *sender);
+void handleAccessory(const char *request, unsigned int requestLen, char **reply,
+                     unsigned int *replyLen, connectionInfo *sender);
 void *announce(void *info);
 
 #endif
