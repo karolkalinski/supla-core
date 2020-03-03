@@ -126,7 +126,8 @@ int is_big_endian(void)
 //Network Setup
 int setupSocketV4(unsigned int maximumConnection) {
     int _socket = socket(PF_INET, SOCK_STREAM, 0);
-    sockaddr_in addr;   bzero(&addr, sizeof(addr));
+    sockaddr_in addr;   
+	memset(&addr, 0, sizeof(addr));
     addr.sin_addr.s_addr = htonl(INADDR_ANY);   addr.sin_family = PF_INET;    addr.sin_port = htons(portNumber);
     
     int optval = 1;	socklen_t optlen = sizeof(optval);
@@ -139,7 +140,8 @@ int setupSocketV4(unsigned int maximumConnection) {
 
 int setupSocketV6(unsigned int maximumConnection) {
     int _socket = socket(PF_INET6, SOCK_STREAM, 0);
-    sockaddr_in6 addr;   bzero(&addr, sizeof(addr));
+    sockaddr_in6 addr;   
+	memset(&addr, 0, sizeof(addr));
     addr.sin6_addr = in6addr_any;   addr.sin6_family = PF_INET6;    addr.sin6_port = htons(portNumber);
     bind(_socket, (const struct sockaddr *)&addr, sizeof(addr));
     listen(_socket, maximumConnection);
@@ -253,10 +255,11 @@ void broadcastMessage(void *sender, char *resultData, size_t resultLen) {
             
             pthread_mutex_lock(&connection[i].mutex);
             
-            chacha20_ctx chacha20;    bzero(&chacha20, sizeof(chacha20));
+            chacha20_ctx chacha20;    
+			memset(&chacha20, 0, sizeof(chacha20));
             
-            char temp[64];  bzero(temp, 64); char temp2[64];  bzero(temp2, 64);
-            
+            char temp[64] = {0}; 
+			char temp2[64] = {0};
             unsigned char *reply = new unsigned char[resultLen+18];
             reply[0] = resultLen%256;
             reply[1] = (resultLen-(uint8_t)reply[0])/256;
@@ -271,11 +274,11 @@ void broadcastMessage(void *sender, char *resultData, size_t resultLen) {
             
             //XXX FIXME
 #if 0
-            poly1305_context verifyContext; bzero(&verifyContext, sizeof(verifyContext));
+            poly1305_context verifyContext; 
+			memset(&verifyContext, 0,  sizeof(verifyContext));
             poly1305_init(&verifyContext, (const unsigned char*)temp2);
             {
-                char waste[16];
-                bzero(waste, 16);
+                char waste[16] = {0};
                 
                 poly1305_update(&verifyContext, (const unsigned char *)reply, 2);
                 poly1305_update(&verifyContext, (const unsigned char *)waste, 14);
@@ -391,11 +394,11 @@ void connectionInfo::Poly1305_GenKey(const unsigned char * key, uint8_t * buf, u
     if (key == NULL || buf == NULL || len < 2 || verify == NULL)
         return;
     
-    poly1305_context verifyContext; bzero(&verifyContext, sizeof(verifyContext));
+    poly1305_context verifyContext; 
+	memset(&verifyContext, 0, sizeof(verifyContext));
     poly1305_init(&verifyContext, key);
     
-    char waste[16];
-    bzero(waste, 16);
+    char waste[16] = {0};
     
     if (type == Type_Data_With_Length) {
         poly1305_update(&verifyContext, (const unsigned char *)&buf[0], 1);
@@ -539,19 +542,23 @@ void connectionInfo::handlePairSeup() {
                 char mac[16];
                 bcopy(&encryptedPackage[packageLen-16], mac, 16);
                 
-                chacha20_ctx chacha20;    bzero(&chacha20, sizeof(chacha20));
+                chacha20_ctx chacha20;    
+				memset(&chacha20,0, sizeof(chacha20));
                 chacha20_setup(&chacha20, (const uint8_t *)sessionKey, 32, (uint8_t *)"PS-Msg05");
                 
                 //Ploy1305 key
-                char temp[64];  bzero(temp, 64); char temp2[64];  bzero(temp2, 64);
+                char temp[64] = {0};  
+				char temp2[64] = {0};
                 chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
                 
-                char verify[16];  bzero(verify, 16);
+                char verify[16] = {0};
                 Poly1305_GenKey((const unsigned char*)temp2, (unsigned char *)encryptedData, packageLen - 16, Type_Data_Without_Length, verify);
                 
                 char *decryptedData = new char[packageLen-16];
-                bzero(decryptedData, packageLen-16);
-                chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData, (uint8_t *)decryptedData, packageLen-16);
+                
+				memset(decryptedData,0, packageLen-16);
+                
+				chacha20_decrypt(&chacha20, (const uint8_t *)encryptedData, (uint8_t *)decryptedData, packageLen-16);
                 
                 if (bcmp(verify, mac, 16)) {
                     PHKNetworkMessageDataRecord responseRecord;
@@ -645,13 +652,15 @@ void connectionInfo::handlePairSeup() {
                         
                         PHKNetworkMessageDataRecord tlv8Record;
                         tlv8Record.data = new char[tlv8Len+16];tlv8Record.length = tlv8Len+16;
-                        bzero(tlv8Record.data, tlv8Record.length);
+                        memset(tlv8Record.data,0, tlv8Record.length);
                         {
                             
-                            chacha20_ctx ctx;   bzero(&ctx, sizeof(ctx));
+                            chacha20_ctx ctx;   
+							memset(&ctx,0, sizeof(ctx));
                             
                             chacha20_setup(&ctx, (const uint8_t *)sessionKey, 32, (uint8_t *)"PS-Msg06");
-                            char buffer[64], key[64];   bzero(buffer, 64);
+                            char buffer[64] = {0}; 
+							char key[64] = {0};
                             chacha20_encrypt(&ctx, (const uint8_t *)buffer, (uint8_t *)key, 64);
                             chacha20_encrypt(&ctx, (const uint8_t *)tlv8Data, (uint8_t *)tlv8Record.data, tlv8Len);
                             
@@ -833,7 +842,8 @@ void connectionInfo::handlePairVerify() {
 				char temp2[64] = {0};
 				
                 chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
-                char verify[16] = {0}; 
+                
+				char verify[16] = {0}; 
 				
 				Poly1305_GenKey((const unsigned char *)temp2, (uint8_t *)encryptedData, packageLen - 16, Type_Data_Without_Length, verify);
                 
@@ -867,10 +877,8 @@ void connectionInfo::handlePairVerify() {
                         error.index = 7;
                         error.length = 1;
                         response.data.addRecord(error);
-
 						supla_log(LOG_DEBUG, "Pair-Verify Failure");
                     }
-                    
                     delete [] decryptData;
                 }
                 
@@ -892,8 +900,8 @@ void connectionInfo::handlePairVerify() {
             delete [] repBuffer;
         }
     } while (!end && read(subSocket, buffer, 4096) > 0);
-	supla_log(LOG_DEBUG, "Pair-Verify End");
 	
+	supla_log(LOG_DEBUG, "Pair-Verify End");
 }
 
 void connectionInfo::handleAccessoryRequest() {
@@ -910,7 +918,7 @@ void connectionInfo::handleAccessoryRequest() {
     connected = true;
     
     do {
-        bzero(buffer, 4096);
+		memset(buffer, 0, 4096);
         len = read(subSocket, buffer, 4096);
         
         pthread_mutex_lock(&mutex);
@@ -918,22 +926,27 @@ void connectionInfo::handleAccessoryRequest() {
         if (len > 0) {
             uint16_t msgLen = (uint8_t)buffer[1]*256+(uint8_t)*buffer;
             
-            chacha20_ctx chacha20;    bzero(&chacha20, sizeof(chacha20));
+            chacha20_ctx chacha20;    
+			memset(&chacha20, 0, sizeof(chacha20));
             
             if (!is_big_endian()) numberOfMsgRec = bswap_64(numberOfMsgRec);
             chacha20_setup(&chacha20, (const uint8_t *)controllerToAccessoryKey, 32, (uint8_t *)&numberOfMsgRec);
             if (!is_big_endian()) numberOfMsgRec = bswap_64(numberOfMsgRec);
             numberOfMsgRec++;
             
-            char temp[64];  bzero(temp, 64); char temp2[64];  bzero(temp2, 64);
+            char temp[64] = {0};
+			char temp2[64] = {0};
             chacha20_encrypt(&chacha20, (const uint8_t*)temp, (uint8_t *)temp2, 64);
             
             //Ploy1305 key
-            char verify[16];    bzero(verify, 16);
+            char verify[16] = {0};
+			
             Poly1305_GenKey((const unsigned char *)temp2, (uint8_t *)buffer, msgLen, Type_Data_With_Length, verify);
             
-            bzero(decryptData, 2048);
-            chacha20_encrypt(&chacha20, (const uint8_t *)&buffer[2], (uint8_t *)decryptData, msgLen);
+            
+			memset(decryptData, 0, 2048);
+			
+			chacha20_encrypt(&chacha20, (const uint8_t *)&buffer[2], (uint8_t *)decryptData, msgLen);
             
             
             if(len >= (2 + msgLen + 16)
@@ -1032,7 +1045,7 @@ PHKNetworkMessage::PHKNetworkMessage(const char *rawData) {
     char buffer[1024];
     const char *dptr = ptr;
     for (int i = 0; i < 19; i++) {
-        bzero(buffer, 1024);
+        memset(buffer, 0, 1024);		
         dptr = copyLine(dptr, buffer);
     }
     
