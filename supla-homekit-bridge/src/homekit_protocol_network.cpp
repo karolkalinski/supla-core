@@ -847,10 +847,10 @@ void connectionInfo::handlePairVerify() {
 
         PHKNetworkMessageDataRecord idRecord;
         idRecord.activate = true;
-        idRecord.data = new char[deviceIdentity.length()];
-        memcpy(idRecord.data, deviceIdentity.c_str(), deviceIdentity.length());
+        idRecord.data = new char[17];
+        memcpy(idRecord.data, deviceIdentity.c_str(), 17);
         idRecord.index = 1;
-        idRecord.length = (unsigned int)deviceIdentity.length();
+        idRecord.length = (unsigned int)17;
 
         PHKNetworkMessageDataRecord pubKeyRecord;
         pubKeyRecord.activate = true;
