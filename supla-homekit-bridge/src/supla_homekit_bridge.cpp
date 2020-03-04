@@ -40,7 +40,7 @@ int main(int argc, char *argv[]) {
   void *client_loop_t = NULL;
   void *homekit_loop_t = NULL;
 
-  printf("SUPLA-HOMEKIT-BRIDGE v%s\n", "1.0.0.ALPHA");
+  printf("SUPLA-HOMEKIT-BRIDGE v%s\n", "1.0.1.ALPHA");
 
   for (int i = 0; i < argc; i++) {
     if (strcmp("--version", argv[i]) == 0) {
