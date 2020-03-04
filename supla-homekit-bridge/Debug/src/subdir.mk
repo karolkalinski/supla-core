@@ -7,23 +7,19 @@ C_SRCS += \
 ../src/clientcfg.c 
 
 CPP_SRCS += \
-../src/homekit_protocol_accessory.cpp \
-../src/homekit_controller_record.cpp \
-../src/homekit_protocol_network.cpp \
 ../src/client_config.cpp \
 ../src/client_device.cpp \
 ../src/client_loop.cpp \
 ../src/common.cpp \
 ../src/homekit_accessories.cpp \
 ../src/homekit_classes.cpp \
+../src/homekit_controller_record.cpp \
 ../src/homekit_loop.cpp \
-../src/supla_homekit_bridge.cpp \
-../src/suplaclientvaluedispatcher.cpp 
+../src/homekit_protocol_accessory.cpp \
+../src/homekit_protocol_network.cpp \
+../src/supla_homekit_bridge.cpp 
 
 OBJS += \
-./src/homekit_protocol_accessory.o \
-./src/homekit_controller_record.o \
-./src/homekit_protocol_network.o \
 ./src/client_config.o \
 ./src/client_device.o \
 ./src/client_loop.o \
@@ -31,26 +27,27 @@ OBJS += \
 ./src/common.o \
 ./src/homekit_accessories.o \
 ./src/homekit_classes.o \
+./src/homekit_controller_record.o \
 ./src/homekit_loop.o \
-./src/supla_homekit_bridge.o \
-./src/suplaclientvaluedispatcher.o 
+./src/homekit_protocol_accessory.o \
+./src/homekit_protocol_network.o \
+./src/supla_homekit_bridge.o 
 
 C_DEPS += \
 ./src/clientcfg.d 
 
 CPP_DEPS += \
-./src/homekit_protocol_accessory.d \
-./src/homekit_controller_record.d \
-./src/homekit_protocol_network.d \
 ./src/client_config.d \
 ./src/client_device.d \
 ./src/client_loop.d \
 ./src/common.d \
 ./src/homekit_accessories.d \
 ./src/homekit_classes.d \
+./src/homekit_controller_record.d \
 ./src/homekit_loop.d \
-./src/supla_homekit_bridge.d \
-./src/suplaclientvaluedispatcher.d 
+./src/homekit_protocol_accessory.d \
+./src/homekit_protocol_network.d \
+./src/supla_homekit_bridge.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

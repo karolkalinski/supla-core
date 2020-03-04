@@ -72,8 +72,8 @@ void set_value_callback_routine_execution(void* ptr, void* aid) {
         if (c->getType() == charType_holdPosition) {
           supla_client_open(sclient, channel->getId(), 0, 0);
         } else if (c->getType() == charType_targetPosition) {
-          supla_client_open(sclient, channel->getId(), 0,
-                            ((uint8Characteristic*)c)->getValue() + 10);
+          supla_client_open(sclient, channel->getId(), 0, 110 -
+                            ((uint8Characteristic*)c)->getValue());
         }
       } break;
     };
@@ -331,7 +331,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
       this->getSubValue(sub_value);
       char shut = cv[0];
 
-      currentPosition->setValue(100 - shut);
+      currentPosition->setValue(110 - shut);
 
       uint8Characteristic* targetPosition =
           (uint8Characteristic*)service->getCharacteristicByType(
@@ -339,7 +339,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
 
       if (!targetPosition) return;
 
-      targetPosition->setValue(100 - shut);
+      targetPosition->setValue(110 - shut);
 
       uint8Characteristic* ps =
           (uint8Characteristic*)service->getCharacteristicByType(

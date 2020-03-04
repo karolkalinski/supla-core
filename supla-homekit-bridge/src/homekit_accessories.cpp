@@ -153,7 +153,7 @@ void homekit_accessories::add_accessory_for_supla_channel(
 
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEGATE: {
-      // add_accessory_to_array(add_accessory_gate(accessoryId, info));
+       //add_accessory_to_array(add_accessory_gate(accessoryId, info));
 
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR: {
@@ -163,9 +163,9 @@ void homekit_accessories::add_accessory_for_supla_channel(
 
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEDOORLOCK: {
-      accessory* accessory = new_accessory(accessoryId, info);
-      add_accessory_to_array(
-          add_accessory_door_lock(accessory, value_callback));
+     // accessory* accessory = new_accessory(accessoryId, info);
+     // add_accessory_to_array(
+     //     add_accessory_door_lock(accessory, value_callback));
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER: {
       accessory* accessory = new_accessory(accessoryId, info);
@@ -354,24 +354,26 @@ accessory* homekit_accessories::add_accessory_rollershutter(
       accessory->getId(), accessory->getNextUUID(), charType_targetPosition,
       permission_read | permission_write | permission_notify, 0, 100, 1,
       unit_percentage, 0);
+
   target_position->setValue(0);
 
   target_position->setCallback(callback);
 
   uint8Characteristic* current_position = new uint8Characteristic(
-      accessory->getId(), accessory->getNextUUID(), charType_targetPosition,
+      accessory->getId(), accessory->getNextUUID(), charType_currentPosition,
       permission_read | permission_notify, 0, 100, 1, unit_percentage, 0);
+
   current_position->setValue(0);
 
   uint8Characteristic* position_state = new uint8Characteristic(
       accessory->getId(), accessory->getNextUUID(), charType_positionState,
       permission_read | permission_notify, 0, 2, 1, unit_none, 0);
 
-  position_state->setValidValue(100);
   position_state->setValidValue(0);
-  position_state->setValidValue(50);
+  position_state->setValidValue(1);
+  position_state->setValidValue(2);
 
-  position_state->setValue(0);
+  position_state->setValue(2);
 
   boolCharacteristic* hold_position =
       new boolCharacteristic(accessory->getId(), accessory->getNextUUID(),
