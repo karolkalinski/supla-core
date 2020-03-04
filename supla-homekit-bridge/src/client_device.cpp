@@ -121,6 +121,9 @@ int client_device_channel::getId(void) { return supla_device_channel::getId(); }
 void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
                                        char sub_value[SUPLA_CHANNELVALUE_SIZE],
                                        bool online) {
+
+
+
   /* check change type */
   int positionState = 0;
   char current_value[SUPLA_CHANNELVALUE_SIZE];
@@ -162,6 +165,8 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
   this->setValue(value);
   this->setSubValue(sub_value);
   this->setOnline(online);
+
+  if (!this->Online) return;
 
   accessory* accessory = accessories->getAccessoryById(this->getAccessoryId());
   if (!accessory) return;
