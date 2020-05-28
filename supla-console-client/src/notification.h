@@ -43,6 +43,7 @@ class notification {
   std::string message;
   std::string token;
   std::string user;
+  std::string sound;
   int priority;
   int expire;
   int retry;
@@ -80,6 +81,7 @@ class notification {
   void setExpire(int value);
   void setRetry(int value);
   void setDebounce(int value);
+  void setSound(std::string sound);
 
   bool setNextTime(time_t value);
 
@@ -90,6 +92,7 @@ class notification {
   std::string getTitle(void);
   std::string getMessage(void);
   std::string getExecuteCmd(void);
+  std::string getSound(void);
   int getPriority(void);
   int getExpire(void);
   int getRetry(void);
@@ -121,7 +124,7 @@ class notifications {
                        std::string title, std::string message,
                        std::string token, std::string user, enum_reset reset,
                        std::string command, int priority, int expire, int retry,
-                       int debounce);
+                       int debounce, std::string sound);
 
   void setUser(std::string value);
   void setToken(std::string value);

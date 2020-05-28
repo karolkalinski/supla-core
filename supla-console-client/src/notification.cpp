@@ -110,8 +110,14 @@ std::string notification::buildNotificationCommand() {
       notificationCmd.append(this->device);
     }
 
+    if (this->sound.length() > 0) {
+      notificationCmd.append("&sound=");
+      notificationCmd.append(this->sound);
+    }
+
     notificationCmd.append("&message=");
     notificationCmd.append(prepareMessage());
+
     notificationCmd.append("\" ");
     notificationCmd.append(
         "-H \"Content-Type: application/x-www-form-urlencoded\" ");
@@ -256,6 +262,10 @@ void notification::setChannels(void) {
               this->condition.c_str());
   }
 }
+
+std::string notification::getSound(void) { return this->sound; }
+
+void notification::setSound(std::string value) { this->sound = value; }
 
 void notification::setDebounce(int value) { this->debounce = value; }
 
@@ -403,7 +413,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
                                     std::string token, std::string user,
                                     enum_reset reset, std::string command,
                                     int priority, int expire, int retry,
-                                    int debounce) {
+                                    int debounce, std::string sound) {
   safe_array_lock(arr);
 
   notification* nt = new notification();
@@ -422,6 +432,7 @@ void notifications::add_notifiction(enum_trigger trigger, std::string time,
   nt->setExpire(expire);
   nt->setRetry(retry);
   nt->setDebounce(debounce);
+  nt->setSound(sound);
 
   if (safe_array_add(arr, nt) == -1) {
     delete nt;

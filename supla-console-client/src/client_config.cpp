@@ -102,7 +102,8 @@ bool client_config::load(const char* config_file) {
             command["priority"].As<int>(0),
             command["priority_expire"].As<int>(300),
             command["priority_retry"].As<int>(30),
-            command["debounce"].As<int>(0));
+            command["debounce"].As<int>(0),
+            command["sound"].As<std::string>(""));
       }
     }
 
