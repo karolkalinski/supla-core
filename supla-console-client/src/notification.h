@@ -57,6 +57,7 @@ class notification {
   std::string notificationCmd;
   std::string executeCmd;
   std::string buildNotificationCommand();
+  std::string prepareMessage();
   bool isConditionSet(void);
   bool lastResult;
 

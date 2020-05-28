@@ -152,7 +152,11 @@ std::string channel::getStringValue(int index) {
     case SUPLA_CHANNELFNC_THERMOMETER: {
       double temp;
       memcpy(&temp, this->value, sizeof(double));
-      return std::to_string(temp);
+
+      std::stringstream ss;
+      ss << std::fixed << std::setprecision(2) << temp;
+      std::string mystring = ss.str();
+      return ss.str();
     }
     case SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE: {
       double temp;
@@ -166,10 +170,20 @@ std::string channel::getStringValue(int index) {
       memcpy(&n, &this->value[4], 4);
       hum = n / 1000.00;
 
-      if (index == 0)
-        return std::to_string(temp);
-      else
-        return std::to_string(hum);
+      if (index == 0) {
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << temp;
+        std::string mystring = ss.str();
+        return ss.str();
+      } else {
+        std::stringstream ss;
+        ss << std::fixed << std::setprecision(2) << hum;
+        std::string mystring = ss.str();
+        return ss.str();
+      }
+    }
+    case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER: {
+      return std::to_string(this->value[0]); /* percentage */
     }
   };
 

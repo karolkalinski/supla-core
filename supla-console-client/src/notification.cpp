@@ -54,6 +54,36 @@ void notification::setPriority(int value) {
 
 int notification::getPriority(void) { return this->priority; }
 
+std::string notification::prepareMessage() {
+  std::string result = this->message;
+  for (auto channel_struct : this->channels) {
+    channel* chnl = chnls->find_channel(channel_struct.channelid);
+
+    if (!chnl) continue;
+
+    std::string val;
+
+    if (this->trigger == onchange || this->trigger == ontime)
+      val = chnl->getStringValue(channel_struct.index);
+    else if (this->trigger == onconnection)
+      val = std::to_string(chnl->getOnline());
+    else
+      continue;
+
+    if (channel_struct.wasIndexed)
+      replace_string_in_place(
+          &result,
+          "%channel_" + std::to_string(channel_struct.index) + "_" +
+              std::to_string(channel_struct.channelid) + "%",
+          val);
+    else
+      replace_string_in_place(
+          &result, "%channel_" + std::to_string(channel_struct.channelid) + "%",
+          val);
+  };
+  return result;
+}
+
 std::string notification::buildNotificationCommand() {
   if (this->notificationCmd.length() == 0) {
     notificationCmd.append("curl -d ");
@@ -81,7 +111,7 @@ std::string notification::buildNotificationCommand() {
     }
 
     notificationCmd.append("&message=");
-    notificationCmd.append(this->message);
+    notificationCmd.append(prepareMessage());
     notificationCmd.append("\" ");
     notificationCmd.append(
         "-H \"Content-Type: application/x-www-form-urlencoded\" ");
