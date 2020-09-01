@@ -23,6 +23,8 @@ class channel {
   int channel_id;
   int channel_function;
   bool online;
+  unsigned _supla_int_t flags;
+  TDSC_ChannelState* state;
 
   std::string caption;
   char value[SUPLA_CHANNELVALUE_SIZE];
@@ -36,7 +38,8 @@ class channel {
  public:
   channel(int channel_id, int channel_function, std::string caption,
           char value[SUPLA_CHANNELVALUE_SIZE],
-          char sub_value[SUPLA_CHANNELVALUE_SIZE], bool online);
+          char sub_value[SUPLA_CHANNELVALUE_SIZE], bool online,
+          unsigned _supla_int_t flags);
   virtual ~channel();
 
   void setValue(char value[SUPLA_CHANNELVALUE_SIZE]);
@@ -44,6 +47,8 @@ class channel {
   void setCaption(std::string value);
   void setFunction(int value);
   void notify(void);
+  void setState(TDSC_ChannelState* state);
+  TDSC_ChannelState* getState(void);
 
   void getValue(char value[SUPLA_CHANNELVALUE_SIZE]);
   void getSubValue(char value[SUPLA_CHANNELVALUE_SIZE]);
@@ -51,6 +56,7 @@ class channel {
   int getFunction(void);
   int getChannelId(void);
   std::string getStringValue(int index);
+  unsigned _supla_int_t getFlags(void);
 
   void add_notification_on_change(void* value);
   void add_notification_on_connection(void* value);
@@ -69,8 +75,10 @@ class channels {
 
   channel* add_channel(int channel_id, int channel_function,
                        std::string caption, char value[SUPLA_CHANNELVALUE_SIZE],
-                       char sub_value[SUPLA_CHANNELVALUE_SIZE], bool online);
+                       char sub_value[SUPLA_CHANNELVALUE_SIZE], bool online,
+                       unsigned _supla_int_t flags);
   channel* find_channel(int channel_id);
+  void* get_channels(void);
 };
 
 extern channels* chnls;

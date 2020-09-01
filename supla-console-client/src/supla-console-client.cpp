@@ -22,6 +22,7 @@
 #include <unistd.h>
 
 #include "ccronexpr.h"
+#include "channelstateloop.h"
 #include "client_loop.h"
 #include "clientcfg.h"
 #include "globals.h"
@@ -72,8 +73,9 @@ void crontest(char *expression) {
 int main(int argc, char *argv[]) {
   void *client_loop_t = NULL;
   void *notification_loop_t = NULL;
+  void *channel_state_refresh_loop_t = NULL;
 
-  printf("SUPLA-PUSHOVER v1.1.3\n");
+  printf("SUPLA-PUSHOVER v1.2.0\n");
 
   for (int i = 0; i < argc; i++) {
     if (strcmp("-v", argv[i]) == 0) {
@@ -101,8 +103,11 @@ int main(int argc, char *argv[]) {
 
   // CLIENT LOOP
   void *sclient = NULL;
+
   client_loop_t = sthread_simple_run(client_loop, (void *)&sclient, 0);
   notification_loop_t = sthread_simple_run(notification_loop, NULL, 0);
+  channel_state_refresh_loop_t =
+      sthread_simple_run(channel_state_loop, (void *)&sclient, 0);
 
   // MAIN LOOP
 
@@ -113,6 +118,7 @@ int main(int argc, char *argv[]) {
   // RELEASE BLOCK
   sthread_twf(client_loop_t);
   sthread_twf(notification_loop_t);
+  sthread_twf(channel_state_refresh_loop_t);
 
   delete ntfns;
   delete chnls;

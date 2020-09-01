@@ -9,6 +9,7 @@ C_SRCS += \
 
 CPP_SRCS += \
 ../src/channel.cpp \
+../src/channelstateloop.cpp \
 ../src/client_config.cpp \
 ../src/client_loop.cpp \
 ../src/crontab_parser.cpp \
@@ -19,6 +20,7 @@ CPP_SRCS += \
 OBJS += \
 ./src/ccronexpr.o \
 ./src/channel.o \
+./src/channelstateloop.o \
 ./src/client_config.o \
 ./src/client_loop.o \
 ./src/clientcfg.o \
@@ -33,6 +35,7 @@ C_DEPS += \
 
 CPP_DEPS += \
 ./src/channel.d \
+./src/channelstateloop.d \
 ./src/client_config.d \
 ./src/client_loop.d \
 ./src/crontab_parser.d \

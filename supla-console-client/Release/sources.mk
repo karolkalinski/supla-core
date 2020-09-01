@@ -26,3 +26,4 @@ SUBDIRS := \
 src \
 src/supla-client-lib \
 src/yaml \
+

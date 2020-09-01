@@ -8,9 +8,9 @@ RM := rm -rf
 
 # All of the sources participating in the build are defined here
 -include sources.mk
+-include src/yaml/subdir.mk
 -include src/supla-client-lib/subdir.mk
 -include src/subdir.mk
--include src/yaml/subdir.mk
 -include subdir.mk
 -include objects.mk
 
@@ -40,10 +40,10 @@ endif
 # Add inputs and outputs from these tool invocations to the build variables 
 
 # All Target
-all: supla-console-client
+all: supla-pushover
 
 # Tool invocations
-supla-console-client: $(OBJS) $(USER_OBJS)
+supla-pushover: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
 	g++ -L$(SSLDIR)/lib -pthread -lrt -o "supla-pushover" $(OBJS) $(USER_OBJS) $(LIBS)
@@ -52,7 +52,7 @@ supla-console-client: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
-	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(C_DEPS)$(CPP_DEPS) supla-console-client
+	-$(RM) $(CC_DEPS)$(C++_DEPS)$(EXECUTABLES)$(OBJS)$(C_UPPER_DEPS)$(CXX_DEPS)$(C_DEPS)$(CPP_DEPS) supla-pushover
 	-@echo ' '
 
 .PHONY: all clean dependents

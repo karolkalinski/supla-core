@@ -9,17 +9,28 @@
 
 channel::channel(int channel_id, int channel_function, std::string caption,
                  char value[SUPLA_CHANNELVALUE_SIZE],
-                 char sub_value[SUPLA_CHANNELVALUE_SIZE], bool online) {
+                 char sub_value[SUPLA_CHANNELVALUE_SIZE], bool online,
+                 unsigned _supla_int_t flags) {
   this->channel_id = channel_id;
   this->channel_function = channel_function;
   this->caption = caption;
   this->online = online;
+  this->flags = flags;
+  this->state = NULL;
 
   memcpy(this->value, value, SUPLA_CHANNELVALUE_SIZE);
   memcpy(this->sub_value, sub_value, SUPLA_CHANNELVALUE_SIZE);
 }
 
-channel::~channel() {}
+channel::~channel() {
+  if (this->state != NULL) {
+    free(this->state);
+  }
+}
+
+unsigned _supla_int_t channel::getFlags(void) { return this->flags; }
+
+TDSC_ChannelState* channel::getState(void) { return this->state; }
 
 void channel::add_notification_on_change(void* value) {
   bool found = false;
@@ -122,6 +133,33 @@ std::string channel::getCaption(void) { return this->caption; }
 int channel::getFunction(void) { return this->channel_function; }
 int channel::getChannelId(void) { return this->channel_id; }
 
+void channel::setState(TDSC_ChannelState* state) {
+  if (state == NULL) return;
+
+  if (this->state != NULL) {
+    free(this->state);
+  }
+
+  this->state = (TDSC_ChannelState*)malloc(sizeof(TDSC_ChannelState));
+
+  this->state->BatteryHealth = state->BatteryHealth;
+  this->state->BatteryLevel = state->BatteryLevel;
+  this->state->BatteryPowered = state->BatteryPowered;
+  this->state->BridgeNodeOnline = state->BridgeNodeOnline;
+  this->state->ChannelID = state->ChannelID;
+  this->state->ChannelNumber = state->ChannelNumber;
+  this->state->ConnectionUptime = state->ConnectionUptime;
+  this->state->IPv4 = state->IPv4;
+  this->state->Fields = state->Fields;
+  this->state->LastConnectionResetCause = state->LastConnectionResetCause;
+  this->state->Uptime = state->Uptime;
+  this->state->WiFiRSSI = state->WiFiRSSI;
+  this->state->WiFiSignalStrength = state->WiFiSignalStrength;
+  this->state->defaultIconField = state->defaultIconField;
+
+  notify();
+}
+
 std::string channel::getStringValue(int index) {
   switch (this->channel_function) {
     case SUPLA_CHANNELFNC_POWERSWITCH:
@@ -221,18 +259,20 @@ channel* channels::find_channel(int channel_id) {
   return result;
 }
 
+void* channels::get_channels(void) { return this->arr; }
+
 channel* channels::add_channel(int channel_id, int channel_function,
                                std::string caption,
                                char value[SUPLA_CHANNELVALUE_SIZE],
                                char sub_value[SUPLA_CHANNELVALUE_SIZE],
-                               bool online) {
+                               bool online, unsigned _supla_int_t flags) {
   safe_array_lock(arr);
 
   channel* result = find_channel(channel_id);
 
   if (result == NULL) {
     result = new channel(channel_id, channel_function, caption, value,
-                         sub_value, online);
+                         sub_value, online, flags);
 
     if (result != NULL && safe_array_add(arr, result) == -1) {
       delete result;

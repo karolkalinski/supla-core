@@ -56,7 +56,8 @@ void client_loop_channel_update(void *_suplaclient, void *sthread,
     chnl = chnls->add_channel(
         channel->Id, channel->Func,
         std::string(channel->Caption, SUPLA_CHANNEL_CAPTION_MAXSIZE),
-        channel->value.value, channel->value.sub_value, channel->online);
+        channel->value.value, channel->value.sub_value, channel->online,
+        channel->Flags);
   } else {
     if (channel->online) {
       chnl->setValue(channel->value.value);
@@ -86,6 +87,16 @@ void client_loop_channel_value_update(void *_suplaclient, void *sthread,
     };
     chnl->setOnline(channel_value->online);
   }
+}
+
+void client_loop_channel_state_update(void *_suplaclient, void *sthread,
+                                      TDSC_ChannelState *state) {
+  supla_log(LOG_DEBUG, "state %d %d %d", state->ChannelNumber, state->ChannelID,
+            state->BatteryLevel);
+
+  channel *channel = chnls->find_channel(state->ChannelID);
+
+  if (channel) channel->setState(state);
 }
 
 void client_loop_channel_extendedalue_update(
@@ -140,6 +151,7 @@ void *client_loop_init(void *sthread, client_config *config) {
   scc.cb_on_superuser_authorization_result =
       &client_on_superuser_authorization_result;
   scc.cb_on_device_calcfg_result = &client_on_device_calcfg_result;
+  scc.cb_on_device_channel_state = &client_loop_channel_state_update;
 
   void *result = supla_client_init(&scc);
 

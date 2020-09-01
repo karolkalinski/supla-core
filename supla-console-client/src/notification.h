@@ -30,6 +30,7 @@ typedef struct {
   int channelid;
   int index;
   bool wasIndexed;
+  bool batteryLevelCondition;
 } channel_index;
 
 class notification {

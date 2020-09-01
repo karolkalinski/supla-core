@@ -239,12 +239,24 @@ void notification::setChannels(void) {
 
       auto vect = split(channelId, '_');
 
+      bool batteryLevelCondition = false;
+
+      for (auto item : vect) {
+        if (item.find("batteryLevel") != std::string::npos) {
+          batteryLevelCondition = true;
+        }
+      }
+
       if (vect.size() == 1) {
-        channels.push_back({std::stoi(vect[0]), 0, false});
+        channels.push_back(
+            {std::stoi(vect[0]), 0, false, batteryLevelCondition});
         supla_log(LOG_DEBUG, "setting notification for channel %s",
                   vect[0].c_str());
+      } else if (batteryLevelCondition) {
+        channels.push_back({std::stoi(vect[0]), 0, false, true});
       } else {
-        channels.push_back({std::stoi(vect[1]), std::stoi(vect[0]), true});
+        channels.push_back(
+            {std::stoi(vect[1]), std::stoi(vect[0]), true, false});
         supla_log(LOG_DEBUG,
                   "setting notification for channel %s with index %s",
                   vect[1].c_str(), vect[0].c_str());
@@ -294,7 +306,18 @@ bool notification::isConditionSet(void) {
           "%channel_" + std::to_string(channel_struct.index) + "_" +
               std::to_string(channel_struct.channelid) + "%",
           val);
-    else
+    else if (channel_struct.batteryLevelCondition) {
+      TDSC_ChannelState* state = chnl->getState();
+
+      if ((state != NULL) && (state->BatteryLevel != NULL)) {
+        val = std::to_string(state->BatteryLevel);
+        replace_string_in_place(&temp,
+                                "%channel_" +
+                                    std::to_string(channel_struct.channelid) +
+                                    "_batteryLevel%",
+                                val);
+      }
+    } else
       replace_string_in_place(
           &temp, "%channel_" + std::to_string(channel_struct.channelid) + "%",
           val);
