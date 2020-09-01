@@ -74,9 +74,11 @@ TEventHandler *eh_init(void) {
 #else
     pipe(eh->fd1);
 
-    if (eh->fd1[0] != -1) fcntl(eh->fd1[0], F_SETFL, O_NONBLOCK);
+    if (eh->fd1[0] != -1)
+      fcntl(eh->fd1[0], F_SETFL, O_NONBLOCK);
 
-    if (eh->fd1[1] != -1) fcntl(eh->fd1[1], F_SETFL, O_NONBLOCK);
+    if (eh->fd1[1] != -1)
+      fcntl(eh->fd1[1], F_SETFL, O_NONBLOCK);
 
     eh->nfds = eh->fd1[0] + 1;
 #endif
@@ -91,7 +93,8 @@ void eh_add_fd(TEventHandler *eh, int fd) {
   struct epoll_event evnt = {0};
 #endif
 
-  if (eh == 0) return;
+  if (eh == 0)
+    return;
 
 #ifndef _WIN32
   if (fd != -1) {
@@ -115,34 +118,38 @@ void eh_add_fd(TEventHandler *eh, int fd) {
       }
 #endif
 
-      if (fd + 1 > eh->nfds) eh->nfds = fd + 1;
+      if (fd + 1 > eh->nfds)
+        eh->nfds = fd + 1;
     }
   }
 #endif
 }
 
 void eh_raise_event(TEventHandler *eh) {
-  if (eh == 0) return;
+  if (eh == 0)
+    return;
 
 #ifdef __linux__
 
   uint64_t u = 1;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-result"
-  if (eh->fd1 != -1) write(eh->fd1, &u, sizeof(uint64_t));
+  if (eh->fd1 != -1)
+    write(eh->fd1, &u, sizeof(uint64_t));
 #pragma GCC diagnostic pop
 
 #elif !defined(_WIN32)
 
   char u = 1;
 
-  if (eh->fd1[1] != -1) write(eh->fd1[1], &u, sizeof(char));
+  if (eh->fd1[1] != -1)
+    write(eh->fd1[1], &u, sizeof(char));
 #endif
 }
 
 int eh_wait(TEventHandler *eh, int usec) {
 #ifdef _WIN32
-  SleepEx(usec, TRUE);  // usec mean msec
+  SleepEx(usec, TRUE); // usec mean msec
   return -1;
 #else
   int result;
@@ -235,15 +242,19 @@ void eh_free(TEventHandler *eh) {
   if (eh != 0) {
 #ifdef __linux__
 
-    if (eh->fd1 != -1) close(eh->fd1);
+    if (eh->fd1 != -1)
+      close(eh->fd1);
 
-    if (eh->epoll_fd != -1) close(eh->epoll_fd);
+    if (eh->epoll_fd != -1)
+      close(eh->epoll_fd);
 
 #else
 
-    if (eh->fd1[0] != -1) close(eh->fd1[0]);
+    if (eh->fd1[0] != -1)
+      close(eh->fd1[0]);
 
-    if (eh->fd1[1] != -1) close(eh->fd1[1]);
+    if (eh->fd1[1] != -1)
+      close(eh->fd1[1]);
 
 #endif
 

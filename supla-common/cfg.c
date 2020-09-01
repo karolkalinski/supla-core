@@ -17,6 +17,9 @@
  */
 
 #include "cfg.h"
+#include "ini.h"
+#include "log.h"
+#include "tools.h"
 #include <assert.h>
 #include <grp.h>
 #include <pwd.h>
@@ -25,9 +28,6 @@
 #include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include "ini.h"
-#include "log.h"
-#include "tools.h"
 
 #define MATCH(s, n) strcasecmp(section, s) == 0 && strcasecmp(name, n) == 0
 
@@ -63,39 +63,41 @@ int scfg_ini_handler(void *user, const char *section, const char *name,
                      const char *value) {
   int a;
 
-  if (value == 0) return 1;
+  if (value == 0)
+    return 1;
 
   for (a = 0; a < scfg->count; a++)
     if (MATCH(scfg->param[a]->section_name, scfg->param[a]->name)) {
       switch (scfg->param[a]->vtype) {
-        case SCFG_VTYPE_STRING:
+      case SCFG_VTYPE_STRING:
 
-          if (scfg->param[a]->cval) {
-            free(scfg->param[a]->cval);
-            scfg->param[a]->cval = NULL;
-          }
+        if (scfg->param[a]->cval) {
+          free(scfg->param[a]->cval);
+          scfg->param[a]->cval = NULL;
+        }
 
-          scfg->param[a]->cval = strdup(value);
-          break;
-        case SCFG_VTYPE_INT:
-          scfg->param[a]->ival = atoi(value);
-          break;
-        case SCFG_VTYPE_DOUBLE:
-          scfg->param[a]->dval = atof(value);
-          break;
-        case SCFG_VTYPE_BOOLEAN:
-          if (strcmp(value, "1") == 0 || strcmp(value, "Y") == 0 ||
-              strcmp(value, "y") == 0)
-            scfg->param[a]->bval = 1;
-          else
-            scfg->param[a]->bval = 0;
-          break;
+        scfg->param[a]->cval = strdup(value);
+        break;
+      case SCFG_VTYPE_INT:
+        scfg->param[a]->ival = atoi(value);
+        break;
+      case SCFG_VTYPE_DOUBLE:
+        scfg->param[a]->dval = atof(value);
+        break;
+      case SCFG_VTYPE_BOOLEAN:
+        if (strcmp(value, "1") == 0 || strcmp(value, "Y") == 0 ||
+            strcmp(value, "y") == 0)
+          scfg->param[a]->bval = 1;
+        else
+          scfg->param[a]->bval = 0;
+        break;
       }
 
       scfg->param[a]->isset = 1;
     }
 
-  if (scfg->cb != 0) scfg->cb(section, name, value);
+  if (scfg->cb != 0)
+    scfg->cb(section, name, value);
 
   return 1;
 }
@@ -104,7 +106,8 @@ void scfg_set_callback(_func_cfg_callback cb) {
   if (scfg == NULL) {
     scfg = malloc(sizeof(TSuplaCfg));
 
-    if (scfg == NULL) return;
+    if (scfg == NULL)
+      return;
 
     memset(scfg, 0, sizeof(TSuplaCfg));
   }
@@ -124,14 +127,16 @@ void scfg_add_param(char *section_name, const char *param_name,
   if (scfg == NULL) {
     scfg = malloc(sizeof(TSuplaCfg));
 
-    if (scfg == NULL) return;
+    if (scfg == NULL)
+      return;
 
     memset(scfg, 0, sizeof(TSuplaCfg));
   }
 
   param = malloc(sizeof(TSuplaCfgParam));
 
-  if (param == NULL) return;
+  if (param == NULL)
+    return;
 
   scfg_param = realloc(scfg->param, sizeof(void *) * (scfg->count + 1));
 
@@ -241,10 +246,12 @@ void scfg_names_free() {
 void scfg_free(void) {
   int a;
 
-  if (scfg == NULL) return;
+  if (scfg == NULL)
+    return;
 
   for (a = 0; a < scfg->count; a++) {
-    if (scfg->param[a]->name != NULL) free(scfg->param[a]->name);
+    if (scfg->param[a]->name != NULL)
+      free(scfg->param[a]->name);
 
     if (scfg->param[a]->cval != NULL) {
       free(scfg->param[a]->cval);
@@ -289,7 +296,8 @@ int scfg_getuid(unsigned char param_id) {
   if (name && strnlen(name, 256) > 0) {
     struct passwd *pwd =
         getpwnam(name); /* don't free, see man getpwnam() for details */
-    if (pwd) return pwd->pw_uid;
+    if (pwd)
+      return pwd->pw_uid;
   }
   return getuid();
 }
@@ -300,7 +308,8 @@ int scfg_getgid(unsigned char param_id) {
   if (name && strnlen(name, 256) > 0) {
     struct group *gr =
         getgrnam(name); /* don't free, see man getgrnam() for details */
-    if (gr) return gr->gr_gid;
+    if (gr)
+      return gr->gr_gid;
   }
 
   return getgid();

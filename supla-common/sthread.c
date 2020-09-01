@@ -17,11 +17,11 @@
  */
 
 #include "sthread.h"
+#include "lck.h"
 #include <pthread.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
-#include "lck.h"
 
 typedef struct {
   pthread_t _thread;
@@ -48,7 +48,8 @@ void *_sthread_run(void *ptr) {
   sthread->finished = 1;
   lck_unlock(sthread->lck);
 
-  if (sthread->params.free_on_finish) sthread_free(sthread);
+  if (sthread->params.free_on_finish)
+    sthread_free(sthread);
 
   return 0;
 }
@@ -56,7 +57,8 @@ void *_sthread_run(void *ptr) {
 void *sthread_run(Tsthread_params *sthread_params) {
   Tsthread *sthread = malloc(sizeof(Tsthread));
 
-  if (sthread == NULL) return NULL;
+  if (sthread == NULL)
+    return NULL;
 
   memset(sthread, 0, sizeof(Tsthread));
 

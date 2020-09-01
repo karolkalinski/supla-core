@@ -77,7 +77,8 @@ int safe_array_add(void *_arr, void *ptr) {
 
   assert(_arr != 0);
 
-  if (ptr == 0) return -1;
+  if (ptr == 0)
+    return -1;
 
   safe_array_lock(_arr);
 
@@ -103,12 +104,14 @@ void safe_array_delete(void *_arr, int idx) {
 
   assert(_arr != 0);
 
-  if (idx < 0) return;
+  if (idx < 0)
+    return;
 
   safe_array_lock(_arr);
 
   if (idx < arr->count) {
-    if (idx < arr->count - 1) arr->arr[idx] = arr->arr[arr->count - 1];
+    if (idx < arr->count - 1)
+      arr->arr[idx] = arr->arr[arr->count - 1];
 
     void **new_arr = realloc(arr->arr, sizeof(void *) * (arr->count - 1));
 
@@ -136,7 +139,8 @@ int safe_array_find(void *_arr, void *ptr) {
 
   assert(_arr != 0);
 
-  if (ptr == 0) return -1;
+  if (ptr == 0)
+    return -1;
 
   safe_array_lock(_arr);
 
@@ -157,11 +161,13 @@ void *safe_array_get(void *_arr, int idx) {
 
   assert(_arr != 0);
 
-  if (idx < 0) return 0;
+  if (idx < 0)
+    return 0;
 
   safe_array_lock(_arr);
 
-  if (idx < arr->count) result = arr->arr[idx];
+  if (idx < arr->count)
+    result = arr->arr[idx];
 
   safe_array_unlock(_arr);
 
@@ -178,7 +184,8 @@ void *safe_array_pop(void *_arr) {
   result = safe_array_get(_arr, 0);
 
   if (result != NULL) {
-    for (a = 1; a < arr->count; a++) arr->arr[a - 1] = arr->arr[a];
+    for (a = 1; a < arr->count; a++)
+      arr->arr[a - 1] = arr->arr[a];
   }
 
   safe_array_delete(_arr, arr->count - 1);

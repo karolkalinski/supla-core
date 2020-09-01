@@ -49,7 +49,8 @@ void st_signal_handler(int sig) {
     st_app_terminate = 1;
   }
 
-  if (st_eh != 0) eh_raise_event(st_eh);
+  if (st_eh != 0)
+    eh_raise_event(st_eh);
 }
 
 void st_hook_signals(void) {
@@ -143,7 +144,8 @@ char st_setpidfile(char *pidfile_path) {
 }
 
 void st_delpidfile(char *pidfile_path) {
-  if (st_file_exists(pidfile_path) == 1) unlink(pidfile_path);
+  if (st_file_exists(pidfile_path) == 1)
+    unlink(pidfile_path);
 }
 
 void st_mainloop_init(void) { st_eh = eh_init(); }
@@ -155,14 +157,15 @@ void st_mainloop_wait(int usec) { eh_wait(st_eh, usec); }
 char *st_bin2hex(char *buffer, const char *src, size_t len) {
   int a, b;
 
-  if (src == 0 || buffer == 0) return buffer;
+  if (src == 0 || buffer == 0)
+    return buffer;
 
   buffer[0] = 0;
 
   b = 0;
 
   for (a = 0; a < len; a++) {
-    snprintf(&buffer[b], 3, "%02X", (unsigned char)src[a]);  // NOLINT
+    snprintf(&buffer[b], 3, "%02X", (unsigned char)src[a]); // NOLINT
     b += 2;
   }
 
@@ -200,7 +203,7 @@ char st_read_randkey_from_file(char *file, char *KEY, int size, char create) {
         gettimeofday(&tv, NULL);
 
         for (a = 0; a < size; a++)
-          KEY[a] = (unsigned char)(rand() + tv.tv_usec);  // NOLINT
+          KEY[a] = (unsigned char)(rand() + tv.tv_usec); // NOLINT
 #else
         unsigned int seed = tv.tv_sec + tv.tv_usec;
 
@@ -254,7 +257,8 @@ char st_read_randkey_from_file(char *file, char *KEY, int size, char create) {
         break;
       }
 
-    if (result == 0) supla_log(LOG_ERR, "%s - format error", file);
+    if (result == 0)
+      supla_log(LOG_ERR, "%s - format error", file);
   }
 
   return result;
@@ -270,7 +274,7 @@ char st_read_authkey_from_file(char *file, char *AuthKey, char create) {
 
 time_t st_get_utc_time(void) {
   time_t now = time(0);
-  struct tm *now_tm = gmtime(&now);  // NOLINT
+  struct tm *now_tm = gmtime(&now); // NOLINT
   return mktime(now_tm);
 }
 
@@ -278,7 +282,7 @@ char *st_get_zulu_time(char buffer[64]) {
   memset(buffer, 0, 64);
 
   time_t now = time(0);
-  struct tm *tm = gmtime(&now);  // NOLINT
+  struct tm *tm = gmtime(&now); // NOLINT
   strftime(buffer, 64, "%Y-%m-%dT%H:%M:%SZ", tm);
 
   return buffer;
@@ -288,7 +292,7 @@ char *st_get_datetime_str(char buffer[64]) {
   memset(buffer, 0, 64);
 
   time_t t = time(NULL);
-  struct tm *tm = localtime(&t);  // NOLINT
+  struct tm *tm = localtime(&t); // NOLINT
   strftime(buffer, 64, "%c", tm);
 
   return buffer;
@@ -332,7 +336,8 @@ _color_hsv_t st_rgb2hsv(int rgb) {
 
   out.h *= 60.0;
 
-  if (out.h < 0.0) out.h += 360.0;
+  if (out.h < 0.0)
+    out.h += 360.0;
 
   return out;
 }
@@ -359,38 +364,38 @@ int st_hsv2rgb(_color_hsv_t in) {
     double t = in.v * (1.0 - in.s * (1 - f));
 
     switch (i) {
-      case 0:
-        r = in.v;
-        g = t;
-        b = p;
-        break;
-      case 1:
-        r = q;
-        g = in.v;
-        b = p;
-        break;
-      case 2:
-        r = p;
-        g = in.v;
-        b = t;
-        break;
-      case 3:
-        r = p;
-        g = q;
-        b = in.v;
-        break;
-      case 4:
-        r = t;
-        g = p;
-        b = in.v;
-        break;
-      case 5:
-        r = in.v;
-        g = p;
-        b = q;
-        break;
-      default:
-        break;
+    case 0:
+      r = in.v;
+      g = t;
+      b = p;
+      break;
+    case 1:
+      r = q;
+      g = in.v;
+      b = p;
+      break;
+    case 2:
+      r = p;
+      g = in.v;
+      b = t;
+      break;
+    case 3:
+      r = p;
+      g = q;
+      b = in.v;
+      break;
+    case 4:
+      r = t;
+      g = p;
+      b = in.v;
+      break;
+    case 5:
+      r = in.v;
+      g = p;
+      b = q;
+      break;
+    default:
+      break;
     }
   }
 
@@ -404,7 +409,8 @@ int st_hsv2rgb(_color_hsv_t in) {
 }
 
 int st_hue2rgb(double hue) {
-  if (hue >= 360) hue = 0;
+  if (hue >= 360)
+    hue = 0;
 
   _color_hsv_t hsv;
   hsv.h = hue;
@@ -429,7 +435,7 @@ void st_random_alpha_string(char *buffer, int buffer_size) {
   gettimeofday(&tv, NULL);
 
   for (a = 0; a < buffer_size - 1; a++) {
-    buffer[a] = charset[(rand() + tv.tv_usec) % max];  // NOLINT
+    buffer[a] = charset[(rand() + tv.tv_usec) % max]; // NOLINT
   }
 #else
   unsigned int seed = tv.tv_sec + tv.tv_usec;
@@ -455,7 +461,7 @@ void st_uuid_v4(char buffer[37]) {
   gettimeofday(&tv, NULL);
 
   for (a = 0; a < 16; a++) {
-    r[a] = (rand() + tv.tv_usec) % 255;  // NOLINT
+    r[a] = (rand() + tv.tv_usec) % 255; // NOLINT
   }
 #else
   unsigned int seed = tv.tv_sec + tv.tv_usec;
@@ -482,7 +488,8 @@ void st_uuid_v4(char buffer[37]) {
 
 #ifdef __BCRYPT
 char st_bcrypt_gensalt(char *salt, int salt_buffer_size, char rounds) {
-  if (salt == NULL || salt_buffer_size == 0) return 0;
+  if (salt == NULL || salt_buffer_size == 0)
+    return 0;
 
   char random[BCRYPT_RABD_SIZE];
   int a;
@@ -497,7 +504,8 @@ char st_bcrypt_gensalt(char *salt, int salt_buffer_size, char rounds) {
 
   unsigned int seed = tv.tv_sec + tv.tv_usec;
 
-  for (a = 0; a < BCRYPT_RABD_SIZE; a++) random[a] = rand_r(&seed) + tv.tv_usec;
+  for (a = 0; a < BCRYPT_RABD_SIZE; a++)
+    random[a] = rand_r(&seed) + tv.tv_usec;
 
   return crypt_gensalt_rn("$2a$", rounds, random, BCRYPT_RABD_SIZE, salt,
                           salt_buffer_size) == NULL
@@ -513,7 +521,8 @@ char st_bcrypt_hash(char *str, char *salt, char *hash, int hash_buffer_size) {
 }
 
 char st_bcrypt_crypt(char *str, char *hash, int hash_buffer_size, char rounds) {
-  if (str == NULL || hash == NULL || hash_buffer_size == 0) return 0;
+  if (str == NULL || hash == NULL || hash_buffer_size == 0)
+    return 0;
 
   char salt[32];
   if (1 == st_bcrypt_gensalt(salt, 32, rounds)) {
@@ -524,7 +533,8 @@ char st_bcrypt_crypt(char *str, char *hash, int hash_buffer_size, char rounds) {
 }
 
 char st_bcrypt_check(char *str, char *hash, int hash_len) {
-  if (str == NULL || hash == NULL || hash_len == 0) return 0;
+  if (str == NULL || hash == NULL || hash_len == 0)
+    return 0;
 
   char *cmp_hash = malloc(hash_len + 1);
   char result = 0;

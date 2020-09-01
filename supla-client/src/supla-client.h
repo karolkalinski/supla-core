@@ -104,14 +104,14 @@ typedef void (*_suplaclient_cb_on_zwave_result_with_node)(
 
 typedef struct {
   char clientGUID[SUPLA_GUID_SIZE];
-  char Name[SUPLA_CLIENT_NAME_MAXSIZE];  // UTF8
+  char Name[SUPLA_CLIENT_NAME_MAXSIZE]; // UTF8
 
-  char Email[SUPLA_EMAIL_MAXSIZE];        // UTF8
-  char Password[SUPLA_PASSWORD_MAXSIZE];  // UTF8
+  char Email[SUPLA_EMAIL_MAXSIZE];       // UTF8
+  char Password[SUPLA_PASSWORD_MAXSIZE]; // UTF8
   char AuthKey[SUPLA_AUTHKEY_SIZE];
 
   int AccessID;
-  char AccessIDpwd[SUPLA_ACCESSID_PWD_MAXSIZE];  // UTF8
+  char AccessIDpwd[SUPLA_ACCESSID_PWD_MAXSIZE]; // UTF8
 
   char SoftVer[SUPLA_SOFTVER_MAXSIZE];
 

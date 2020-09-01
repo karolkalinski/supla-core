@@ -19,8 +19,8 @@
 #ifndef suplatools_H_
 #define suplatools_H_
 
-#include <stdlib.h>
 #include "proto.h"
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {

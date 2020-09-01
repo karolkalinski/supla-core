@@ -149,41 +149,41 @@ void supla_client_on_register_result(
 
   } else {
     switch (register_client_result->result_code) {
-      case SUPLA_RESULTCODE_BAD_CREDENTIALS:
-        supla_log(LOG_ERR, "Bad credentials!");
-        break;
+    case SUPLA_RESULTCODE_BAD_CREDENTIALS:
+      supla_log(LOG_ERR, "Bad credentials!");
+      break;
 
-      case SUPLA_RESULTCODE_TEMPORARILY_UNAVAILABLE:
-        supla_log(LOG_NOTICE, "Temporarily unavailable!");
-        break;
+    case SUPLA_RESULTCODE_TEMPORARILY_UNAVAILABLE:
+      supla_log(LOG_NOTICE, "Temporarily unavailable!");
+      break;
 
-      case SUPLA_RESULTCODE_ACCESSID_DISABLED:
-        supla_log(LOG_NOTICE, "Access Identifier is disabled!");
-        break;
+    case SUPLA_RESULTCODE_ACCESSID_DISABLED:
+      supla_log(LOG_NOTICE, "Access Identifier is disabled!");
+      break;
 
-      case SUPLA_RESULTCODE_CLIENT_DISABLED:
-        supla_log(LOG_NOTICE, "Client is disabled!");
-        break;
+    case SUPLA_RESULTCODE_CLIENT_DISABLED:
+      supla_log(LOG_NOTICE, "Client is disabled!");
+      break;
 
-      case SUPLA_RESULTCODE_CLIENT_LIMITEXCEEDED:
-        supla_log(LOG_NOTICE, "Client limit exceeded!");
-        break;
+    case SUPLA_RESULTCODE_CLIENT_LIMITEXCEEDED:
+      supla_log(LOG_NOTICE, "Client limit exceeded!");
+      break;
 
-      case SUPLA_RESULTCODE_GUID_ERROR:
-        supla_log(LOG_NOTICE, "Incorrect client GUID!");
-        break;
+    case SUPLA_RESULTCODE_GUID_ERROR:
+      supla_log(LOG_NOTICE, "Incorrect client GUID!");
+      break;
 
-      case SUPLA_RESULTCODE_REGISTRATION_DISABLED:
-        supla_log(LOG_NOTICE, "Registration disabled!");
-        break;
+    case SUPLA_RESULTCODE_REGISTRATION_DISABLED:
+      supla_log(LOG_NOTICE, "Registration disabled!");
+      break;
 
-      case SUPLA_RESULTCODE_ACCESSID_NOT_ASSIGNED:
-        supla_log(LOG_NOTICE, "Access Identifier not assigned!");
-        break;
+    case SUPLA_RESULTCODE_ACCESSID_NOT_ASSIGNED:
+      supla_log(LOG_NOTICE, "Access Identifier not assigned!");
+      break;
 
-      case SUPLA_RESULTCODE_AUTHKEY_ERROR:
-        supla_log(LOG_NOTICE, "Incorrect AuthKey!");
-        break;
+    case SUPLA_RESULTCODE_AUTHKEY_ERROR:
+      supla_log(LOG_NOTICE, "Incorrect AuthKey!");
+      break;
     }
 
     if (scd->cfg.cb_on_registererror)
@@ -195,7 +195,8 @@ void supla_client_on_register_result(
 }
 
 void supla_client_set_str(char *str, unsigned int *size, unsigned int max) {
-  if (*size > max) *size = max;
+  if (*size > max)
+    *size = max;
 
   if (*size > 0)
     str[(*size) - 1] = 0;
@@ -211,7 +212,8 @@ void supla_client_location_update(TSuplaClientData *scd,
   if (scd->cfg.cb_location_update)
     scd->cfg.cb_location_update(scd, scd->cfg.user_data, location);
 
-  if (gn == 1) srpc_cs_async_get_next(scd->srpc);
+  if (gn == 1)
+    srpc_cs_async_get_next(scd->srpc);
 }
 
 void supla_client_locationpack_update(TSuplaClientData *scd,
@@ -232,7 +234,8 @@ void supla_client_channel_update_c(TSuplaClientData *scd,
   if (scd->cfg.cb_channel_update)
     scd->cfg.cb_channel_update(scd, scd->cfg.user_data, channel);
 
-  if (gn == 1) srpc_cs_async_get_next(scd->srpc);
+  if (gn == 1)
+    srpc_cs_async_get_next(scd->srpc);
 }
 
 void supla_client_channelgroup_update(TSuplaClientData *scd,
@@ -244,7 +247,8 @@ void supla_client_channelgroup_update(TSuplaClientData *scd,
   if (scd->cfg.cb_channelgroup_update)
     scd->cfg.cb_channelgroup_update(scd, scd->cfg.user_data, channel_group);
 
-  if (gn == 1) srpc_cs_async_get_next(scd->srpc);
+  if (gn == 1)
+    srpc_cs_async_get_next(scd->srpc);
 }
 
 void supla_client_channelgroup_pack_update(TSuplaClientData *scd,
@@ -288,7 +292,8 @@ void supla_client_channelgroup_relation_update(
     scd->cfg.cb_channelgroup_relation_update(scd, scd->cfg.user_data,
                                              channelgroup_relation);
 
-  if (gn == 1) srpc_cs_async_get_next(scd->srpc);
+  if (gn == 1)
+    srpc_cs_async_get_next(scd->srpc);
 }
 
 void supla_client_channelgroup_relation_pack_update(
@@ -481,73 +486,73 @@ void supla_client_on_device_calcfg_result(TSuplaClientData *scd,
   }
 
   switch (result->Command) {
-    case SUPLA_CALCFG_CMD_PROGRESS_REPORT:
-      if (result->Result == SUPLA_CALCFG_RESULT_TRUE &&
-          result->DataSize == sizeof(TCalCfg_ProgressReport) &&
-          scd->cfg.cb_on_device_calcfg_progress_report) {
-        scd->cfg.cb_on_device_calcfg_progress_report(
-            scd, scd->cfg.user_data, result->ChannelID,
-            (TCalCfg_ProgressReport *)result->Data);
+  case SUPLA_CALCFG_CMD_PROGRESS_REPORT:
+    if (result->Result == SUPLA_CALCFG_RESULT_TRUE &&
+        result->DataSize == sizeof(TCalCfg_ProgressReport) &&
+        scd->cfg.cb_on_device_calcfg_progress_report) {
+      scd->cfg.cb_on_device_calcfg_progress_report(
+          scd, scd->cfg.user_data, result->ChannelID,
+          (TCalCfg_ProgressReport *)result->Data);
+    }
+    break;
+  case SUPLA_CALCFG_CMD_DEBUG_STRING:
+    if (result->DataSize > 0 && scd->cfg.cb_on_device_calcfg_debug_string) {
+      if (result->DataSize >= SUPLA_CALCFG_DATA_MAXSIZE) {
+        result->DataSize = SUPLA_CALCFG_DATA_MAXSIZE - 1;
+        result->Data[result->DataSize] = 0;
       }
-      break;
-    case SUPLA_CALCFG_CMD_DEBUG_STRING:
-      if (result->DataSize > 0 && scd->cfg.cb_on_device_calcfg_debug_string) {
-        if (result->DataSize >= SUPLA_CALCFG_DATA_MAXSIZE) {
-          result->DataSize = SUPLA_CALCFG_DATA_MAXSIZE - 1;
-          result->Data[result->DataSize] = 0;
-        }
 
-        scd->cfg.cb_on_device_calcfg_debug_string(scd, scd->cfg.user_data,
-                                                  result->Data);
-      }
-      break;
-    case SUPLA_CALCFG_CMD_ZWAVE_RESET_AND_CLEAR:
-      if (scd->cfg.cb_on_zwave_reset_and_clear_result) {
-        scd->cfg.cb_on_zwave_reset_and_clear_result(scd, scd->cfg.user_data,
-                                                    result->Result);
-      }
-      break;
-    case SUPLA_CALCFG_CMD_ZWAVE_ADD_NODE:
-      if (scd->cfg.cb_on_zwave_add_node_result) {
-        scd->cfg.cb_on_zwave_add_node_result(scd, scd->cfg.user_data,
-                                             result->Result,
-                                             supla_client_zwave_node(result));
-      }
-      break;
-    case SUPLA_CALCFG_CMD_ZWAVE_REMOVE_NODE:
-      if (scd->cfg.cb_on_zwave_remove_node_result) {
-        scd->cfg.cb_on_zwave_remove_node_result(
-            scd, scd->cfg.user_data, result->Result,
-            result->DataSize == sizeof(unsigned char)
-                ? (unsigned char)result->Data[0]
-                : 0);
-      }
-      break;
-    case SUPLA_CALCFG_CMD_ZWAVE_GET_NODE_LIST:
-      if (scd->cfg.cb_on_zwave_get_node_list_result) {
-        scd->cfg.cb_on_zwave_get_node_list_result(
-            scd, scd->cfg.user_data, result->Result,
-            supla_client_zwave_node(result));
-      }
-      break;
-    case SUPLA_CALCFG_CMD_ZWAVE_GET_ASSIGNED_NODE_ID:
-      if (scd->cfg.cb_on_zwave_get_assigned_node_id_result) {
-        scd->cfg.cb_on_zwave_get_assigned_node_id_result(
-            scd, scd->cfg.user_data, result->Result,
-            result->DataSize == sizeof(unsigned char)
-                ? (unsigned char)result->Data[0]
-                : 0);
-      }
-      break;
-    case SUPLA_CALCFG_CMD_ZWAVE_ASSIGN_NODE_ID:
-      if (scd->cfg.cb_on_zwave_assign_node_id_result) {
-        scd->cfg.cb_on_zwave_assign_node_id_result(
-            scd, scd->cfg.user_data, result->Result,
-            result->DataSize == sizeof(unsigned char)
-                ? (unsigned char)result->Data[0]
-                : 0);
-      }
-      break;
+      scd->cfg.cb_on_device_calcfg_debug_string(scd, scd->cfg.user_data,
+                                                result->Data);
+    }
+    break;
+  case SUPLA_CALCFG_CMD_ZWAVE_RESET_AND_CLEAR:
+    if (scd->cfg.cb_on_zwave_reset_and_clear_result) {
+      scd->cfg.cb_on_zwave_reset_and_clear_result(scd, scd->cfg.user_data,
+                                                  result->Result);
+    }
+    break;
+  case SUPLA_CALCFG_CMD_ZWAVE_ADD_NODE:
+    if (scd->cfg.cb_on_zwave_add_node_result) {
+      scd->cfg.cb_on_zwave_add_node_result(scd, scd->cfg.user_data,
+                                           result->Result,
+                                           supla_client_zwave_node(result));
+    }
+    break;
+  case SUPLA_CALCFG_CMD_ZWAVE_REMOVE_NODE:
+    if (scd->cfg.cb_on_zwave_remove_node_result) {
+      scd->cfg.cb_on_zwave_remove_node_result(
+          scd, scd->cfg.user_data, result->Result,
+          result->DataSize == sizeof(unsigned char)
+              ? (unsigned char)result->Data[0]
+              : 0);
+    }
+    break;
+  case SUPLA_CALCFG_CMD_ZWAVE_GET_NODE_LIST:
+    if (scd->cfg.cb_on_zwave_get_node_list_result) {
+      scd->cfg.cb_on_zwave_get_node_list_result(
+          scd, scd->cfg.user_data, result->Result,
+          supla_client_zwave_node(result));
+    }
+    break;
+  case SUPLA_CALCFG_CMD_ZWAVE_GET_ASSIGNED_NODE_ID:
+    if (scd->cfg.cb_on_zwave_get_assigned_node_id_result) {
+      scd->cfg.cb_on_zwave_get_assigned_node_id_result(
+          scd, scd->cfg.user_data, result->Result,
+          result->DataSize == sizeof(unsigned char)
+              ? (unsigned char)result->Data[0]
+              : 0);
+    }
+    break;
+  case SUPLA_CALCFG_CMD_ZWAVE_ASSIGN_NODE_ID:
+    if (scd->cfg.cb_on_zwave_assign_node_id_result) {
+      scd->cfg.cb_on_zwave_assign_node_id_result(
+          scd, scd->cfg.user_data, result->Result,
+          result->DataSize == sizeof(unsigned char)
+              ? (unsigned char)result->Data[0]
+              : 0);
+    }
+    break;
   }
 }
 
@@ -564,234 +569,234 @@ void supla_client_on_remote_call_received(void *_srpc, unsigned int rr_id,
 
   if (SUPLA_RESULT_TRUE == (result = srpc_getdata(_srpc, &rd, 0))) {
     switch (rd.call_type) {
-      case SUPLA_SDC_CALL_GETVERSION_RESULT:
-        if (scd->cfg.cb_on_getversion_result && rd.data.sdc_getversion_result) {
-          rd.data.sdc_getversion_result->SoftVer[SUPLA_SOFTVER_MAXSIZE - 1] = 0;
-          scd->cfg.cb_on_getversion_result(scd, scd->cfg.user_data,
-                                           rd.data.sdc_getversion_result);
-        }
-        break;
-      case SUPLA_SDC_CALL_VERSIONERROR:
-        if (rd.data.sdc_version_error) {
-          supla_client_on_version_error(scd, rd.data.sdc_version_error);
-        }
-        break;
-      case SUPLA_SC_CALL_REGISTER_CLIENT_RESULT:
+    case SUPLA_SDC_CALL_GETVERSION_RESULT:
+      if (scd->cfg.cb_on_getversion_result && rd.data.sdc_getversion_result) {
+        rd.data.sdc_getversion_result->SoftVer[SUPLA_SOFTVER_MAXSIZE - 1] = 0;
+        scd->cfg.cb_on_getversion_result(scd, scd->cfg.user_data,
+                                         rd.data.sdc_getversion_result);
+      }
+      break;
+    case SUPLA_SDC_CALL_VERSIONERROR:
+      if (rd.data.sdc_version_error) {
+        supla_client_on_version_error(scd, rd.data.sdc_version_error);
+      }
+      break;
+    case SUPLA_SC_CALL_REGISTER_CLIENT_RESULT:
 
-        if (rd.data.sc_register_client_result == NULL) {
+      if (rd.data.sc_register_client_result == NULL) {
+        break;
+      }
+
+      {
+        TSC_SuplaRegisterClientResult_B *sc_register_client_result_b =
+            (TSC_SuplaRegisterClientResult_B *)malloc(
+                sizeof(TSC_SuplaRegisterClientResult_B));
+
+        if (sc_register_client_result_b == NULL) {
           break;
-        }
+        } else {
+          sc_register_client_result_b->result_code =
+              rd.data.sc_register_client_result->result_code;
 
-        {
-          TSC_SuplaRegisterClientResult_B *sc_register_client_result_b =
-              (TSC_SuplaRegisterClientResult_B *)malloc(
-                  sizeof(TSC_SuplaRegisterClientResult_B));
+          sc_register_client_result_b->ClientID =
+              rd.data.sc_register_client_result->ClientID;
 
-          if (sc_register_client_result_b == NULL) {
-            break;
-          } else {
-            sc_register_client_result_b->result_code =
-                rd.data.sc_register_client_result->result_code;
+          sc_register_client_result_b->LocationCount =
+              rd.data.sc_register_client_result->LocationCount;
 
-            sc_register_client_result_b->ClientID =
-                rd.data.sc_register_client_result->ClientID;
+          sc_register_client_result_b->ChannelCount =
+              rd.data.sc_register_client_result->ChannelCount;
 
-            sc_register_client_result_b->LocationCount =
-                rd.data.sc_register_client_result->LocationCount;
+          sc_register_client_result_b->ChannelGroupCount = 0;
+          sc_register_client_result_b->Flags = 0;
 
-            sc_register_client_result_b->ChannelCount =
-                rd.data.sc_register_client_result->ChannelCount;
+          sc_register_client_result_b->activity_timeout =
+              rd.data.sc_register_client_result->activity_timeout;
 
-            sc_register_client_result_b->ChannelGroupCount = 0;
-            sc_register_client_result_b->Flags = 0;
+          sc_register_client_result_b->version =
+              rd.data.sc_register_client_result->version;
 
-            sc_register_client_result_b->activity_timeout =
-                rd.data.sc_register_client_result->activity_timeout;
+          sc_register_client_result_b->version_min =
+              rd.data.sc_register_client_result->version_min;
 
-            sc_register_client_result_b->version =
-                rd.data.sc_register_client_result->version;
+          free(rd.data.sc_register_client_result);
+          rd.data.sc_register_client_result_b = sc_register_client_result_b;
+        }
+      }
 
-            sc_register_client_result_b->version_min =
-                rd.data.sc_register_client_result->version_min;
+    /* no break between SUPLA_SC_CALL_REGISTER_CLIENT_RESULT and
+     * SUPLA_SC_CALL_REGISTER_CLIENT_RESULT_B!!! */
+    case SUPLA_SC_CALL_REGISTER_CLIENT_RESULT_B:
+      if (rd.data.sc_register_client_result_b) {
+        supla_client_on_register_result(scd,
+                                        rd.data.sc_register_client_result_b);
+      }
+      break;
+    case SUPLA_SC_CALL_LOCATION_UPDATE:
+      if (rd.data.sc_location) {
+        supla_client_location_update(scd, rd.data.sc_location, 1);
+      }
+      break;
+    case SUPLA_SC_CALL_LOCATIONPACK_UPDATE:
+      if (rd.data.sc_location_pack) {
+        supla_client_locationpack_update(scd, rd.data.sc_location_pack);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNEL_UPDATE:
+      if (rd.data.sc_channel) {
+        supla_client_channel_update(scd, rd.data.sc_channel, 1);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNEL_UPDATE_B:
+      if (rd.data.sc_channel_b) {
+        supla_client_channel_update_b(scd, rd.data.sc_channel_b, 1);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNEL_UPDATE_C:
+      if (rd.data.sc_channel_c) {
+        supla_client_channel_update_c(scd, rd.data.sc_channel_c, 1);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNELPACK_UPDATE:
+      if (rd.data.sc_channel_pack) {
+        supla_client_channelpack_update(scd, rd.data.sc_channel_pack);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNELPACK_UPDATE_B:
+      if (rd.data.sc_channel_pack_b) {
+        supla_client_channelpack_update_b(scd, rd.data.sc_channel_pack_b);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNELPACK_UPDATE_C:
+      if (rd.data.sc_channel_pack_c) {
+        supla_client_channelpack_update_c(scd, rd.data.sc_channel_pack_c);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNEL_VALUE_UPDATE:
+      if (rd.data.sc_channel_value) {
+        supla_client_channel_value_update(scd, rd.data.sc_channel_value, 1);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNELGROUP_PACK_UPDATE:
+      if (rd.data.sc_channelgroup_pack) {
+        supla_client_channelgroup_pack_update(scd,
+                                              rd.data.sc_channelgroup_pack);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNELGROUP_PACK_UPDATE_B:
+      if (rd.data.sc_channelgroup_pack_b) {
+        supla_client_channelgroup_pack_update_b(scd,
+                                                rd.data.sc_channelgroup_pack_b);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNELGROUP_RELATION_PACK_UPDATE:
+      if (rd.data.sc_channelgroup_relation_pack) {
+        supla_client_channelgroup_relation_pack_update(
+            scd, rd.data.sc_channelgroup_relation_pack);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNELVALUE_PACK_UPDATE:
+      if (rd.data.sc_channelvalue_pack) {
+        supla_client_channelvalue_pack_update(scd,
+                                              rd.data.sc_channelvalue_pack);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNELEXTENDEDVALUE_PACK_UPDATE:
+      if (rd.data.sc_channelextendedvalue_pack) {
+        supla_client_channelextendedvalue_pack_update(
+            scd, rd.data.sc_channelextendedvalue_pack);
+      }
+      break;
+    case SUPLA_SC_CALL_EVENT:
+      if (rd.data.sc_event) {
+        supla_client_on_event(scd, rd.data.sc_event);
+      }
+      break;
+    case SUPLA_SDC_CALL_GET_REGISTRATION_ENABLED_RESULT:
 
-            free(rd.data.sc_register_client_result);
-            rd.data.sc_register_client_result_b = sc_register_client_result_b;
-          }
-        }
+      if (scd->cfg.cb_on_registration_enabled && rd.data.sdc_reg_enabled) {
+        scd->cfg.cb_on_registration_enabled(scd, scd->cfg.user_data,
+                                            rd.data.sdc_reg_enabled);
+      }
+      break;
+    case SUPLA_SC_CALL_OAUTH_TOKEN_REQUEST_RESULT:
+      if (scd->cfg.cb_on_oauth_token_request_result &&
+          rd.data.sc_oauth_tokenrequest_result) {
+        supla_client_on_oauth_token_request_result(
+            scd, rd.data.sc_oauth_tokenrequest_result);
+      }
+      break;
+    case SUPLA_SC_CALL_SUPERUSER_AUTHORIZATION_RESULT:
+      if (scd->cfg.cb_on_superuser_authorization_result &&
+          rd.data.sc_superuser_authorization_result) {
+        scd->cfg.cb_on_superuser_authorization_result(
+            scd, scd->cfg.user_data,
+            rd.data.sc_superuser_authorization_result->Result ==
+                SUPLA_RESULTCODE_AUTHORIZED,
+            rd.data.sc_superuser_authorization_result->Result);
+      }
+      break;
+    case SUPLA_SC_CALL_DEVICE_CALCFG_RESULT:
+      if (rd.data.sc_device_calcfg_result) {
+        supla_client_on_device_calcfg_result(scd,
+                                             rd.data.sc_device_calcfg_result);
+      }
+      break;
+    case SUPLA_DSC_CALL_CHANNEL_STATE_RESULT:
+      if (scd->cfg.cb_on_device_channel_state && rd.data.dsc_channel_state) {
+        scd->cfg.cb_on_device_channel_state(scd, scd->cfg.user_data,
+                                            rd.data.dsc_channel_state);
+      }
+      break;
+    case SUPLA_SC_CALL_CHANNEL_BASIC_CFG_RESULT:
+      if (scd->cfg.cb_on_channel_basic_cfg && rd.data.sc_channel_basic_cfg) {
+        supla_client_set_str(rd.data.sc_channel_basic_cfg->Caption,
+                             &rd.data.sc_channel_basic_cfg->CaptionSize,
+                             SUPLA_CHANNEL_CAPTION_MAXSIZE);
 
-      /* no break between SUPLA_SC_CALL_REGISTER_CLIENT_RESULT and
-       * SUPLA_SC_CALL_REGISTER_CLIENT_RESULT_B!!! */
-      case SUPLA_SC_CALL_REGISTER_CLIENT_RESULT_B:
-        if (rd.data.sc_register_client_result_b) {
-          supla_client_on_register_result(scd,
-                                          rd.data.sc_register_client_result_b);
-        }
-        break;
-      case SUPLA_SC_CALL_LOCATION_UPDATE:
-        if (rd.data.sc_location) {
-          supla_client_location_update(scd, rd.data.sc_location, 1);
-        }
-        break;
-      case SUPLA_SC_CALL_LOCATIONPACK_UPDATE:
-        if (rd.data.sc_location_pack) {
-          supla_client_locationpack_update(scd, rd.data.sc_location_pack);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNEL_UPDATE:
-        if (rd.data.sc_channel) {
-          supla_client_channel_update(scd, rd.data.sc_channel, 1);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNEL_UPDATE_B:
-        if (rd.data.sc_channel_b) {
-          supla_client_channel_update_b(scd, rd.data.sc_channel_b, 1);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNEL_UPDATE_C:
-        if (rd.data.sc_channel_c) {
-          supla_client_channel_update_c(scd, rd.data.sc_channel_c, 1);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNELPACK_UPDATE:
-        if (rd.data.sc_channel_pack) {
-          supla_client_channelpack_update(scd, rd.data.sc_channel_pack);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNELPACK_UPDATE_B:
-        if (rd.data.sc_channel_pack_b) {
-          supla_client_channelpack_update_b(scd, rd.data.sc_channel_pack_b);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNELPACK_UPDATE_C:
-        if (rd.data.sc_channel_pack_c) {
-          supla_client_channelpack_update_c(scd, rd.data.sc_channel_pack_c);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNEL_VALUE_UPDATE:
-        if (rd.data.sc_channel_value) {
-          supla_client_channel_value_update(scd, rd.data.sc_channel_value, 1);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNELGROUP_PACK_UPDATE:
-        if (rd.data.sc_channelgroup_pack) {
-          supla_client_channelgroup_pack_update(scd,
-                                                rd.data.sc_channelgroup_pack);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNELGROUP_PACK_UPDATE_B:
-        if (rd.data.sc_channelgroup_pack_b) {
-          supla_client_channelgroup_pack_update_b(
-              scd, rd.data.sc_channelgroup_pack_b);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNELGROUP_RELATION_PACK_UPDATE:
-        if (rd.data.sc_channelgroup_relation_pack) {
-          supla_client_channelgroup_relation_pack_update(
-              scd, rd.data.sc_channelgroup_relation_pack);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNELVALUE_PACK_UPDATE:
-        if (rd.data.sc_channelvalue_pack) {
-          supla_client_channelvalue_pack_update(scd,
-                                                rd.data.sc_channelvalue_pack);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNELEXTENDEDVALUE_PACK_UPDATE:
-        if (rd.data.sc_channelextendedvalue_pack) {
-          supla_client_channelextendedvalue_pack_update(
-              scd, rd.data.sc_channelextendedvalue_pack);
-        }
-        break;
-      case SUPLA_SC_CALL_EVENT:
-        if (rd.data.sc_event) {
-          supla_client_on_event(scd, rd.data.sc_event);
-        }
-        break;
-      case SUPLA_SDC_CALL_GET_REGISTRATION_ENABLED_RESULT:
+        rd.data.sc_channel_basic_cfg
+            ->DeviceName[SUPLA_DEVICE_NAME_MAXSIZE - 1] = 0;
+        rd.data.sc_channel_basic_cfg->DeviceSoftVer[SUPLA_SOFTVER_MAXSIZE - 1] =
+            0;
 
-        if (scd->cfg.cb_on_registration_enabled && rd.data.sdc_reg_enabled) {
-          scd->cfg.cb_on_registration_enabled(scd, scd->cfg.user_data,
-                                              rd.data.sdc_reg_enabled);
-        }
-        break;
-      case SUPLA_SC_CALL_OAUTH_TOKEN_REQUEST_RESULT:
-        if (scd->cfg.cb_on_oauth_token_request_result &&
-            rd.data.sc_oauth_tokenrequest_result) {
-          supla_client_on_oauth_token_request_result(
-              scd, rd.data.sc_oauth_tokenrequest_result);
-        }
-        break;
-      case SUPLA_SC_CALL_SUPERUSER_AUTHORIZATION_RESULT:
-        if (scd->cfg.cb_on_superuser_authorization_result &&
-            rd.data.sc_superuser_authorization_result) {
-          scd->cfg.cb_on_superuser_authorization_result(
-              scd, scd->cfg.user_data,
-              rd.data.sc_superuser_authorization_result->Result ==
-                  SUPLA_RESULTCODE_AUTHORIZED,
-              rd.data.sc_superuser_authorization_result->Result);
-        }
-        break;
-      case SUPLA_SC_CALL_DEVICE_CALCFG_RESULT:
-        if (rd.data.sc_device_calcfg_result) {
-          supla_client_on_device_calcfg_result(scd,
-                                               rd.data.sc_device_calcfg_result);
-        }
-        break;
-      case SUPLA_DSC_CALL_CHANNEL_STATE_RESULT:
-        if (scd->cfg.cb_on_device_channel_state && rd.data.dsc_channel_state) {
-          scd->cfg.cb_on_device_channel_state(scd, scd->cfg.user_data,
-                                              rd.data.dsc_channel_state);
-        }
-        break;
-      case SUPLA_SC_CALL_CHANNEL_BASIC_CFG_RESULT:
-        if (scd->cfg.cb_on_channel_basic_cfg && rd.data.sc_channel_basic_cfg) {
-          supla_client_set_str(rd.data.sc_channel_basic_cfg->Caption,
-                               &rd.data.sc_channel_basic_cfg->CaptionSize,
-                               SUPLA_CHANNEL_CAPTION_MAXSIZE);
+        scd->cfg.cb_on_channel_basic_cfg(scd, scd->cfg.user_data,
+                                         rd.data.sc_channel_basic_cfg);
+      }
+      break;
+    case SUPLA_SC_CALL_SET_CHANNEL_FUNCTION_RESULT:
+      if (scd->cfg.cb_on_channel_function_set_result &&
+          rd.data.sc_set_channel_function_result) {
+        scd->cfg.cb_on_channel_function_set_result(
+            scd, scd->cfg.user_data, rd.data.sc_set_channel_function_result);
+      }
+      break;
+    case SUPLA_SC_CALL_SET_CHANNEL_CAPTION_RESULT:
+      if (scd->cfg.cb_on_channel_caption_set_result &&
+          rd.data.sc_set_channel_caption_result) {
+        supla_client_set_str(
+            rd.data.sc_set_channel_caption_result->Caption,
+            &rd.data.sc_set_channel_caption_result->CaptionSize,
+            SUPLA_CHANNEL_CAPTION_MAXSIZE);
 
-          rd.data.sc_channel_basic_cfg
-              ->DeviceName[SUPLA_DEVICE_NAME_MAXSIZE - 1] = 0;
-          rd.data.sc_channel_basic_cfg
-              ->DeviceSoftVer[SUPLA_SOFTVER_MAXSIZE - 1] = 0;
-
-          scd->cfg.cb_on_channel_basic_cfg(scd, scd->cfg.user_data,
-                                           rd.data.sc_channel_basic_cfg);
-        }
-        break;
-      case SUPLA_SC_CALL_SET_CHANNEL_FUNCTION_RESULT:
-        if (scd->cfg.cb_on_channel_function_set_result &&
-            rd.data.sc_set_channel_function_result) {
-          scd->cfg.cb_on_channel_function_set_result(
-              scd, scd->cfg.user_data, rd.data.sc_set_channel_function_result);
-        }
-        break;
-      case SUPLA_SC_CALL_SET_CHANNEL_CAPTION_RESULT:
-        if (scd->cfg.cb_on_channel_caption_set_result &&
-            rd.data.sc_set_channel_caption_result) {
-          supla_client_set_str(
-              rd.data.sc_set_channel_caption_result->Caption,
-              &rd.data.sc_set_channel_caption_result->CaptionSize,
-              SUPLA_CHANNEL_CAPTION_MAXSIZE);
-
-          scd->cfg.cb_on_channel_caption_set_result(
-              scd, scd->cfg.user_data, rd.data.sc_set_channel_caption_result);
-        }
-        break;
-      case SUPLA_SC_CALL_CLIENTS_RECONNECT_REQUEST_RESULT:
-        if (scd->cfg.cb_on_clients_reconnect_request_result &&
-            rd.data.sc_clients_reconnect_result) {
-          scd->cfg.cb_on_clients_reconnect_request_result(
-              scd, scd->cfg.user_data, rd.data.sc_clients_reconnect_result);
-        }
-        break;
-      case SUPLA_SC_CALL_SET_REGISTRATION_ENABLED_RESULT:
-        if (scd->cfg.cb_on_set_registration_enabled_result &&
-            rd.data.sc_set_registration_enabled_result) {
-          scd->cfg.cb_on_set_registration_enabled_result(
-              scd, scd->cfg.user_data,
-              rd.data.sc_set_registration_enabled_result);
-        }
-        break;
+        scd->cfg.cb_on_channel_caption_set_result(
+            scd, scd->cfg.user_data, rd.data.sc_set_channel_caption_result);
+      }
+      break;
+    case SUPLA_SC_CALL_CLIENTS_RECONNECT_REQUEST_RESULT:
+      if (scd->cfg.cb_on_clients_reconnect_request_result &&
+          rd.data.sc_clients_reconnect_result) {
+        scd->cfg.cb_on_clients_reconnect_request_result(
+            scd, scd->cfg.user_data, rd.data.sc_clients_reconnect_result);
+      }
+      break;
+    case SUPLA_SC_CALL_SET_REGISTRATION_ENABLED_RESULT:
+      if (scd->cfg.cb_on_set_registration_enabled_result &&
+          rd.data.sc_set_registration_enabled_result) {
+        scd->cfg.cb_on_set_registration_enabled_result(
+            scd, scd->cfg.user_data,
+            rd.data.sc_set_registration_enabled_result);
+      }
+      break;
     }
 
     srpc_rd_free(&rd);
@@ -831,10 +836,10 @@ void *supla_client_init(TSuplaClientCfg *sclient_cfg) {
 #endif
   }
 
-  scd->ssd = ssocket_client_init(
-      scd->cfg.host,
-      scd->cfg.ssl_enabled == 1 ? scd->cfg.ssl_port : scd->cfg.tcp_port,
-      scd->cfg.ssl_enabled == 1);
+  scd->ssd = ssocket_client_init(scd->cfg.host,
+                                 scd->cfg.ssl_enabled == 1 ? scd->cfg.ssl_port
+                                                           : scd->cfg.tcp_port,
+                                 scd->cfg.ssl_enabled == 1);
 
   return scd;
 }
@@ -867,7 +872,8 @@ void supla_client_free(void *_suplaclient) {
 
     TSuplaClientData *scd = (TSuplaClientData *)_suplaclient;
 
-    if (scd->cfg.host) free(scd->cfg.host);
+    if (scd->cfg.host)
+      free(scd->cfg.host);
 
     ssocket_free(scd->ssd);
     lck_free(scd->lck);
@@ -1090,7 +1096,8 @@ char supla_client__iterate(void *_suplaclient, unsigned char reg,
                            int wait_usec) {
   TSuplaClientData *suplaclient = (TSuplaClientData *)_suplaclient;
 
-  if (supla_client_connected(_suplaclient) == 0) return 0;
+  if (supla_client_connected(_suplaclient) == 0)
+    return 0;
 
   if (reg && supla_client_registered(_suplaclient) == 0) {
     supla_client_set_registered(_suplaclient, -1);
@@ -1165,18 +1172,18 @@ char supla_client_open(void *_suplaclient, int ID, char group, char open) {
   memset(value, 0, SUPLA_CHANNELVALUE_SIZE);
   value[0] = open;
 
-  return supla_client_send_raw_value(
-      _suplaclient, ID, value,
-      group > 0 ? SUPLA_TARGET_GROUP : SUPLA_TARGET_CHANNEL);
+  return supla_client_send_raw_value(_suplaclient, ID, value,
+                                     group > 0 ? SUPLA_TARGET_GROUP
+                                               : SUPLA_TARGET_CHANNEL);
 }
 
 void _supla_client_set_rgbw_value(char *value, int color, char color_brightness,
                                   char brightness, char turn_onoff) {
   value[0] = brightness;
   value[1] = color_brightness;
-  value[2] = (char)((color & 0x000000FF));        // BLUE
-  value[3] = (char)((color & 0x0000FF00) >> 8);   // GREEN
-  value[4] = (char)((color & 0x00FF0000) >> 16);  // RED
+  value[2] = (char)((color & 0x000000FF));       // BLUE
+  value[3] = (char)((color & 0x0000FF00) >> 8);  // GREEN
+  value[4] = (char)((color & 0x00FF0000) >> 16); // RED
   value[5] = turn_onoff > 0 ? 1 : 0;
 }
 
@@ -1244,9 +1251,9 @@ char supla_client_oauth_token_request(void *_suplaclient) {
 char supla_client_superuser_authorization_request(void *_suplaclient,
                                                   char *email, char *password) {
   TCS_SuperUserAuthorizationRequest request;
-  snprintf(
-      request.Email, SUPLA_EMAIL_MAXSIZE, "%s",
-      email == NULL ? ((TSuplaClientData *)_suplaclient)->cfg.Email : email);
+  snprintf(request.Email, SUPLA_EMAIL_MAXSIZE, "%s",
+           email == NULL ? ((TSuplaClientData *)_suplaclient)->cfg.Email
+                         : email);
   snprintf(request.Password, SUPLA_PASSWORD_MAXSIZE, "%s", password);
 
   return srpc_cs_async_superuser_authorization_request(
@@ -1255,7 +1262,8 @@ char supla_client_superuser_authorization_request(void *_suplaclient,
 
 char supla_client_device_calcfg_request(void *_suplaclient,
                                         TCS_DeviceCalCfgRequest_B *request) {
-  if (request == NULL) return 0;
+  if (request == NULL)
+    return 0;
   if (srpc_get_proto_version(((TSuplaClientData *)_suplaclient)->srpc) >= 11) {
     return srpc_cs_async_device_calcfg_request_b(
         ((TSuplaClientData *)_suplaclient)->srpc, request);

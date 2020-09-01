@@ -76,7 +76,7 @@ void lck_lock(void *lck) {
 #ifdef _WIN32
     EnterCriticalSection(&((TLckData *)lck)->critSec); // NOLINT
 #else
-    pthread_mutex_lock(&((TLckData *)lck)->mutex); // NOLINT
+    pthread_mutex_lock(&((TLckData *)lck)->mutex);    // NOLINT
 #endif /*_WIN32*/
   }
 
@@ -89,7 +89,7 @@ void lck_unlock(void *lck) {
 #ifdef _WIN32
     LeaveCriticalSection(&((TLckData *)lck)->critSec); // NOLINT
 #else
-    pthread_mutex_unlock(&((TLckData *)lck)->mutex); // NOLINT
+    pthread_mutex_unlock(&((TLckData *)lck)->mutex);  // NOLINT
 #endif /*_WIN32*/
   }
 

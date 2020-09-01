@@ -127,7 +127,8 @@ void dbcommon::commit(void) { query("COMMIT"); }
 void dbcommon::rollback(void) { query("ROLLBACK", false); }
 
 void dbcommon::stmt_close(void *_stmt) {
-  if (_stmt != NULL) mysql_stmt_close((MYSQL_STMT *)_stmt);
+  if (_stmt != NULL)
+    mysql_stmt_close((MYSQL_STMT *)_stmt);
 }
 
 bool dbcommon::stmt_execute(void **_stmt, const char *stmt_str, void *bind,
@@ -230,13 +231,15 @@ bool dbcommon::stmt_get_int(void **_stmt, int *value1, int *value2, int *value3,
 
       mysql_stmt_bind_result(stmt, bind_result);
 
-      if (mysql_stmt_fetch(stmt) == 0) result = true;
+      if (mysql_stmt_fetch(stmt) == 0)
+        result = true;
     }
 
     mysql_stmt_free_result(stmt);
   }
 
-  if (*_stmt) mysql_stmt_close((MYSQL_STMT *)*_stmt);
+  if (*_stmt)
+    mysql_stmt_close((MYSQL_STMT *)*_stmt);
 
   return result;
 }
@@ -269,12 +272,14 @@ int dbcommon::add_by_proc_call(const char *stmt_str, void *bind,
   const char sql_sel[] = "SELECT @id";
 
   if (stmt_execute((void **)&stmt, sql_var, NULL, 0, true)) {
-    if (stmt != NULL) mysql_stmt_close(stmt);
+    if (stmt != NULL)
+      mysql_stmt_close(stmt);
     q_executed++;
   }
 
   if (stmt_execute((void **)&stmt, stmt_str, bind, bind_size, true)) {
-    if (stmt != NULL) mysql_stmt_close(stmt);
+    if (stmt != NULL)
+      mysql_stmt_close(stmt);
     q_executed++;
   }
 
@@ -294,7 +299,8 @@ int dbcommon::add_by_proc_call(const char *stmt_str, void *bind,
     }
   }
 
-  if (stmt != NULL) mysql_stmt_close(stmt);
+  if (stmt != NULL)
+    mysql_stmt_close(stmt);
 
   return result;
 }

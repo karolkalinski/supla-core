@@ -17,22 +17,23 @@
  */
 
 #include "proto.h"
+#include "log.h"
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-#include "log.h"
 
-#ifdef ESP8266
+#if defined(ESP8266) || defined(ESP32)
 
 #include <mem.h>
+#if !defined(ARDUINO_ARCH_ESP32)
 #include <osapi.h>
-
+#endif
 #define BUFFER_MIN_SIZE 512
 #define BUFFER_MAX_SIZE 2048
 
-#ifndef ARDUINO_ARCH_ESP8266
-#include <user_interface.h>
+#if !defined(ARDUINO_ARCH_ESP8266) && !defined(ARDUINO_ARCH_ESP32)
 #include "espmissingincludes.h"
+#include <user_interface.h>
 #endif
 
 #elif defined(__AVR__)
@@ -50,7 +51,7 @@
 #define BUFFER_MAX_SIZE 131072
 #endif /*BUFFER_MAX_SIZE*/
 
-static char sproto_tag[SUPLA_TAG_SIZE] = {'S', 'U', 'P', 'L', 'A'};
+char sproto_tag[SUPLA_TAG_SIZE] = {'S', 'U', 'P', 'L', 'A'};
 
 typedef struct {
   unsigned char begin_tag;
@@ -60,18 +61,22 @@ typedef struct {
   char *buffer;
 } TSuplaProtoInBuffer;
 
+#ifndef SPROTO_WITHOUT_OUT_BUFFER
 typedef struct {
   unsigned _supla_int_t size;
   unsigned _supla_int_t data_size;
 
   char *buffer;
 } TSuplaProtoOutBuffer;
+#endif
 
 typedef struct {
   unsigned _supla_int_t next_rr_id;
   unsigned char version;
   TSuplaProtoInBuffer in;
+#ifndef SPROTO_WITHOUT_OUT_BUFFER
   TSuplaProtoOutBuffer out;
+#endif
 } TSuplaProtoData;
 
 void *sproto_init(void) {
@@ -88,8 +93,12 @@ void *sproto_init(void) {
 void sproto_free(void *spd_ptr) {
   TSuplaProtoData *spd = (TSuplaProtoData *)spd_ptr;
   if (spd != NULL) {
-    if (spd->in.buffer != NULL) free(spd->in.buffer);
-    if (spd->out.buffer != NULL) free(spd->out.buffer);
+    if (spd->in.buffer != NULL)
+      free(spd->in.buffer);
+#ifndef SPROTO_WITHOUT_OUT_BUFFER
+    if (spd->out.buffer != NULL)
+      free(spd->out.buffer);
+#endif
 
     free(spd);
   }
@@ -110,7 +119,8 @@ unsigned char sproto_buffer_append(void *spd_ptr, char **buffer,
     size += data_size - (size - (*buffer_data_size));
   }
 
-  if (size >= BUFFER_MAX_SIZE) return (SUPLA_RESULT_BUFFER_OVERFLOW);
+  if (size >= BUFFER_MAX_SIZE)
+    return (SUPLA_RESULT_BUFFER_OVERFLOW);
 
   if (size != (*buffer_size)) {
     char *new_buffer = (char *)realloc(*buffer, size);
@@ -120,8 +130,11 @@ unsigned char sproto_buffer_append(void *spd_ptr, char **buffer,
     }
 
 #ifndef ESP8266
+#ifndef ESP32
 #ifndef __AVR__
-    if (errno == ENOMEM) return (SUPLA_RESULT_FALSE);
+    if (errno == ENOMEM)
+      return (SUPLA_RESULT_FALSE);
+#endif
 #endif
 #endif
 
@@ -143,13 +156,15 @@ char sproto_in_buffer_append(void *spd_ptr, char *data,
                               &spd->in.data_size, data, data_size);
 }
 
+#ifndef SPROTO_WITHOUT_OUT_BUFFER
 char sproto_out_buffer_append(void *spd_ptr, TSuplaDataPacket *sdp) {
   TSuplaProtoData *spd = (TSuplaProtoData *)spd_ptr;
   unsigned _supla_int_t sdp_size = sizeof(TSuplaDataPacket);
   unsigned _supla_int_t packet_size =
       sdp_size - SUPLA_MAX_DATA_SIZE + sdp->data_size;
 
-  if (packet_size > sdp_size) return SUPLA_RESULT_DATA_TOO_LARGE;
+  if (packet_size > sdp_size)
+    return SUPLA_RESULT_DATA_TOO_LARGE;
 
   if (SUPLA_RESULT_TRUE ==
       sproto_buffer_append(spd_ptr, &spd->out.buffer, &spd->out.size,
@@ -169,9 +184,11 @@ unsigned _supla_int_t sproto_pop_out_data(void *spd_ptr, char *buffer,
 
   TSuplaProtoData *spd = (TSuplaProtoData *)spd_ptr;
 
-  if (spd->out.data_size <= 0 || buffer_size == 0 || buffer == NULL) return (0);
+  if (spd->out.data_size <= 0 || buffer_size == 0 || buffer == NULL)
+    return (0);
 
-  if (spd->out.data_size < buffer_size) buffer_size = spd->out.data_size;
+  if (spd->out.data_size < buffer_size)
+    buffer_size = spd->out.data_size;
 
   memcpy(buffer, spd->out.buffer, buffer_size);
 
@@ -188,7 +205,8 @@ unsigned _supla_int_t sproto_pop_out_data(void *spd_ptr, char *buffer,
     b = spd->out.size;
 
     spd->out.size = spd->out.data_size;
-    if (spd->out.size < BUFFER_MIN_SIZE) spd->out.size = BUFFER_MIN_SIZE;
+    if (spd->out.size < BUFFER_MIN_SIZE)
+      spd->out.size = BUFFER_MIN_SIZE;
 
     if (b != spd->out.size) {
       char *new_out_buffer = (char *)realloc(spd->out.buffer, spd->out.size);
@@ -203,10 +221,15 @@ unsigned _supla_int_t sproto_pop_out_data(void *spd_ptr, char *buffer,
 
   return (buffer_size);
 }
+#endif /*SPROTO_WITHOUT_OUT_BUFFER*/
 
 char sproto_out_dataexists(void *spd_ptr) {
+#ifdef SPROTO_WITHOUT_OUT_BUFFER
+  return SUPLA_RESULT_FALSE;
+#else
   return ((TSuplaProtoData *)spd_ptr)->out.data_size > 0 ? SUPLA_RESULT_TRUE
                                                          : SUPLA_RESULT_FALSE;
+#endif
 }
 
 char sproto_in_dataexists(void *spd_ptr) {
@@ -221,7 +244,8 @@ void sproto_shrink_in_buffer(TSuplaProtoInBuffer *in,
 
   in->begin_tag = 0;
 
-  if (size > in->data_size) size = in->data_size;
+  if (size > in->data_size)
+    size = in->data_size;
 
   b = 0;
 
@@ -235,7 +259,8 @@ void sproto_shrink_in_buffer(TSuplaProtoInBuffer *in,
   if (in->data_size < in->size) {
     in->size = in->data_size;
 
-    if (in->size < BUFFER_MIN_SIZE) in->size = BUFFER_MIN_SIZE;
+    if (in->size < BUFFER_MIN_SIZE)
+      in->size = BUFFER_MIN_SIZE;
 
     if (old_size != in->size) {
       char *new_in_buffer = (char *)realloc(in->buffer, in->size);
@@ -324,7 +349,8 @@ void sproto_sdp_init(void *spd_ptr, TSuplaDataPacket *sdp) {
 
   spd->next_rr_id++;
 
-  if (spd->next_rr_id == 0) spd->next_rr_id++;
+  if (spd->next_rr_id == 0)
+    spd->next_rr_id++;
 
   sdp->rr_id = spd->next_rr_id;
   sdp->version = spd->version;
@@ -333,7 +359,8 @@ void sproto_sdp_init(void *spd_ptr, TSuplaDataPacket *sdp) {
 TSuplaDataPacket *sproto_sdp_malloc(void *spd_ptr) {
   TSuplaDataPacket *result = malloc(sizeof(TSuplaDataPacket));
 
-  if (result) sproto_sdp_init(spd_ptr, result);
+  if (result)
+    sproto_sdp_init(spd_ptr, result);
 
   return result;
 }
@@ -343,9 +370,11 @@ void sproto_sdp_free(TSuplaDataPacket *sdp) { free(sdp); }
 char sproto_set_data(TSuplaDataPacket *sdp, char *data,
                      unsigned _supla_int_t data_size,
                      unsigned _supla_int_t call_type) {
-  if (data_size > SUPLA_MAX_DATA_SIZE) return SUPLA_RESULT_FALSE;
+  if (data_size > SUPLA_MAX_DATA_SIZE || (data_size > 0 && data == 0))
+    return SUPLA_RESULT_FALSE;
 
-  if (data_size > 0) memcpy(sdp->data, data, data_size);
+  if (data_size > 0)
+    memcpy(sdp->data, data, data_size);
 
   sdp->data_size = data_size;
   sdp->call_type = call_type;
@@ -364,25 +393,28 @@ void sproto_log_summary(void *spd_ptr) {
   supla_log(LOG_DEBUG, "         size: %i", spd->in.size);
   supla_log(LOG_DEBUG, "    data_size: %i", spd->in.data_size);
   supla_log(LOG_DEBUG, "    begin_tag: %i", spd->in.begin_tag);
-
+#ifndef SPROTO_WITHOUT_OUT_BUFFER
   supla_log(LOG_DEBUG, "BUFFER OUT");
   supla_log(LOG_DEBUG, "         size: %i", spd->out.size);
   supla_log(LOG_DEBUG, "    data_size: %i", spd->out.data_size);
+#endif /*SPROTO_WITHOUT_OUT_BUFFER*/
 }
 
 void sproto_buffer_dump(void *spd_ptr, unsigned char in) {
   _supla_int_t a;
-  char *buffer;
-  _supla_int_t size;
+  char *buffer = NULL;
+  _supla_int_t size = 0;
 
   TSuplaProtoData *spd = (TSuplaProtoData *)spd_ptr;
 
   if (in != 0) {
     buffer = spd->in.buffer;
     size = spd->in.data_size;
+#ifndef SPROTO_WITHOUT_OUT_BUFFER
   } else {
     buffer = spd->out.buffer;
     size = spd->out.data_size;
+#endif /*SPROTO_WITHOUT_OUT_BUFFER*/
   }
 
   for (a = 0; a < size; a++)

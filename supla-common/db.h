@@ -22,7 +22,7 @@
 #define mysql (MYSQL *)_mysql
 
 class dbcommon {
- protected:
+protected:
   void *_mysql;
   int query(const char *stmt_str, bool log_err = false);
   bool stmt_execute(void **_stmt, const char *stmt_str, void *bind,
@@ -42,7 +42,7 @@ class dbcommon {
   virtual char *cfg_get_database(void) = 0;
   virtual int cfg_get_port(void) = 0;
 
- public:
+public:
   dbcommon();
   bool connect(int connection_timeout_sec);
   bool connect(void);

@@ -45,8 +45,8 @@
 #include <Arduino.h>
 #include <ets_sys.h>
 #else
-#include <user_interface.h>
 #include "espmissingincludes.h"
+#include <user_interface.h>
 #endif /*ARDUINO_ARCH_ESP8266*/
 
 #else
@@ -138,26 +138,26 @@ void supla_vlog(int __pri, const char *message) {
 void supla_vlog(int __pri, const char *message) {
 #ifdef __ANDROID__
   switch (__pri) {
-    case LOG_CRIT:
-    case LOG_EMERG:
-      __pri = ANDROID_LOG_FATAL;
-      break;
-    case LOG_ERR:
-      __pri = ANDROID_LOG_ERROR;
-      break;
-    case LOG_ALERT:
-    case LOG_WARNING:
-      __pri = ANDROID_LOG_WARN;
-      break;
-    case LOG_NOTICE:
-      __pri = ANDROID_LOG_DEFAULT;
-      break;
-    case LOG_INFO:
-      __pri = ANDROID_LOG_INFO;
-      break;
-    case LOG_DEBUG:
-      __pri = ANDROID_LOG_DEBUG;
-      break;
+  case LOG_CRIT:
+  case LOG_EMERG:
+    __pri = ANDROID_LOG_FATAL;
+    break;
+  case LOG_ERR:
+    __pri = ANDROID_LOG_ERROR;
+    break;
+  case LOG_ALERT:
+  case LOG_WARNING:
+    __pri = ANDROID_LOG_WARN;
+    break;
+  case LOG_NOTICE:
+    __pri = ANDROID_LOG_DEFAULT;
+    break;
+  case LOG_INFO:
+    __pri = ANDROID_LOG_INFO;
+    break;
+  case LOG_DEBUG:
+    __pri = ANDROID_LOG_DEBUG;
+    break;
   }
   __android_log_write(ANDROID_LOG_DEBUG, "LibSuplaClient", message);
 #else
@@ -167,42 +167,45 @@ void supla_vlog(int __pri, const char *message) {
 #endif
 
 #if defined(ESP8266) || defined(__AVR__)
-  if (message == NULL) return;
+  if (message == NULL)
+    return;
 #else
-  if (message == NULL || (debug_mode == 0 && __pri == LOG_DEBUG)) return;
+  if (message == NULL || (debug_mode == 0 && __pri == LOG_DEBUG))
+    return;
 #endif
 
 #ifdef __LOG_CALLBACK
-  if (__supla_log_callback) __supla_log_callback(__pri, message);
+  if (__supla_log_callback)
+    __supla_log_callback(__pri, message);
 #else
   if (run_as_daemon == 1) {
     syslog(__pri, "%s", message);
   } else {
     switch (__pri) {
-      case LOG_EMERG:
-        printf("EMERG");
-        break;
-      case LOG_ALERT:
-        printf("ALERT");
-        break;
-      case LOG_CRIT:
-        printf("CRIT");
-        break;
-      case LOG_ERR:
-        printf("ERR");
-        break;
-      case LOG_WARNING:
-        printf("WARNING");
-        break;
-      case LOG_NOTICE:
-        printf("NOTICE");
-        break;
-      case LOG_INFO:
-        printf("INFO");
-        break;
-      case LOG_DEBUG:
-        printf("DEBUG");
-        break;
+    case LOG_EMERG:
+      printf("EMERG");
+      break;
+    case LOG_ALERT:
+      printf("ALERT");
+      break;
+    case LOG_CRIT:
+      printf("CRIT");
+      break;
+    case LOG_ERR:
+      printf("ERR");
+      break;
+    case LOG_WARNING:
+      printf("WARNING");
+      break;
+    case LOG_NOTICE:
+      printf("NOTICE");
+      break;
+    case LOG_INFO:
+      printf("INFO");
+      break;
+    case LOG_DEBUG:
+      printf("DEBUG");
+      break;
     }
 
 #if defined(ESP8266) || defined(__AVR__)
@@ -227,9 +230,11 @@ void supla_log(int __pri, const char *__fmt, ...) {
   int size = 0;
 
 #if defined(ESP8266) || defined(__AVR__) || defined(_WIN32)
-  if (__fmt == NULL) return;
+  if (__fmt == NULL)
+    return;
 #else
-  if (__fmt == NULL || (debug_mode == 0 && __pri == LOG_DEBUG)) return;
+  if (__fmt == NULL || (debug_mode == 0 && __pri == LOG_DEBUG))
+    return;
 #endif
 
   while (1) {
@@ -243,7 +248,8 @@ void supla_log(int __pri, const char *__fmt, ...) {
     va_end(ap);
   }
 
-  if (buffer == NULL) return;
+  if (buffer == NULL)
+    return;
 
   supla_vlog(__pri, buffer);
   free(buffer);
@@ -266,7 +272,8 @@ void supla_write_state_file(const char *file, int __pri, const char *__fmt,
     }
   }
 
-  if (buffer == NULL) return;
+  if (buffer == NULL)
+    return;
 
   if (__pri > -1) {
     supla_vlog(__pri, buffer);

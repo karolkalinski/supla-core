@@ -17,6 +17,8 @@
  */
 
 #include "ipcsocket.h"
+#include "log.h"
+#include "tools.h"
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -30,8 +32,6 @@
 #include <sys/un.h>
 #include <time.h>
 #include <unistd.h>
-#include "log.h"
-#include "tools.h"
 
 typedef struct {
   int sfd;
@@ -57,7 +57,8 @@ void *ipcsocket_init(const char *address) {
     return 0;
   }
 
-  if (st_file_exists(address)) unlink(address);
+  if (st_file_exists(address))
+    unlink(address);
 
   ipc = malloc(sizeof(TSuplaIPC_socket));
 
@@ -118,7 +119,8 @@ void ipcsocket_close(void *_ipc) {
     close(ipc->sfd);
     ipc->sfd = -1;
 
-    if (st_file_exists(ipc->saun.sun_path)) unlink(ipc->saun.sun_path);
+    if (st_file_exists(ipc->saun.sun_path))
+      unlink(ipc->saun.sun_path);
   }
 }
 
