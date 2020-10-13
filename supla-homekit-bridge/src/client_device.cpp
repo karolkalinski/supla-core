@@ -95,8 +95,8 @@ client_device_channel::client_device_channel(int Id, int Number, int Type,
                                              char* TextParam2, char* TextParam3,
                                              bool Hidden, bool Online,
                                              char* Caption, int accessoryId)
-    : supla_device_channel(Id, Number, Type, Func, Param1, Param2, Param3,
-                           TextParam1, TextParam2, TextParam3, Hidden) {
+    : supla_device_channel(Id, Number, 0, Type, Func, Param1, Param2, Param3,
+            TextParam1, TextParam2, TextParam3, Hidden, 0, NULL, NULL) {
   this->Online = Online;
 
   this->Caption =
@@ -105,6 +105,7 @@ client_device_channel::client_device_channel(int Id, int Number, int Type,
   this->isHK = true;
 
   memset(this->Sub_value, 0, SUPLA_CHANNELVALUE_SIZE);
+
 
   /* TODO lbek  read those data from channel info ... */
   this->firmware_revision = "1.0";
@@ -159,7 +160,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
     }
   }
 
-  this->setValue(value);
+  this->setValue(value, NULL);
   this->setSubValue(sub_value);
   this->setOnline(online);
 
@@ -331,7 +332,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
       this->getSubValue(sub_value);
       char shut = cv[0];
 
-      currentPosition->setValue(110 - shut);
+      currentPosition->setValue(100 - shut);
 
       uint8Characteristic* targetPosition =
           (uint8Characteristic*)service->getCharacteristicByType(
@@ -339,7 +340,7 @@ void client_device_channel::setHKValue(char value[SUPLA_CHANNELVALUE_SIZE],
 
       if (!targetPosition) return;
 
-      targetPosition->setValue(110 - shut);
+      targetPosition->setValue(100 - shut);
 
       uint8Characteristic* ps =
           (uint8Characteristic*)service->getCharacteristicByType(

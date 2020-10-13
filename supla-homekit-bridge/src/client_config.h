@@ -47,6 +47,7 @@ class client_config {
   std::string supla_password;
   std::string supla_email;
   uint16_t supla_protocol_version;
+  std::vector<_supla_int_t> disabled_channels;
 
  public:
   client_config();
@@ -69,6 +70,7 @@ class client_config {
   const uint32_t getSuplaLocationId();
   std::string getSuplaEmail();
   const uint16_t getSuplaProtocolVersion();
+  bool isChannelEnabled(_supla_int_t Id);
 };
 
 #endif /* CLIENT_CONFIG_H_ */

@@ -17,7 +17,7 @@ CPP_DEPS += \
 src/yaml/%.o: ../src/yaml/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: Cross G++ Compiler'
-	g++ -D__DEBUG=1 -D__NO_USER -D__NO_DATABASE -I$(SSLDIR)/include -I/opt/local/include -I../src/json -O0 -g3 -Wall -fsigned-char  -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
+	g++ -D__DEBUG=1 -DUSE_DEPRECATED_EMEV_V1 -D__NO_USER -D__NO_DATABASE -I$(SSLDIR)/include -I/opt/local/include -I../src/json -O0 -g3 -Wall -fsigned-char  -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

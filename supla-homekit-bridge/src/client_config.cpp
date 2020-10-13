@@ -27,8 +27,8 @@ client_config::client_config() {
   this->mqtt_password = "";
   this->mqtt_commands = "";
   this->mqtt_states = "";
-  this->mqtt_client_name = "supla_mqtt_client";
-  this->mqtt_protocol_version = 5;
+  this->mqtt_client_name = "Supla Homekit Bridge";
+  this->mqtt_protocol_version = 12;
   this->mqtt_publish_events = true;
 
   this->supla_host = "localhost";
@@ -79,11 +79,33 @@ bool client_config::load(const char* config_file) {
           root["supla"]["protocol_version"].As<uint16_t>(10);
     }
 
+    if (!root["disabled"].IsNone()) {
+
+    	 for (auto itN = root["disabled"].Begin();
+    	           itN != root["disabled"].End(); itN++) {
+
+    		 _supla_int_t state = (*itN).second.As<_supla_int_t>();
+
+    		 this->disabled_channels.push_back(state);
+
+    	 }
+    }
+
     return true;
   } catch (std::exception& exception) {
     std::cout << exception.what() << std::endl;
     return false;
   }
+}
+
+bool client_config::isChannelEnabled(_supla_int_t Id) {
+
+
+	for (auto id : this->disabled_channels) {
+		if (Id == id) return false;
+	}
+
+	return true;
 }
 
 bool client_config::getMqttPublishEvents() { return this->mqtt_publish_events; }

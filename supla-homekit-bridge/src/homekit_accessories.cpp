@@ -145,7 +145,6 @@ void homekit_accessories::add_accessory_for_supla_channel(
       add_accessory_thermometer(accessory);
       add_accessory_humidity(accessory);
       add_accessory_to_array(accessory);
-
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEGATEWAYLOCK: {
       //		add_accessory_to_array(add_accessory_gateway_lock(accessoryId,
@@ -158,8 +157,8 @@ void homekit_accessories::add_accessory_for_supla_channel(
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEGARAGEDOOR: {
       accessory* accessory = new_accessory(accessoryId, info);
-      add_accessory_to_array(
-          add_accessory_garage_door(accessory, value_callback));
+    //  add_accessory_to_array(
+    //      add_accessory_garage_door(accessory, value_callback));
 
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEDOORLOCK: {
@@ -169,9 +168,7 @@ void homekit_accessories::add_accessory_for_supla_channel(
     } break;
     case SUPLA_CHANNELFNC_CONTROLLINGTHEROLLERSHUTTER: {
       accessory* accessory = new_accessory(accessoryId, info);
-      add_accessory_to_array(
-          add_accessory_rollershutter(accessory, value_callback));
-      // add_accessory_to_array(add_accessory_rollershutter(accessoryId, info));
+      add_accessory_to_array(add_accessory_rollershutter(accessory, value_callback));
     } break;
     case SUPLA_CHANNELFNC_POWERSWITCH: {
       accessory* accessory = new_accessory(accessoryId, info);

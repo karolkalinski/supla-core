@@ -86,6 +86,7 @@ void handleAccessory(const char *request, unsigned int requestLen, char **reply,
     replyData[replyDataLen] = 0;
 
     statusCode = HTTP_STATUS_OK;
+
   } else if (strcmp(path, "/pairings") == 0) {
     PHKNetworkMessage msg(request);
 

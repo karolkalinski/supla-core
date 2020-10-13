@@ -42,7 +42,8 @@ void client_loop_location_update(void *_suplaclient, void *sthread,
 
 void client_loop_channel_update(void *_suplaclient, void *sthread,
                                 TSC_SuplaChannel_C *channel) {
-  supla_log(LOG_DEBUG, "Channel Update %d %d", channel->Id, channel->online);
+  //supla_log(LOG_DEBUG, "Channel Update %d %d", channel->Id, channel->online);
+  if (!config->isChannelEnabled(channel->Id)) return;
 
   client_device_channel *c = channels->add_channel(
       channel->Id, 0, channel->Type, channel->Func, 0, 0, 0, NULL, NULL, NULL,
@@ -130,7 +131,7 @@ void *client_loop_init(void *sthread, client_config *config) {
   scc.protocol_version = config->getSuplaProtocolVersion();
   supla_log(LOG_DEBUG, "SUPLA PROTOCOL VERSION %d", scc.protocol_version);
 
-  snprintf(scc.Name, SUPLA_CLIENT_NAME_MAXSIZE, "Supla MQTT Proxy");
+  snprintf(scc.Name, SUPLA_CLIENT_NAME_MAXSIZE, "Supla Homekit Bridge");
   snprintf(scc.SoftVer, SUPLA_SOFTVER_MAXSIZE, "1.0-Linux");
 
   snprintf(scc.Email, SUPLA_EMAIL_MAXSIZE, config->getSuplaEmail().c_str());

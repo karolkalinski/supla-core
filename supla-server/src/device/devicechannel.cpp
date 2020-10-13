@@ -507,8 +507,8 @@ supla_device_channel::supla_device_channel(
     gettimeofday(&value_valid_to, NULL);
     value_valid_to.tv_sec += validity_time_sec;
   }
-
-  memcpy(this->value, value, SUPLA_CHANNELVALUE_SIZE);
+  if (value != NULL)
+	  memcpy(this->value, value, SUPLA_CHANNELVALUE_SIZE);
 }
 
 supla_device_channel::~supla_device_channel() {
@@ -746,10 +746,11 @@ void supla_device_channel::setValue(
                       Type == SUPLA_CHANNELTYPE_SENSORNO)) {
     this->value[0] = this->value[0] == 0 ? 1 : 0;
   }
-
+#ifndef __NO_DATABASE
   if (validity_time_sec) {
     gettimeofday(&value_valid_to, NULL);
     value_valid_to.tv_sec += (*validity_time_sec);
+
 
     database *db = new database();
 
@@ -758,7 +759,9 @@ void supla_device_channel::setValue(
     }
 
     delete db;
+
   }
+#endif
 }
 
 void supla_device_channel::setExtendedValue(TSuplaChannelExtendedValue *ev) {
@@ -1148,12 +1151,9 @@ void supla_device_channels::add_channel(
   safe_array_unlock(arr);
 }
 
-<<<<<<< HEAD
+
 #ifndef __NO_DATABASE
-void supla_device_channels::load(int DeviceID) {
-=======
 void supla_device_channels::load(int UserID, int DeviceID) {
->>>>>>> master
   database *db = new database();
 
   if (db->connect() == true) {

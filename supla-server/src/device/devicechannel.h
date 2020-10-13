@@ -184,6 +184,9 @@ class supla_device_channel {
                        unsigned int Flags,
                        const char value[SUPLA_CHANNELVALUE_SIZE],
                        unsigned _supla_int_t validity_time_sec);
+
+
+
   virtual ~supla_device_channel();
 
   int getId(void);
@@ -225,11 +228,6 @@ class supla_device_channel {
 };
 
 class supla_device_channels {
- private:
-  supla_device_channel *find_channel(int Id);
-  supla_device_channel *find_channel_by_number(int Number);
-  std::list<int> mr_channel(int ChannelID, bool Master);
-
  protected:
   void *arr;
   static char arr_findcmp(void *ptr, void *id);
@@ -237,8 +235,6 @@ class supla_device_channels {
   static char arr_delcnd(void *ptr);
   void arr_clean(void);
 
-<<<<<<< HEAD
-=======
   supla_device_channel *find_channel(int Id);
   supla_device_channel *find_channel_by_number(int Number);
 
@@ -248,7 +244,6 @@ class supla_device_channels {
                                int SenderID, int GroupID, unsigned char EOL,
                                const char value[SUPLA_CHANNELVALUE_SIZE]);
 
->>>>>>> master
  public:
   supla_device_channels();
   virtual ~supla_device_channels();
@@ -304,14 +299,11 @@ class supla_device_channels {
   std::list<int> get_channel_ids(void);
   int get_channel_id(unsigned char ChannelNumber);
   bool channel_exists(int ChannelID);
-<<<<<<< HEAD
+
   #ifndef __NO_DATABASE
   void load(int DeviceID);
   #endif
-=======
   void load(int UserID, int DeviceID);
-
->>>>>>> master
   void get_temp_and_humidity(void *tarr);
   void get_electricity_measurements(void *emarr);
   supla_channel_electricity_measurement *get_electricity_measurement(

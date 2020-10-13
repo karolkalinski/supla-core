@@ -320,8 +320,10 @@ void *connectionLoop(void *threadInfo) {
     do {
       len = read(subSocket, info->buffer, 4096);
 
-      supla_log(LOG_DEBUG, "return len %d for socket %d\n", len, subSocket);
-      supla_log(LOG_DEBUG, "message: %s\n", info->buffer);
+      if (len > 0) {
+        supla_log(LOG_DEBUG, "return len %d for socket %d\n", len, subSocket);
+        supla_log(LOG_DEBUG, "message: %s\n", info->buffer);
+      }
 
       PHKNetworkMessage msg(info->buffer);
       if (len > 0) {
@@ -464,7 +466,8 @@ void connectionInfo::handlePairSeup() {
       case State_M2_SRPStartRespond:
         break;
       case State_M1_SRPStartRequest: {
-        PHKNetworkMessageDataRecord saltRec;
+        supla_log(LOG_DEBUG, "pair-setup State_M1_SRPStartRequest");
+    	PHKNetworkMessageDataRecord saltRec;
         PHKNetworkMessageDataRecord publicKeyRec;
         unsigned char saltChar[16];
 
@@ -496,6 +499,7 @@ void connectionInfo::handlePairSeup() {
         mResponse.data.addRecord(saltRec);
       } break;
       case State_M3_SRPVerifyRequest: {
+    	supla_log(LOG_DEBUG, "pair-setup State_M3_SRPVerifyRequest");
         const char *keyStr = 0;
         int keyLen = 0;
         const char *proofStr;
@@ -540,6 +544,7 @@ void connectionInfo::handlePairSeup() {
         if (i != 0) return;
       } break;
       case State_M5_ExchangeRequest: {
+    	supla_log(LOG_DEBUG, "pair-setup State_M5_ExchangeRequest");
         const char *encryptedPackage = NULL;
         int packageLen = 0;
         encryptedPackage = msg.data.dataPtrForIndex(5);
@@ -730,7 +735,6 @@ void connectionInfo::handlePairSeup() {
     mResponse.getBinaryPtr(&responseBuffer, &responseLen);
 
     if (responseBuffer) {
-      int len =
           write(subSocket, (const void *)responseBuffer, (size_t)responseLen);
       delete[] responseBuffer;
     };
