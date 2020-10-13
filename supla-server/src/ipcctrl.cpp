@@ -35,6 +35,7 @@
 const char hello[] = "SUPLA SERVER CTRL\n";
 const char cmd_is_client_connected[] = "IS-CLIENT-CONNECTED:";
 const char cmd_is_iodev_connected[] = "IS-IODEV-CONNECTED:";
+const char cmd_is_channel_online[] = "IS-CHANNEL-ONLINE:";
 const char cmd_user_reconnect[] = "USER-RECONNECT:";
 const char cmd_client_reconnect[] = "CLIENT-RECONNECT:";
 const char cmd_get_double_value[] = "GET-DOUBLE-VALUE:";
@@ -44,6 +45,7 @@ const char cmd_get_char_value[] = "GET-CHAR-VALUE:";
 const char cmd_get_rgbw_value[] = "GET-RGBW-VALUE:";
 const char cmd_get_em_value[] = "GET-EM-VALUE:";
 const char cmd_get_ic_value[] = "GET-IC-VALUE:";
+const char cmd_get_valve_value[] = "GET-VALVE-VALUE:";
 
 const char cmd_set_char_value[] = "SET-CHAR-VALUE:";
 const char cmd_set_rgbw_value[] = "SET-RGBW-VALUE:";
@@ -58,6 +60,8 @@ const char cmd_user_alexa_credentials_changed[] =
 
 const char cmd_user_google_home_credentials_changed[] =
     "USER-GOOGLE-HOME-CREDENTIALS-CHANGED:";
+
+const char cmd_user_state_webhook_changed[] = "USER-STATE-WEBHOOK-CHANGED:";
 
 const char cmd_user_on_device_deleted[] = "USER-ON-DEVICE-DELETED:";
 
@@ -288,6 +292,31 @@ void svr_ipcctrl::get_electricitymeter_value(const char *cmd) {
   send_result("UNKNOWN:", ChannelID);
 }
 
+void svr_ipcctrl::get_valve_value(const char *cmd) {
+  int UserID = 0;
+  int DeviceID = 0;
+  int ChannelID = 0;
+  TValve_Value Value;
+  memset(&Value, 0, sizeof(TValve_Value));
+
+  sscanf(&buffer[strnlen(cmd, IPC_BUFFER_SIZE)], "%i,%i,%i", &UserID, &DeviceID,
+         &ChannelID);
+
+  if (UserID && DeviceID && ChannelID) {
+    bool r = supla_user::get_channel_valve_value(UserID, DeviceID, ChannelID,
+                                                 &Value);
+
+    if (r) {
+      snprintf(buffer, sizeof(buffer), "VALUE:%i,%i", Value.closed,
+               Value.flags);
+      send(sfd, buffer, strnlen(buffer, IPC_BUFFER_SIZE), 0);
+      return;
+    }
+  }
+
+  send_result("UNKNOWN:", ChannelID);
+}
+
 void svr_ipcctrl::free_correlation_token() {
   if (AlexaCorrelationToken) {
     free(AlexaCorrelationToken);
@@ -363,7 +392,7 @@ void svr_ipcctrl::set_char(const char *cmd, bool group) {
       result = supla_user::set_channelgroup_char_value(UserID, CGID, Value);
     } else if (!group && DeviceID) {
       result = supla_user::set_device_channel_char_value(
-          UserID, 0, DeviceID, CGID, Value,
+          UserID, 0, DeviceID, CGID, 0, false, Value,
           AlexaCorrelationToken ? EST_AMAZON_ALEXA
                                 : (GoogleRequestId ? EST_GOOGLE_HOME : EST_IPC),
           AlexaCorrelationToken, GoogleRequestId);
@@ -391,6 +420,7 @@ void svr_ipcctrl::set_rgbw(const char *cmd, bool group, bool random) {
   int Color = 0;
   int ColorBrightness = 0;
   int Brightness = 0;
+  int TurnOnOff = 0;
 
   if (random) {
     if (group) {
@@ -407,15 +437,16 @@ void svr_ipcctrl::set_rgbw(const char *cmd, bool group, bool random) {
 
   } else {
     if (group) {
-      sscanf(&buffer[strnlen(cmd, IPC_BUFFER_SIZE)], "%i,%i,%i,%i,%i", &UserID,
-             &CGID, &Color, &ColorBrightness, &Brightness);
+      sscanf(&buffer[strnlen(cmd, IPC_BUFFER_SIZE)], "%i,%i,%i,%i,%i,%i",
+             &UserID, &CGID, &Color, &ColorBrightness, &Brightness, &TurnOnOff);
 
     } else {
       cut_correlation_token(cmd);
       cut_google_requestid(cmd);
 
-      sscanf(&buffer[strnlen(cmd, IPC_BUFFER_SIZE)], "%i,%i,%i,%i,%i,%i",
-             &UserID, &DeviceID, &CGID, &Color, &ColorBrightness, &Brightness);
+      sscanf(&buffer[strnlen(cmd, IPC_BUFFER_SIZE)], "%i,%i,%i,%i,%i,%i,%i",
+             &UserID, &DeviceID, &CGID, &Color, &ColorBrightness, &Brightness,
+             &TurnOnOff);
     }
   }
 
@@ -428,10 +459,11 @@ void svr_ipcctrl::set_rgbw(const char *cmd, bool group, bool random) {
 
     if (group) {
       result = supla_user::set_channelgroup_rgbw_value(
-          UserID, CGID, Color, ColorBrightness, Brightness, 0);
+          UserID, CGID, Color, ColorBrightness, Brightness, TurnOnOff);
     } else if (!group && DeviceID) {
       result = supla_user::set_device_channel_rgbw_value(
-          UserID, 0, DeviceID, CGID, Color, ColorBrightness, Brightness, 0,
+          UserID, 0, DeviceID, CGID, 0, false, Color, ColorBrightness,
+          Brightness, TurnOnOff,
           AlexaCorrelationToken ? EST_AMAZON_ALEXA
                                 : (GoogleRequestId ? EST_GOOGLE_HOME : EST_IPC),
           AlexaCorrelationToken, GoogleRequestId);
@@ -474,6 +506,19 @@ void svr_ipcctrl::google_home_credentials_changed(const char *cmd) {
          "%i", &UserID);
   if (UserID) {
     supla_user::on_google_home_credentials_changed(UserID);
+    send_result("OK:", UserID);
+  } else {
+    send_result("USER_UNKNOWN");
+  }
+}
+
+void svr_ipcctrl::state_webhook_changed(const char *cmd) {
+  int UserID = 0;
+
+  sscanf(&buffer[strnlen(cmd_user_state_webhook_changed, IPC_BUFFER_SIZE)],
+         "%i", &UserID);
+  if (UserID) {
+    supla_user::on_state_webhook_changed(UserID);
     send_result("OK:", UserID);
   } else {
     send_result("USER_UNKNOWN");
@@ -582,6 +627,9 @@ void svr_ipcctrl::execute(void *sthread) {
         } else if (match_command(cmd_get_ic_value, len)) {
           get_impulsecounter_value(cmd_get_ic_value);
 
+        } else if (match_command(cmd_get_valve_value, len)) {
+          get_valve_value(cmd_get_valve_value);
+
         } else if (match_command(cmd_set_char_value, len)) {
           set_char(cmd_set_char_value, false);
 
@@ -607,6 +655,9 @@ void svr_ipcctrl::execute(void *sthread) {
                                  len)) {
           google_home_credentials_changed(
               cmd_user_google_home_credentials_changed);
+
+        } else if (match_command(cmd_user_state_webhook_changed, len)) {
+          state_webhook_changed(cmd_user_state_webhook_changed);
 
         } else if (match_command(cmd_user_on_device_deleted, len)) {
           on_device_deleted(cmd_user_on_device_deleted);

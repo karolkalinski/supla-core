@@ -36,6 +36,11 @@ supla_client_channel *supla_client_channels::find_channel(int Id) {
   return static_cast<supla_client_channel *>(find(Id, master));
 }
 
+supla_client_channel *supla_client_channels::any_channel_with_deviceid(
+    int DeviceId) {
+  return static_cast<supla_client_channel *>(find(DeviceId, master, true));
+}
+
 bool supla_client_channels::channel_exists(int ChannelID) {
   bool result = false;
 
@@ -259,7 +264,8 @@ bool supla_client_channels::set_device_channel_new_value(int ChannelId,
 
     if (DeviceID) {
       return getClient()->getUser()->set_device_channel_value(
-          EST_CLIENT, getClient()->getID(), DeviceID, ChannelId, value);
+          EST_CLIENT, getClient()->getID(), DeviceID, ChannelId, 0, false,
+          value);
     }
   }
 
@@ -279,25 +285,135 @@ bool supla_client_channels::set_device_channel_new_value(
 
 bool supla_client_channels::device_calcfg_request(
     TCS_DeviceCalCfgRequest_B *request) {
-  if (request == NULL || request->Target != SUPLA_TARGET_CHANNEL) return false;
+  if (request == NULL || (request->Target != SUPLA_TARGET_CHANNEL &&
+                          request->Target != SUPLA_TARGET_IODEVICE))
+    return false;
 
-  if (channel_exists(request->Id)) {
+  safe_array_lock(getArr());
+
+  supla_client_channel *channel = NULL;
+  int DeviceID = 0;
+  int ChannelID = 0;
+
+  if (request->Target == SUPLA_TARGET_CHANNEL) {
+    channel = find_channel(request->Id);
+  } else {
+    channel = any_channel_with_deviceid(request->Id);
+  }
+
+  if (channel != NULL) {
+    DeviceID = channel->getDeviceId();
+    ChannelID = channel->getId();
+  }
+
+  safe_array_unlock(getArr());
+
+  if (DeviceID) {
+    return getClient()->getUser()->device_calcfg_request(
+        getClient()->getID(), DeviceID, ChannelID, request);
+  }
+
+  return false;
+}
+
+bool supla_client_channels::device_get_channel_state(
+    TCSD_ChannelStateRequest *request) {
+  if (request == NULL) return false;
+
+  if (channel_exists(request->ChannelID)) {
     safe_array_lock(getArr());
 
     supla_client_channel *channel;
     int DeviceID = 0;
 
-    if (NULL != (channel = find_channel(request->Id))) {
+    if (NULL != (channel = find_channel(request->ChannelID))) {
       DeviceID = channel->getDeviceId();
     }
 
     safe_array_unlock(getArr());
 
     if (DeviceID) {
-      return getClient()->getUser()->device_calcfg_request(
-          getClient()->getID(), DeviceID, request->Id, request);
+      return getClient()->getUser()->device_get_channel_state(
+          getClient()->getID(), DeviceID, request);
     }
   }
 
   return false;
+}
+
+void supla_client_channels::get_channel_basic_cfg(
+    void *srpc, TCS_ChannelBasicCfgRequest *request) {
+  if (request == NULL) return;
+
+  if (channel_exists(request->ChannelID)) {
+    TSC_ChannelBasicCfg basic_cfg;
+    memset(&basic_cfg, 0, sizeof(TSC_ChannelBasicCfg));
+
+    safe_array_lock(getArr());
+
+    supla_client_channel *channel;
+
+    if (NULL == (channel = find_channel(request->ChannelID)) ||
+        !channel->get_basic_cfg(&basic_cfg)) {
+      basic_cfg.ID = 0;
+    }
+
+    safe_array_unlock(getArr());
+
+    if (basic_cfg.ID) {
+      srpc_sc_async_channel_basic_cfg_result(srpc, &basic_cfg);
+    }
+  }
+}
+
+void supla_client_channels::set_channel_function(int ChannelId, int Func) {
+  supla_client_channel *channel = find_channel(ChannelId);
+
+  if (channel != NULL) channel->setFunc(Func);
+}
+
+void supla_client_channels::set_channel_caption(int ChannelId, char *Caption) {
+  supla_client_channel *channel = find_channel(ChannelId);
+
+  if (channel != NULL) channel->setCaption(Caption);
+}
+
+unsigned _supla_int64_t supla_client_channels::value_validity_time_usec(void) {
+  unsigned _supla_int64_t result = 0;
+
+  void *arr = getArr();
+  supla_client_channel *channel = NULL;
+
+  safe_array_lock(arr);
+  for (int a = 0; a < safe_array_count(arr); a++) {
+    channel = static_cast<supla_client_channel *>(safe_array_get(arr, a));
+    if (channel) {
+      unsigned _supla_int64_t t = channel->getValueValidityTimeUSec();
+      if (t > 0 && (result == 0 || t < result)) {
+        result = t;
+      }
+    }
+  }
+  safe_array_unlock(arr);
+
+  return result;
+}
+
+void supla_client_channels::update_expired(void *srpc) {
+  void *arr = getArr();
+  supla_client_channel *channel = NULL;
+
+  safe_array_lock(arr);
+  for (int a = 0; a < safe_array_count(arr); a++) {
+    channel = static_cast<supla_client_channel *>(safe_array_get(arr, a));
+    if (channel) {
+      if (channel->isValueValidityTimeSet() &&
+          channel->getValueValidityTimeUSec() == 0) {
+        channel->resetValueValidityTime();
+
+        on_value_changed(srpc, channel, OI_REMOTEUPDATE_DATA2);
+      }
+    }
+  }
+  safe_array_unlock(arr);
 }

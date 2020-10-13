@@ -51,10 +51,12 @@ class svr_ipcctrl {
   void get_rgbw(const char *cmd);
   void get_impulsecounter_value(const char *cmd);
   void get_electricitymeter_value(const char *cmd);
+  void get_valve_value(const char *cmd);
   void set_char(const char *cmd, bool group);
   void set_rgbw(const char *cmd, bool group, bool random);
   void alexa_credentials_changed(const char *cmd);
   void google_home_credentials_changed(const char *cmd);
+  void state_webhook_changed(const char *cmd);
   void on_device_deleted(const char *cmd);
 
   void send_result(const char *result);

@@ -41,6 +41,7 @@ const char cmd_is_iodev_connected[] = "IS-IODEV-CONNECTED";
 const char cmd_get_double_value[] = "GET-DOUBLE-VALUE";
 const char cmd_get_char_value[] = "GET-CHAR-VALUE";
 const char cmd_get_rgbw_value[] = "GET-RGBW-VALUE";
+const char cmd_get_valve_value[] = "GET-VALVE-VALUE";
 
 const char cmd_set_char_value[] = "SET-CHAR-VALUE";
 const char cmd_set_rgbw_value[] = "SET-RGBW-VALUE";
@@ -212,6 +213,19 @@ bool ipc_client::get_rgbw_value(int user_id, int device_id, int channel_id,
   return true;
 }
 
+bool ipc_client::get_valve_value(int user_id, int device_id, int channel_id,
+                                 TValve_Value *value) {
+  if (value == NULL ||
+      !get_value(cmd_get_valve_value, user_id, device_id, channel_id) ||
+      sscanf(&buffer[strnlen(ipc_result_value, 255)], "%hhu,%hhu",
+             &value->closed, &value->flags) != 2) {
+    memset(value, 0, sizeof(TValve_Value));
+    return false;
+  }
+
+  return true;
+}
+
 bool ipc_client::check_set_result(void) {
   if (read() &&
       memcmp(buffer, ipc_result_ok, strnlen(ipc_result_ok, 255)) == 0) {
@@ -245,11 +259,11 @@ bool ipc_client::set_rgbw_value(int user_id, int device_id, int channel_id,
   if (!ipc_connect()) return false;
 
   if (channel_group_id) {
-    snprintf(buffer, IPC_BUFFER_SIZE, "%s:%i,%i,%i,%i,%i\n",
+    snprintf(buffer, IPC_BUFFER_SIZE, "%s:%i,%i,%i,%i,%i,0\n",
              cmd_set_cg_rgbw_value, user_id, channel_group_id, color,
              color_brightness, brightness);
   } else {
-    snprintf(buffer, IPC_BUFFER_SIZE, "%s:%i,%i,%i,%i,%i,%i\n",
+    snprintf(buffer, IPC_BUFFER_SIZE, "%s:%i,%i,%i,%i,%i,%i,0\n",
              cmd_set_rgbw_value, user_id, device_id, channel_id, color,
              color_brightness, brightness);
   }

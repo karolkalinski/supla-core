@@ -44,6 +44,11 @@ class supla_client_channel : public supla_client_objcontainer_item {
   unsigned char ProtocolVersion;
   unsigned int Flags;
 
+  // during offline
+  char value[SUPLA_CHANNELVALUE_SIZE];
+  struct timeval value_valid_to;
+  // --------------
+
   void get_cost_and_currency(char currency[3], _supla_int_t *total_cost,
                              _supla_int_t *price_per_unit, double count);
   _supla_int64_t get_calculated_value(_supla_int_t impulses_per_unit,
@@ -58,7 +63,9 @@ class supla_client_channel : public supla_client_objcontainer_item {
                        int Param2, int Param3, char *TextParam1,
                        char *TextParam2, char *TextParam3, const char *Caption,
                        int AltIcon, int UserIcon, short ManufacturerID,
-                       short ProductID, unsigned char ProtocolVersion);
+                       short ProductID, unsigned char ProtocolVersion,
+                       int Flags, const char value[SUPLA_CHANNELVALUE_SIZE],
+                       unsigned _supla_int_t validity_time_sec);
   virtual ~supla_client_channel(void);
   void mark_for_remote_update(int mark);
   bool remote_update_is_possible(void);
@@ -67,8 +74,21 @@ class supla_client_channel : public supla_client_objcontainer_item {
   void proto_get(TSC_SuplaChannel_C *channel, supla_client *client);
   void proto_get(TSC_SuplaChannelValue *channel_value, supla_client *client);
   bool proto_get(TSC_SuplaChannelExtendedValue *cev, supla_client *client);
+  bool get_basic_cfg(TSC_ChannelBasicCfg *basic_cfg);
+  int getType();
+  int getFunc();
+  void setFunc(int Func);
+  void setCaption(const char *Caption);
   int getDeviceId();
+  short getManufacturerID();
+  short getProductID();
+  int getFlags();
   int getExtraId();
+
+  void setValueValidityTimeSec(unsigned _supla_int_t validity_time_sec);
+  bool isValueValidityTimeSet();
+  unsigned _supla_int64_t getValueValidityTimeUSec(void);
+  void resetValueValidityTime(void);
 };
 
 #endif /* CLIENTCHANNEL_H_ */

@@ -25,8 +25,6 @@
 #include "proto.h"
 #include "user.h"
 
-class supla_amazon_alexa;
-
 class database : public dbcommon {
  private:
   virtual char *cfg_get_host(void);
@@ -35,8 +33,8 @@ class database : public dbcommon {
   virtual char *cfg_get_database(void);
   virtual int cfg_get_port(void);
 
-  bool auth(const char *query, int ID, char *_PWD, int _PWD_HEXSIZE,
-            int *UserID, bool *is_enabled);
+  bool auth(const char *query, int ID, char *PWD, int PWD_MAXXSIZE, int *UserID,
+            bool *is_enabled);
   bool authkey_auth(const char GUID[SUPLA_GUID_SIZE],
                     const char Email[SUPLA_EMAIL_MAXSIZE],
                     const char AuthKey[SUPLA_AUTHKEY_SIZE], int *UserID,
@@ -46,6 +44,8 @@ class database : public dbcommon {
                         bool *is_null, const char *sql);
 
   void em_set_longlong(unsigned _supla_int64_t *v, void *pbind);
+  int get_device_client_id(int UserID, const char GUID[SUPLA_GUID_SIZE],
+                           bool client);
 
  public:
   bool location_auth(int LocationID, char *LocationPWD, int *UserID,
@@ -84,15 +84,15 @@ class database : public dbcommon {
   int get_location_id(int UserID, bool enabled);
 
   bool get_device_reg_enabled(int UserID);
-  int get_device_id_and_user(const char GUID[SUPLA_GUID_SIZE], int *UserID);
-  int get_device_id(const char GUID[SUPLA_GUID_SIZE]);
+  int get_device_id(int UserID, const char GUID[SUPLA_GUID_SIZE]);
   int get_device(int DeviceID, bool *device_enabled, int *original_location_id,
-                 int *location_id, bool *location_enabled, int *UserID);
+                 int *location_id, bool *location_enabled);
 
   int get_device_channel(int DeviceID, int ChannelNumber, int *Type);
   int get_device_channel_count(int DeviceID);
   int get_device_channel_type(int DeviceID, int ChannelNumber);
-  void get_device_channels(int DeviceID, supla_device_channels *channels);
+  void get_device_channels(int UserID, int DeviceID,
+                           supla_device_channels *channels);
 
   bool get_device_firmware_update_url(int DeviceID,
                                       TDS_FirmwareUpdateParams *params,
@@ -143,22 +143,44 @@ class database : public dbcommon {
 
   bool get_reg_enabled(int UserID, unsigned int *client,
                        unsigned int *iodevice);
+  bool set_reg_enabled(int UserID, int deviceRegTimeSec, int clientRegTimeSec);
 
   int oauth_add_client_id(void);
   int oauth_get_client_id(bool create);
   bool oauth_get_token(TSC_OAuthToken *token, int user_id, int access_id);
 
-  bool superuser_authorization(int UserID, char email[SUPLA_EMAIL_MAXSIZE],
-                               char password[SUPLA_PASSWORD_MAXSIZE]);
+  bool superuser_authorization(int UserID,
+                               const char email[SUPLA_EMAIL_MAXSIZE],
+                               const char password[SUPLA_PASSWORD_MAXSIZE]);
 
-  bool amazon_alexa_load_token(supla_amazon_alexa *alexa);
-  void amazon_alexa_remove_token(supla_amazon_alexa *alexa);
-  void amazon_alexa_update_token(supla_amazon_alexa *alexa, const char *token,
-                                 const char *refresh_token, int expires_in);
+  bool amazon_alexa_load_credentials(supla_amazon_alexa_credentials *alexa);
+  void amazon_alexa_remove_token(supla_amazon_alexa_credentials *alexa);
+  void amazon_alexa_update_token(supla_amazon_alexa_credentials *alexa,
+                                 const char *token, const char *refresh_token,
+                                 int expires_in);
 
-  bool google_home_load_token(supla_google_home *google_home);
+  bool google_home_load_credentials(supla_google_home_credentials *google_home);
+  bool state_webhook_load_credentials(supla_state_webhook_credentials *webhook);
+  void state_webhook_update_token(int UserID, const char *token,
+                                  const char *refresh_token, int expires_in);
+  void state_webhook_remove_token(int UserID);
 
   bool get_user_localtime(int UserID, TSDC_UserLocalTimeResult *time);
+  bool get_channel_basic_cfg(int ChannelID, TSC_ChannelBasicCfg *cfg);
+  bool set_channel_function(int UserID, int ChannelID, int Func);
+  bool get_channel_type_and_funclist(int UserID, int ChannelID, int *Type,
+                                     unsigned int *FuncList);
+  bool set_channel_caption(int UserID, int ChannelID, char *Caption);
+  bool channel_belong_to_group(int channel_id);
+  bool channel_has_schedule(int channel_id);
+  bool channel_is_associated_with_scene(int channel_id);
+  void update_channel_value(int channel_id, int user_id,
+                            const char value[SUPLA_CHANNELVALUE_SIZE],
+                            unsigned _supla_int_t validity_time_sec);
+  bool get_channel_value(int channel_id, int user_id,
+                         char value[SUPLA_CHANNELVALUE_SIZE],
+                         unsigned _supla_int_t *validity_time_sec);
+  void load_temperatures_and_humidity(int UserID, void *tarr);
 };
 
 #endif /* DATABASE_H_ */

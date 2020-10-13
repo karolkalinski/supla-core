@@ -26,12 +26,12 @@ CPP_SRCS += \
 ../src/database.cpp \
 ../src/datalogger.cpp \
 ../src/db.cpp \
+../src/dcpair.cpp \
 ../src/ipcctrl.cpp \
 ../src/objcontainer.cpp \
 ../src/objcontaineritem.cpp \
 ../src/serverconnection.cpp \
 ../src/supla-server.cpp \
-../src/voiceassistant.cpp \
 ../src/voiceassistantclient.cpp 
 
 OBJS += \
@@ -42,6 +42,7 @@ OBJS += \
 ./src/database.o \
 ./src/datalogger.o \
 ./src/db.o \
+./src/dcpair.o \
 ./src/eh.o \
 ./src/ini.o \
 ./src/ipcctrl.o \
@@ -60,7 +61,6 @@ OBJS += \
 ./src/supla-socket.o \
 ./src/svrcfg.o \
 ./src/tools.o \
-./src/voiceassistant.o \
 ./src/voiceassistantclient.o 
 
 C_DEPS += \
@@ -86,12 +86,12 @@ CPP_DEPS += \
 ./src/database.d \
 ./src/datalogger.d \
 ./src/db.d \
+./src/dcpair.d \
 ./src/ipcctrl.d \
 ./src/objcontainer.d \
 ./src/objcontaineritem.d \
 ./src/serverconnection.d \
 ./src/supla-server.d \
-./src/voiceassistant.d \
 ./src/voiceassistantclient.d 
 
 
@@ -99,14 +99,14 @@ CPP_DEPS += \
 src/%.o: ../src/%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: Cross G++ Compiler'
-	g++ -D__BCRYPT=1 -D__OPENSSL_TOOLS=1 -I/usr/include/mysql -I../src/client -I../src/user -I../src/device -I../src -I$(SSLDIR)/include -O3 -Wall -fsigned-char -c -fmessage-length=0 -fstack-protector-all -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
+	g++ -D__BCRYPT=1 -DSERVER_VERSION_23 -DUSE_DEPRECATED_EMEV_V1 -D__OPENSSL_TOOLS=1 -I$(INCMYSQL) -I../src/client -I../src/user -I../src/device -I../src -I$(SSLDIR)/include -O3 -Wall -fsigned-char -c -fmessage-length=0 -fstack-protector-all -std=c++11 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
 src/%.o: ../src/%.c
 	@echo 'Building file: $<'
 	@echo 'Invoking: Cross GCC Compiler'
-	gcc -D__BCRYPT=1 -D__OPENSSL_TOOLS=1 -I$(SSLDIR)/include -I../src -I../src/user -I../src/device -I../src/client -O3 -Wall -fsigned-char -c -fmessage-length=0 -fstack-protector-all -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
+	gcc -D__BCRYPT=1 -DSERVER_VERSION_23 -DUSE_DEPRECATED_EMEV_V1 -D__OPENSSL_TOOLS=1 -I$(SSLDIR)/include -I../src -I../src/user -I../src/device -I../src/client -O3 -Wall -fsigned-char -c -fmessage-length=0 -fstack-protector-all -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 
