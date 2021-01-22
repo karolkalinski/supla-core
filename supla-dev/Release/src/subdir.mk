@@ -21,7 +21,12 @@ CPP_SRCS += \
 ../src/devcfg.cpp \
 ../src/devconnection.cpp \
 ../src/ipcctrl.cpp \
-../src/supla-dev.cpp 
+../src/supla-dev.cpp \
+../src/RCSwitch.cpp \
+../src/RcOok.cpp \
+../src/Sensor.cpp \
+../src/decoder.cpp \
+../src/packetstorage.cpp
 
 OBJS += \
 ./src/accept_loop.o \
@@ -39,7 +44,12 @@ OBJS += \
 ./src/pi_2_dht_read.o \
 ./src/pi_2_mmio.o \
 ./src/supla-dev.o \
-./src/w1.o 
+./src/w1.o \
+./src/RCSwitch.o \
+./src/RcOok.o \
+./src/Sensor.o \
+./src/decoder.o \
+./src/packetstorage.o
 
 C_DEPS += \
 ./src/common_dht_read.d \

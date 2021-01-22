@@ -144,19 +144,17 @@ char channelio_read_from_file(client_device_channel *channel, char log_err) {
             memcpy(tmp_value, &val1, sizeof(double));
           } break;
           case SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE: {
-            if (!isFileOk(channel->getFileName(),
-                          channel->getFileWriteCheckSec())) {
-              val1 = -275;
-              val2 = -1;
-            }
-
+            val1 = 19.5;
+            val2 = 30;
+	    cout << "Jestem \n";
             int n;
 
             n = val1 * 1000;
             memcpy(tmp_value, &n, 4);
-
+            cout << n;
             n = val2 * 1000;
             memcpy(&tmp_value[4], &n, 4);
+            cout << n;
           } break;
           case SUPLA_CHANNELFNC_HUMIDITY: {
             if (!isFileOk(channel->getFileName(),
@@ -176,64 +174,13 @@ char channelio_read_from_file(client_device_channel *channel, char log_err) {
 
           } break;
           case SUPLA_CHANNELFNC_THERMOSTAT_HEATPOL_HOMEPLUS: {
-            int mode;
-            int power;
-            int fan;
-            double preset;
-            double measured;
 
-            read_result =
-                file_read_ac_data(channel->getFileName().c_str(), &mode, &power,
-                                  &preset, &measured, &fan);
-
-            if (read_result == 1) {
-              TSuplaChannelExtendedValue value;
-              memset(&value, 0, sizeof(TSuplaChannelExtendedValue));
-              TThermostat_ExtendedValue tv;
-              memset(&tv, 0, sizeof(TSuplaChannelExtendedValue));
-
-              TThermostat_Value *tv1 = (TThermostat_Value *)tmp_value;
-
-              if (channel->getExtendedValue(&value)) {
-                if (srpc_evtool_v1_extended2thermostatextended(&value, &tv)) {
-                  tv.Fields = THERMOSTAT_FIELD_Flags |
-                              THERMOSTAT_FIELD_MeasuredTemperatures;
-                  if (power == 1)
-                    tv.Flags[4] = SUPLA_THERMOSTAT_VALUE_FLAG_ON;
-                  else
-                    tv.Flags[4] = 0;
-
-                  tv1->MeasuredTemperature = measured * 100;
-                  tv1->PresetTemperature = preset * 100;
-
-                  if (srpc_evtool_v1_thermostatextended2extended(&tv, &value)) {
-                    channel->setExtendedValue(&value);
-                  }
-                }
-
-              } else { /* value not assigned */
-                tv.Fields = THERMOSTAT_FIELD_Flags |
-                            THERMOSTAT_FIELD_MeasuredTemperatures;
-
-                if (power == 1)
-                  tv.Flags[4] = SUPLA_THERMOSTAT_VALUE_FLAG_ON;
-                else
-                  tv.Flags[4] = 0;
-
-                tv1->MeasuredTemperature = measured * 100;
-                tv1->PresetTemperature = preset * 100;
-
-                if (srpc_evtool_v1_thermostatextended2extended(&tv, &value)) {
-                  channel->setExtendedValue(&value);
-                }
-              }
-            }
           }
         }
 
         if (channel->isBatteryPowered() && val3 != NULL)
           channel->setBatteryLevel(val3);
-        if (read_result == 1) channel->setValue(tmp_value);
+        // channel->setValue(tmp_value);
 
         if (read_result == 0 && log_err == 1)
           supla_log(LOG_ERR, "Can't read file %s",
@@ -522,11 +469,13 @@ void channelio_w1_iterate(void) {
 
 #ifdef __SINGLE_THREAD
 void channelio_iterate(void) {
+  cout << "Single thread \n";
   if (!channels->getInitialized()) return;
   channelio_w1_iterate();
 }
 #else
 void channelio_w1_execute(void *user_data, void *sthread) {
+  cout << "Multi thread \n";
   while (!sthread_isterminated(sthread)) {
     channelio_w1_iterate();
     usleep(W1_TEMP_MINDELAY_USEC);

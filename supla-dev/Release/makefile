@@ -46,7 +46,7 @@ all: supla-virtual-device
 supla-virtual-device: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
-	g++ -L/usr/src/openssl/lib -pthread -lrt -o "supla-virtual-device" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++ -L/usr/src/openssl/lib -pthread -lrt -lwiringPi -o "supla-virtual-device" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 

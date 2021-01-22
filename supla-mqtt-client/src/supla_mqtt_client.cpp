@@ -33,7 +33,7 @@
 
 int main(int argc, char *argv[]) {
   void *client_loop_t = NULL;
-
+  cout << "Hello 2";
   supla_log(LOG_INFO, "initializing main loop");
 
   if (clientcfg_init(argc, argv) == 0) {

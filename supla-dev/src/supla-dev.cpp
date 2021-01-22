@@ -32,6 +32,8 @@
 #include "supla-client-lib/log.h"
 #include "supla-client-lib/sthread.h"
 #include "supla-client-lib/tools.h"
+#include "RCSwitch.h"
+#include "Sensor.h"
 
 void exit_fail() {
   devcfg_free();
@@ -55,6 +57,12 @@ int main(int argc, char* argv[]) {
 #endif
 
   printf("SUPLA-VIRTUAL-DEVICE v%s\n", SOFTWARE_VERSION);
+  const int RXPIN=5;
+  const int TXPIN=0;
+  if(wiringPiSetup() == -1)
+	return 0;
+
+  RCSwitch *rc = new RCSwitch(RXPIN,TXPIN);
 
   for (int i = 0; i < argc; i++) {
     if (strcmp("-v", argv[i]) == 0) {
@@ -109,6 +117,38 @@ int main(int argc, char* argv[]) {
   // MAIN LOOP
   supla_log(LOG_DEBUG, "Entering main loop...");
   while (st_app_terminate == 0) {
+    if (rc->OokAvailable()) {
+      cout << "Stalo sie";
+      char message[100];
+      rc->getOokCode(message);
+      Sensor *s = Sensor::getRightSensor(message);
+      if (s!= NULL) {
+				printf("Temp : %f\n",s->getTemperature());
+				printf("Humidity : %f\n",s->getHumidity());
+				printf("Channel : %d\n",s->getChannel());
+                               // if((loggingok) && (s->getChannel()>0)) {
+                               //         fprintf(fp,"%d,temp%f,hum%f\n",s->getChannel(),s->getTemperature(),s->getHumidity());
+                               //         fflush(fp);
+                               //         fflush(stdout);
+                               // }
+
+        char tmp_value[SUPLA_CHANNELVALUE_SIZE];
+        int n;
+        double val2 = ( time( 0 ) % 3600 ) / 60, val1 = s->getTemperature();
+        n = val1 * 1000;
+        memcpy(tmp_value, &n, 4);
+
+        n = val2 * 1000;
+        memcpy(&tmp_value[4], &n, 4);
+        channelio_set_value(1, tmp_value, 0);
+      }
+      delete s;
+
+    } else if (rc->NexusAvailable()) {
+      char tmp_value[SUPLA_CHANNELVALUE_SIZE];
+      rc->getNexusCode(tmp_value);
+      channelio_set_value(0, tmp_value, 0);
+    }
     st_mainloop_wait(1000000);
   }
 
@@ -121,3 +161,61 @@ int main(int argc, char* argv[]) {
 
   return EXIT_SUCCESS;
 }
+/* ===================================================
+C code : test.cpp
+* ===================================================
+*/
+
+/*#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <time.h>
+#include "RCSwitch.h"
+#include "RcOok.h"
+#include "Sensor.h"
+
+int main(int argc, char *argv[])
+{
+	int RXPIN = 5;
+	int TXPIN = 0;
+        int loggingok;   // Global var indicating logging on or off
+        FILE *fp;        // Global var file handle
+        
+        if(argc==2) {
+          fp = fopen(argv[1], "a"); // Log file opened in append mode to avoid destroying data
+          loggingok=1;
+          if (fp == NULL) {
+              perror("Failed to open log file!"); // Exit if file open fails
+              exit(EXIT_FAILURE);
+          }
+        } else {
+          loggingok=0;
+        }
+
+
+	RCSwitch *rc = new RCSwitch(RXPIN,TXPIN);
+
+	while (1)
+	{
+		{
+
+			printf("%s\n",message);
+
+			Sensor *s = Sensor::getRightSensor(message);
+			if (s!= NULL)
+			{
+				printf("Temp : %f\n",s->getTemperature());
+				printf("Humidity : %f\n",s->getHumidity());
+				printf("Channel : %d\n",s->getChannel());
+                                if((loggingok) && (s->getChannel()>0)) {
+                                        fprintf(fp,"%d,temp%f,hum%f\n",s->getChannel(),s->getTemperature(),s->getHumidity());
+                                        fflush(fp);
+                                        fflush(stdout);
+                                }
+			}
+			delete s;
+		}
+		delay(1000);
+	}
+}
+*/
